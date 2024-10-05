@@ -1,0 +1,9 @@
+﻿  Main.cpp
+C:\Users\tomki\VS\ZPG\ZPG\Main.cpp(27,9): warning C4305: inicializování: zkrácení z: double na: float
+C:\Users\tomki\VS\ZPG\ZPG\Main.cpp(28,2): warning C4305: inicializování: zkrácení z: double na: float
+C:\Users\tomki\VS\ZPG\ZPG\Main.cpp(28,8): warning C4305: inicializování: zkrácení z: double na: float
+C:\Users\tomki\VS\ZPG\ZPG\Main.cpp(29,2): warning C4305: inicializování: zkrácení z: double na: float
+C:\Users\tomki\VS\ZPG\ZPG\Main.cpp(29,7): warning C4305: inicializování: zkrácení z: double na: float
+C:\Users\tomki\VS\ZPG\ZPG\Main.cpp(30,2): warning C4305: inicializování: zkrácení z: double na: float
+C:\Users\tomki\VS\ZPG\ZPG\Main.cpp(30,7): warning C4305: inicializování: zkrácení z: double na: float
+  ZPG.vcxproj -> C:\Users\tomki\VS\ZPG\ZPG\x64\Debug\ZPG.exe
