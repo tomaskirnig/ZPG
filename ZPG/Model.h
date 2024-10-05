@@ -4,7 +4,7 @@
 
 class Model {
 public:
-    GLuint VAO, VBO; // = 0;
+    GLuint VAO, VBO;
     size_t numVertices;
 
     Model(float* points, size_t size);

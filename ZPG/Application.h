@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include <vector>
 
 //Include custom classes
 #include "Shader.h"
@@ -28,8 +29,8 @@ class Application
 	public:
         GLFWwindow* window;
 		int width, height;
-        Shader* shaderProgram;
-        Model* model; 
+        vector<Shader*> shaderPrograms;
+        vector<Model*> models;
 
 		Application();
 		~Application();

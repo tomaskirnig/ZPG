@@ -16,9 +16,16 @@ Model::Model(float* points, size_t size) {
 }
 
 void Model::draw() {
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, numVertices);
-    glBindVertexArray(0);
+    if (numVertices == 3) {
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, numVertices);
+        glBindVertexArray(0);
+    }
+    else if (numVertices == 4) {
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_QUADS, 0, numVertices);
+        glBindVertexArray(0);
+    }
 }
 
 void Model::deleteModel() {

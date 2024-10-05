@@ -1,5 +1,13 @@
 #include "Application.h"
 
+
+const char* vertexShaderSource =
+"#version 330\n"
+"layout(location=0) in vec3 vp;"
+"void main () {"
+"     gl_Position = vec4 (vp, 1.0);"
+"}";
+
 Application::Application() {
     if (!glfwInit()) {
         cerr << "Failed to initialize GLFW" << endl;
@@ -45,16 +53,23 @@ Application::Application() {
     glfwGetFramebufferSize(window, &width, &height);
     float ratio = width / (float)height;
     glViewport(0, 0, width, height);	
+}
 
-    // Initialize Shader and Model
-    const char* vertexShaderSource = 
-        "#version 330\n"
-        "layout(location=0) in vec3 vp;"
-        "void main () {"
-        "     gl_Position = vec4 (vp, 1.0);"
-        "}";
+Application::~Application() {
+    // Clean up dynamically allocated memory
+    for (auto shader : shaderPrograms) {
+        delete shader;
+    }
+    for (auto model : models) {
+        delete model;
+    }
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
 
-    const char* fragmentShaderSource = 
+void Application::run() {
+	// triangle
+    const char* fragmentShaderSource =
         "#version 330\n"
         "out vec4 frag_colour;"
         "void main () {"
@@ -68,30 +83,38 @@ Application::Application() {
        -0.5f, -0.5f, 0.0f
     };
 
-    size_t size = sizeof(points);
+	// square
+    const char* fragmentShaderSource2 =
+        "#version 330\n"
+        "out vec4 frag_colour;"
+        "void main () {"
+        "     frag_colour = vec4 (0.0, 0.5, 0.5, 1.0);"
+        "}";
 
-    this->shaderProgram= new Shader(vertexShaderSource, fragmentShaderSource);
-    this->model = new Model(points, size);
-}
+    float squareVertices[] = {
+        0.5f,  0.5f, 0.0f,
+        0.8f,  0.5f, 0.0f,
+        0.8f,  0.8f, 0.0f,
+        0.5f,  0.8f, 0.0f,
+    };
 
-Application::~Application() {
-    delete shaderProgram;
-    model->deleteModel();
-    delete model;
-    glfwDestroyWindow(window);
-    glfwTerminate();
-}
+    shaderPrograms.push_back( new Shader(vertexShaderSource, fragmentShaderSource));
+    models.push_back(new Model(points, sizeof(points)));
 
-void Application::run() {
+	shaderPrograms.push_back(new Shader(vertexShaderSource, fragmentShaderSource2));
+	models.push_back(new Model(squareVertices, sizeof(squareVertices)));
+
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shaderProgram->use();
-        model->draw();
+        shaderPrograms[0]->use();
+        models[0]->draw();
+
+		shaderPrograms[1]->use();
+		models[1]->draw();
 
         glfwPollEvents();
         glfwSwapBuffers(window);
-        
     }
 
     glfwDestroyWindow(window);
