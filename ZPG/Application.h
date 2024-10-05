@@ -17,13 +17,23 @@
 #include <stdio.h>
 #include <iostream>
 
+//Include custom classes
+#include "Shader.h"
+#include "Model.h"
+
 using namespace std;
 
 class Application
 {
 	public:
+        GLFWwindow* window;
+		int width, height;
+        Shader* shaderProgram;
+        Model* model; 
+
 		Application();
-		//~Application();
+		~Application();
+		void run();
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);
