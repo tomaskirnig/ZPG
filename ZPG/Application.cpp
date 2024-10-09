@@ -52,12 +52,12 @@ Application::Application() {
     printf("Using GLFW %i.%i.%i\n", major, minor, revision);
 
 	// Callback functions
-    glfwSetFramebufferSizeCallback(window, window_size_callback);
+    /*glfwSetFramebufferSizeCallback(window, window_size_callback);
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetWindowFocusCallback(window, window_focus_callback);
 	glfwSetWindowIconifyCallback(window, window_iconify_callback);
 	glfwSetCursorPosCallback(window, cursor_callback);
-	glfwSetMouseButtonCallback(window, button_callback);
+	glfwSetMouseButtonCallback(window, button_callback);*/
 
 
     glfwGetFramebufferSize(window, &width, &height);
@@ -73,8 +73,14 @@ Application::~Application() {
     for (auto model : models) {
         delete model;
     }
+
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void Application::addObject(const float* object, size_t size, const char* vertexSource, const char* fragmentSource) {
+    shaderPrograms.push_back(new Shader(vertexSource, fragmentSource));
+    models.push_back(new Model(object, size));
 }
 
 void Application::run() {
@@ -87,7 +93,7 @@ void Application::run() {
         //"     frag_colour = vec4 (0.5, 0.0, hello, 1.0);" // CHYBA SCHVALNE
         "}";
 
-    float points[] = {
+     float points[] = {
         0.0f, 0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
        -0.5f, -0.5f, 0.0f
@@ -123,28 +129,15 @@ void Application::run() {
         .5f, -.5f, .5f,  0, 0, 1 
     };
 
-    shaderPrograms.push_back( new ShaderProgram(vertexShaderSource, fragmentShaderSource));
-    models.push_back(new Model(points, sizeof(points)));
-
-	shaderPrograms.push_back(new ShaderProgram(vertexShaderSource, fragmentShaderSource2));
-	models.push_back(new Model(squareVertices, sizeof(squareVertices)));
-
-    shaderPrograms.push_back(new ShaderProgram(vertexShaderSource2, fragmentShaderSource2));
-    models.push_back(new Model(sphere, sizeof(sphere)));
-
+	addObject(bushes, sizeof(bushes), vertexShaderSource2, fragmentShaderSource2);
     glEnable(GL_DEPTH_TEST);
 
+    // Main loop
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        /*shaderPrograms[0]->use();
+        shaderPrograms[0]->use();
         models[0]->draw();
-            
-		shaderPrograms[1]->use();
-		models[1]->draw();*/
-
-        shaderPrograms[2]->use();
-        models[2]->draw();
 
         glfwPollEvents();
         glfwSwapBuffers(window);

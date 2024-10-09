@@ -6,11 +6,11 @@ Model::Model(const float* points, size_t size) {
 
     if (numVertices > 4) {
         glGenBuffers(1, &VBO); // generate the VBO
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the VBO
         glBufferData(GL_ARRAY_BUFFER, size, points, GL_STATIC_DRAW);
 
-        glGenVertexArrays(1, &VAO); //generate the VAO
-        glBindVertexArray(VAO); //bind the VAO
+        glGenVertexArrays(1, &VAO); // generate the VAO
+        glBindVertexArray(VAO); // bind the VAO
 
         glEnableVertexAttribArray(0);  // Enable position attribute
         glEnableVertexAttribArray(1);  // Enable color attribute
@@ -23,7 +23,7 @@ Model::Model(const float* points, size_t size) {
         // Color attribute: location 1, 3 floats, offset by 3 floats
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
     }
-    else /*if(numVertices <= 3)*/ {
+    else {
         glGenBuffers(1, &VBO); // generate the VBO
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, size, points, GL_STATIC_DRAW);

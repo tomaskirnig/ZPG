@@ -9,7 +9,7 @@ private:
 
 public:
     Shader(const char* vertexSource, const char* fragmentSource);
-
+	GLuint compileShader(const char* source, GLenum type);
     void use() {
         glUseProgram(ID);
     }

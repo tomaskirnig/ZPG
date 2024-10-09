@@ -19,9 +19,11 @@
 #include <vector>
 
 //Include custom classes
-#include "ShaderProgram.h"
+#include "Shader.h"
 #include "Model.h"
 #include "sphere.h"
+#include "tree.h"
+#include "bushes.h"
 
 using namespace std;
 
@@ -30,11 +32,12 @@ class Application
 	public:
         GLFWwindow* window;
 		int width, height;
-        vector<ShaderProgram*> shaderPrograms;
+        vector<Shader*> shaderPrograms;
         vector<Model*> models;
 
 		Application();
 		~Application();
+		void addObject(const float* object, size_t size, const char* vertexSource, const char* fragmentSource);
 		void run();
 
         // Callback functions as static methods
