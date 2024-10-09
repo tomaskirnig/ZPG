@@ -4,18 +4,23 @@
 
 
 class Shader {
-public:
+private:
     GLuint ID;
+
+public:
     Shader(const char* vertexSource, const char* fragmentSource);
 
     void use() {
         glUseProgram(ID);
-		//cout << "Shader in use" << endl;
     }
 
     void deleteShader() {
         glDeleteProgram(ID);
     }
+
+    GLuint getShaderID() {
+		return ID;
+	}
 
 private:
     void checkCompileErrors(GLuint shader, std::string type);

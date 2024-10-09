@@ -8,6 +8,16 @@ const char* vertexShaderSource =
 "     gl_Position = vec4 (vp, 1.0);"
 "}";
 
+const char* vertexShaderSource2 =
+"#version 330\n"
+"layout(location=0) in vec3 vp;"  // Position attribute
+"layout(location=1) in vec3 vn;"  // Color attribute
+"out vec3 color;"                 // Passing color to the fragment shader
+"void main () {"
+"     gl_Position = vec4 (vp, 1.0);"
+"     color = vn;"                // Assigning input color to the output
+"}";
+
 Application::Application() {
     if (!glfwInit()) {
         cerr << "Failed to initialize GLFW" << endl;
@@ -84,11 +94,19 @@ void Application::run() {
     };
 
 	// square
-    const char* fragmentShaderSource2 =
+    /*const char* fragmentShaderSource2 =
         "#version 330\n"
         "out vec4 frag_colour;"
         "void main () {"
         "     frag_colour = vec4 (0.0, 0.5, 0.5, 1.0);"
+        "}";*/
+
+    const char* fragmentShaderSource2 =
+        "#version 330\n"
+        "in vec3 color;"
+        "out vec4 frag_colour;"
+        "void main () {"
+        "     frag_colour = vec4(color, 1.0);"  // Use the color passed from the vertex shader
         "}";
 
     float squareVertices[] = {
@@ -98,20 +116,35 @@ void Application::run() {
         0.5f,  0.8f, 0.0f,
     };
 
-    shaderPrograms.push_back( new Shader(vertexShaderSource, fragmentShaderSource));
+    float a[] = {
+        -.5f, -.5f, .5f,  0, 0, 1,
+        -.5f, .5f, .5f,  0, 0, 1,
+        .5f, .5f, .5f,  0, 0, 1,
+        .5f, -.5f, .5f,  0, 0, 1 
+    };
+
+    shaderPrograms.push_back( new ShaderProgram(vertexShaderSource, fragmentShaderSource));
     models.push_back(new Model(points, sizeof(points)));
 
-	shaderPrograms.push_back(new Shader(vertexShaderSource, fragmentShaderSource2));
+	shaderPrograms.push_back(new ShaderProgram(vertexShaderSource, fragmentShaderSource2));
 	models.push_back(new Model(squareVertices, sizeof(squareVertices)));
+
+    shaderPrograms.push_back(new ShaderProgram(vertexShaderSource2, fragmentShaderSource2));
+    models.push_back(new Model(sphere, sizeof(sphere)));
+
+    glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shaderPrograms[0]->use();
+        /*shaderPrograms[0]->use();
         models[0]->draw();
-
+            
 		shaderPrograms[1]->use();
-		models[1]->draw();
+		models[1]->draw();*/
+
+        shaderPrograms[2]->use();
+        models[2]->draw();
 
         glfwPollEvents();
         glfwSwapBuffers(window);

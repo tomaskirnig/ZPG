@@ -1,8 +1,2 @@
 ﻿  Application.cpp
-  Main.cpp
-  Model.cpp
-F:\VS\ZPG\ZPG\Model.cpp(21,39): warning C4267: argument: Převod z: size_t na: GLsizei, může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Model.cpp(26,35): warning C4267: argument: Převod z: size_t na: GLsizei, může dojít ke ztrátě dat.
-  Generování kódu...
-LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
-  ZPG.vcxproj -> F:\VS\ZPG\ZPG\x64\Debug\ZPG.exe
+  ZPG.vcxproj -> C:\Users\tomki\VS\ZPG\ZPG\x64\Debug\ZPG.exe

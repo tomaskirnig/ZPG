@@ -1,5 +1,4 @@
 #include "Shader.h"
-//#include "Application.h"
 
 using namespace std;
 

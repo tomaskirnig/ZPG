@@ -19,8 +19,9 @@
 #include <vector>
 
 //Include custom classes
-#include "Shader.h"
+#include "ShaderProgram.h"
 #include "Model.h"
+#include "sphere.h"
 
 using namespace std;
 
@@ -29,7 +30,7 @@ class Application
 	public:
         GLFWwindow* window;
 		int width, height;
-        vector<Shader*> shaderPrograms;
+        vector<ShaderProgram*> shaderPrograms;
         vector<Model*> models;
 
 		Application();
