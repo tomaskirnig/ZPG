@@ -21,6 +21,9 @@
 //Include custom classes
 #include "Shader.h"
 #include "Model.h"
+#include "Scene.h"
+
+//Include objects
 #include "sphere.h"
 #include "tree.h"
 #include "bushes.h"
@@ -29,16 +32,23 @@ using namespace std;
 
 class Application
 {
-	public:
+    private:
         GLFWwindow* window;
-		int width, height;
+	    int width, height;
         vector<Shader*> shaderPrograms;
         vector<Model*> models;
+		vector<Scene> scenes;
+		int currentScene;
 
-		Application();
-		~Application();
-		void addObject(const float* object, size_t size, const char* vertexSource, const char* fragmentSource);
-		void run();
+    public:
+	    Application();
+	    ~Application();
+	    void addObject(const float* object, size_t size, const char* vertexSource, const char* fragmentSource);
+	    void run();
+
+		// Change the current scene
+        void currentScenePlus();
+		void currentSceneMinus();
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);

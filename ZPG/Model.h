@@ -3,13 +3,15 @@
 #include <cstddef>
 #include <iostream>
 
+using namespace std;
 
 class Model {
-public:
-    GLuint VAO, VBO;
-    size_t numVertices;
+    private:
+        GLuint VAO, VBO;
+        size_t objectSize;
 
-    Model(const float* points, size_t size);
-    void draw();
-    void deleteModel();
+    public:
+        Model(const float* points, size_t size);
+        void draw();
+        void deleteModel();
 };

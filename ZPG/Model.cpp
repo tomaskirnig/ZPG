@@ -1,8 +1,9 @@
 #include "Model.h"
-using namespace std;
+
 
 Model::Model(const float* points, size_t size) {
-    numVertices = size / (sizeof(float) * 3);
+    objectSize = size;
+    int numVertices = objectSize / (sizeof(float) * 6);
 
     if (numVertices > 4) {
         glGenBuffers(1, &VBO); // generate the VBO
@@ -37,7 +38,7 @@ Model::Model(const float* points, size_t size) {
 }
 
 void Model::draw() {
-    if (numVertices == 3) {
+    /*if (numVertices == 3) {
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, numVertices);
         glBindVertexArray(0);
@@ -48,10 +49,11 @@ void Model::draw() {
         glBindVertexArray(0);
     }
     else {
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, numVertices);
-        glBindVertexArray(0);
-    }
+        
+    }*/
+    glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, objectSize); // Possible to use GL_TRIANGLE_STRIP
+    glBindVertexArray(0);
 }
 
 void Model::deleteModel() {

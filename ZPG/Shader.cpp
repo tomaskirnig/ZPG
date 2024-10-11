@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-using namespace std;
+
 
 
 Shader::Shader(const char* vertexSource, const char* fragmentSource) {

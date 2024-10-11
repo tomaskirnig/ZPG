@@ -52,17 +52,19 @@ Application::Application() {
     printf("Using GLFW %i.%i.%i\n", major, minor, revision);
 
 	// Callback functions
-    /*glfwSetFramebufferSizeCallback(window, window_size_callback);
+    //glfwSetFramebufferSizeCallback(window, window_size_callback);
 	glfwSetKeyCallback(window, key_callback);
-	glfwSetWindowFocusCallback(window, window_focus_callback);
+    /*glfwSetWindowFocusCallback(window, window_focus_callback);
 	glfwSetWindowIconifyCallback(window, window_iconify_callback);
 	glfwSetCursorPosCallback(window, cursor_callback);
 	glfwSetMouseButtonCallback(window, button_callback);*/
 
+    glfwSetWindowUserPointer(window, this);
 
     glfwGetFramebufferSize(window, &width, &height);
     float ratio = width / (float)height;
     glViewport(0, 0, width, height);	
+	currentScene = 0;
 }
 
 Application::~Application() {
@@ -129,15 +131,23 @@ void Application::run() {
         .5f, -.5f, .5f,  0, 0, 1 
     };
 
-	addObject(bushes, sizeof(bushes), vertexShaderSource2, fragmentShaderSource2);
     glEnable(GL_DEPTH_TEST);
+
+	// Create two scenes
+	scenes.push_back(Scene());
+	scenes.push_back(Scene());
+
+	// Firs scene - tree, second scene - bushes
+	scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSource2, fragmentShaderSource2));
+	scenes[1].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSource2, fragmentShaderSource2));
+
+	//cout << "size of scenes: " << scenes.size() << endl;
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shaderPrograms[0]->use();
-        models[0]->draw();
+		scenes[currentScene].render();
 
         glfwPollEvents();
         glfwSwapBuffers(window);
@@ -149,6 +159,21 @@ void Application::run() {
     exit(EXIT_SUCCESS);
 }
 
+
+void Application::currentScenePlus() {
+    currentScene++;
+    if (currentScene >= scenes.size()) {
+        currentScene = 0;  // Wrap around to the first scene if we exceed the number of scenes
+    }
+}
+
+void Application::currentSceneMinus() {
+    currentScene--;
+    if (currentScene < 0) {
+        currentScene = scenes.size();
+    }
+}
+
 void Application::error_callback(int error, const char* description) {
     fputs(description, stderr);
 }
@@ -157,6 +182,26 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
     cout << "key_callback [" << key << "," << scancode << "," << action << "," << mods << "]" << endl;
+
+    Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+
+    if (app == NULL) {
+        cerr << "Key_callback -> app = NULL"<< endl;
+    }
+
+    if (app) {
+        if (action == GLFW_PRESS) { // Only change the scene when the key is pressed
+            if (key == GLFW_KEY_RIGHT) {
+                app->currentScenePlus();
+				cout << "currentScene: " << app->currentScene << endl;
+            }
+            else if (key == GLFW_KEY_LEFT) {
+                app->currentSceneMinus();
+                cout << "currentScene: " << app->currentScene << endl;
+            }
+        }
+    }
+    
 }
 
 void Application::window_focus_callback(GLFWwindow* window, int focused) { cout << "window_focus_callback" << endl; }
