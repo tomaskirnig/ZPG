@@ -19,9 +19,11 @@
 #include <vector>
 
 //Include custom classes
-#include "Shader.h"
-#include "Model.h"
 #include "Scene.h"
+
+//Include shaders
+//#include "FragmentShaders.h"
+//#include "VertexShaders.h"
 
 //Include objects
 #include "sphere.h"
@@ -35,20 +37,22 @@ class Application
     private:
         GLFWwindow* window;
 	    int width, height;
-        vector<Shader*> shaderPrograms;
-        vector<Model*> models;
-		vector<Scene> scenes;
+        std::vector<Scene> scenes;
 		int currentScene;
+        int currentObject;
 
     public:
 	    Application();
-	    ~Application();
-	    void addObject(const float* object, size_t size, const char* vertexSource, const char* fragmentSource);
+	    //~Application();
 	    void run();
 
 		// Change the current scene
         void currentScenePlus();
 		void currentSceneMinus();
+
+        // Object controls
+		void currentObjectPlus();
+        void processInput();
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);

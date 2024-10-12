@@ -18,4 +18,6 @@ class DrawableObject {
         void draw();
 
         void applyTransformation(Transformation* transform);
+
+        Transformation* getTransformation();
 };

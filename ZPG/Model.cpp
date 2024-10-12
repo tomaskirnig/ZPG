@@ -1,6 +1,5 @@
 #include "Model.h"
 
-
 Model::Model(const float* points, size_t size) {
     objectSize = size;
     int numVertices = objectSize / (sizeof(float) * 6);

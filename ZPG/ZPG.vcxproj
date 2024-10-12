@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include;..\Libraries\glm-master\glm-master;..\Libraries\glew-2.1.0-win32\glew-2.1.0\include;..\Models\Models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include;..\Libraries\glm-master\glm-master;..\Libraries\glew-2.1.0-win32\glew-2.1.0\include;..\Models\Models;..\Shaders\Fragment;..\Shaders\Vertex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

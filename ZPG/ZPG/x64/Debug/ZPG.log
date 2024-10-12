@@ -1,4 +1,9 @@
 ﻿  Application.cpp
-F:\VS\ZPG\ZPG\Application.cpp(176,35): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
+F:\VS\ZPG\ZPG\Application.cpp(187,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+  DrawableObject.cpp
+  Main.cpp
+  Scene.cpp
+F:\VS\ZPG\ZPG\Scene.cpp(23,21): warning C4267: return: Převod z: size_t na: int, může dojít ke ztrátě dat.
+  Transformation.cpp
+  Generování kódu...
   ZPG.vcxproj -> F:\VS\ZPG\ZPG\x64\Debug\ZPG.exe

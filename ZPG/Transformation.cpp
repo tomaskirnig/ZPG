@@ -1,32 +1,55 @@
 #include "Transformation.h"
 
-Transformation::Transformation() : position(0.0f), rotationAxis(1.0f, 0.0f, 0.0f), rotationAngle(0.0f), scale(1.0f) {}
+
+Transformation::Transformation() : position(0.0f), rotationMatrix(1.0f), scale(glm::vec3(0.5f)) {
+	updateMatrix();
+}
 
 glm::mat4 Transformation::getMatrix() const {
-    glm::mat4 matrix = glm::mat4(1.0f);
-    matrix = glm::translate(matrix, position);
-    matrix = glm::rotate(matrix, glm::radians(rotationAngle), rotationAxis);
-    matrix = glm::scale(matrix, scale);
-
-    // Apply transformations from all child nodes
-    for (const auto& child : children) {
-        matrix *= child->getMatrix();
-    }
-
     return matrix;
 }
 
 void Transformation::setPosition(const glm::vec3& pos) {
     position = pos;
+    updateMatrix();
 }
 
-void Transformation::setRotation(float angle, const glm::vec3& axis) {
-    rotationAngle = angle;
-    rotationAxis = axis;
+glm::vec3 Transformation::getPosition(){
+    return position;
+}
+
+void Transformation::setRotationMatrix(const glm::mat4& newRotationMatrix) {
+	rotationMatrix = newRotationMatrix;
+	updateMatrix();
+}
+
+void Transformation::applyRotationMatrix(const glm::mat4& newRotationMatrix) {
+    rotationMatrix = rotationMatrix * newRotationMatrix;  // Multiply the new rotation by the existing one
+    updateMatrix();  // Recalculate the final transformation matrix
+}
+
+glm::mat4 Transformation::getRotationMatrix() {
+    return rotationMatrix;
 }
 
 void Transformation::setScale(const glm::vec3& scale) {
     this->scale = scale;
+    updateMatrix();
+}
+
+glm::vec3 Transformation::getScale(){
+    return scale;
+}
+
+void Transformation::updateMatrix() {
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
+    matrix = translationMatrix * rotationMatrix * scaleMatrix;
+}
+
+void Transformation::resetRotation() {
+    rotationMatrix = glm::mat4(1.0f); // Reset rotation to identity matrix
+    updateMatrix();
 }
 
 void Transformation::addChild(Transformation* child) {

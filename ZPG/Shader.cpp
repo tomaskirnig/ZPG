@@ -1,8 +1,6 @@
 #include "Shader.h"
 
 
-
-
 Shader::Shader(const char* vertexSource, const char* fragmentSource) {
     GLuint vertexShader = compileShader(vertexSource, GL_VERTEX_SHADER);
     GLuint fragmentShader = compileShader(fragmentSource, GL_FRAGMENT_SHADER);
