@@ -11,12 +11,11 @@ class Transformation
 {
     private:
         glm::vec3 position;
-       /* glm::vec3 rotationAxis;
-        float rotationAngle;*/
         glm::vec3 scale;
         glm::mat4 rotationMatrix;
         glm::mat4 matrix;
 
+        // (Composite pattern)
         vector<Transformation*> children;
 
         void updateMatrix();
@@ -26,12 +25,16 @@ class Transformation
 
         glm::mat4 getMatrix() const;
 
+		// Position
         void setPosition(const glm::vec3& pos);
 		glm::vec3 getPosition();
 
+		// Scale
         void setScale(const glm::vec3& scale);
         glm::vec3 getScale();
+		void resetScale();
 
+		// Rotation
 		void setRotationMatrix(const glm::mat4& newRotationMatrix);
         void applyRotationMatrix(const glm::mat4& newRotationMatrix);
 		glm::mat4 getRotationMatrix();

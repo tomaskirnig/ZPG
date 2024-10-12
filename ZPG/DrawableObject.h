@@ -9,7 +9,6 @@ class DrawableObject {
         Model* model;
         Shader* shader;
 
-        // Root Transformation object (Composite pattern)
         Transformation* transformation;
 
     public:

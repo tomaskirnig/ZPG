@@ -52,6 +52,11 @@ void Transformation::resetRotation() {
     updateMatrix();
 }
 
+void Transformation::resetScale() {
+	scale = glm::vec3(0.5f); // Reset scale to 0.5
+	updateMatrix();
+}
+
 void Transformation::addChild(Transformation* child) {
     children.push_back(child);
 }

@@ -56,9 +56,6 @@ void Scene::moveObject(int currentObject, char direction) {
     glm::vec3 rotatedMovement = glm::vec3(transform->getRotationMatrix() * glm::vec4(movement, 0.0f));
 
     transform->setPosition(currentPosition + rotatedMovement);
-
-    // Update the object's transformation matrix
-    //objects[currentObject]->applyTransformation(transform);
 }
 
 
@@ -67,7 +64,6 @@ void Scene::rotateObject(int currentObject, int direction) {
 
     glm::mat4 rotationMatrix(1.0f);  // Identity matrix for rotation
 
-    // Determine the rotation direction and axis
     switch (direction) {
     case 1:
         rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate +1 degree on X-axis
@@ -101,13 +97,23 @@ void Scene::rotateObject(int currentObject, int direction) {
     transform->applyRotationMatrix(rotationMatrix);
 }
 
-
 void Scene::scaleObject(int currentObject, char direction) {
     Transformation* transform = objects[currentObject]->getTransformation();
 
+	if (direction == 'u') { // Scale up
+		transform->setScale(transform->getScale() + 0.01f);
+	}
+	else if (direction == 'd') { // Scale down
+        transform->setScale(transform->getScale() - 0.01f);
+    }
 }
 
 void Scene::resetObjectRotation(int currentObject) {
     Transformation* transform = objects[currentObject]->getTransformation();
     transform->resetRotation();
+}
+
+void Scene::resetObjectScale(int currentObject) {
+	Transformation* transform = objects[currentObject]->getTransformation();
+	transform->resetScale();
 }

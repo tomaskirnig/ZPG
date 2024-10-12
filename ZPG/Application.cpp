@@ -1,14 +1,6 @@
 #include "Application.h"
 
-
-
-const char* vertexShaderSource =
-"#version 330\n"
-"layout(location=0) in vec3 vp;"
-"void main () {"
-"     gl_Position = vec4 (vp, 1.0);"
-"}";
-
+// Vertex shader source code
 const char* vertexShaderSource2 =
 "#version 330\n"
 "layout(location=0) in vec3 vp;"  // Position attribute
@@ -28,6 +20,31 @@ const char* vertexShaderSource3 =
 "void main () {"
 "     gl_Position = transformationMatrix * vec4(vp, 1.0);"  // Apply transformation matrix to position
 "     color = vn;"                // Assigning input color to the output
+"}";
+
+// Fragment shader source code
+const char* fragmentShaderSource =
+"#version 330\n"
+"out vec4 frag_colour;"
+"void main () {"
+"     frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
+//"     frag_colour = vec4 (0.5, 0.0, hello, 1.0);" // CHYBA SCHVALNE
+"}";
+
+const char* fragmentShaderSource2 =
+"#version 330\n"
+"in vec3 color;"
+"out vec4 frag_colour;"
+"void main () {"
+"     frag_colour = vec4(color, 1.0);"  // Use the color passed from the vertex shader
+"}";
+
+const char* fragmentShaderSource3 =
+"#version 330\n"
+"in vec3 color;"     // Receive the interpolated color from the vertex shader
+"out vec4 frag_colour;"  // Declare the output color variable
+"void main() {"
+"    frag_colour = vec4(color, 1.0);"  // Set the fragment color using the input color and alpha = 1.0
 "}";
 
 
@@ -81,53 +98,7 @@ Application::Application() {
 	currentScene = 0;
 }
 
-//Application::~Application() {
-//    // Clean up dynamically allocated memory
-//    for (auto shader : shaderPrograms) {
-//        delete shader;
-//    }
-//    for (auto model : models) {
-//        delete model;
-//    }
-//
-//    glfwDestroyWindow(window);
-//    glfwTerminate();
-//}
-
-
 void Application::run() {
-    const char* fragmentShaderSource =
-        "#version 330\n"
-        "out vec4 frag_colour;"
-        "void main () {"
-        "     frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
-        //"     frag_colour = vec4 (0.5, 0.0, hello, 1.0);" // CHYBA SCHVALNE
-        "}";
-
-    /*const char* fragmentShaderSource2 =
-        "#version 330\n"
-        "out vec4 frag_colour;"
-        "void main () {"
-        "     frag_colour = vec4 (0.0, 0.5, 0.5, 1.0);"
-        "}";*/
-
-    const char* fragmentShaderSource2 =
-        "#version 330\n"
-        "in vec3 color;"
-        "out vec4 frag_colour;"
-        "void main () {"
-        "     frag_colour = vec4(color, 1.0);"  // Use the color passed from the vertex shader
-        "}";
-
-    const char* fragmentShaderSource3 =
-        "#version 330\n" 
-        "in vec3 color;"     // Receive the interpolated color from the vertex shader
-        "out vec4 frag_colour;"  // Declare the output color variable
-        "void main() {"
-        "    frag_colour = vec4(color, 1.0);"  // Set the fragment color using the input color and alpha = 1.0
-        "}";
-
-
     float square[] = {
         0.5f,  0.5f, 0.0f,  0, 0, 1,
         0.8f,  0.5f, 0.0f,  0, 0, 1,
@@ -143,22 +114,21 @@ void Application::run() {
 	// Create second scene
 	scenes.push_back(Scene());
 
-    // Adding objects to scnenes
+    // Adding objects to scnene
 	scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3));
 	scenes[0].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3));
     scenes[0].addObject(new DrawableObject(square, sizeof(square), vertexShaderSource3, fragmentShaderSource));
-	scenes[1].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3));
-
-    scenes[0].moveObject(currentObject, 'd');
-    scenes[0].moveObject(currentObject, 'd');
 
     currentObject = 0;
-	//cout << "size of scenes: " << scenes.size() << endl;
+
+	// Add a forest to the second scene
+	addForest(1, 7);
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         processInput();
+
 		scenes[currentScene].render();
 
         glfwPollEvents();
@@ -233,18 +203,25 @@ void Application::processInput() {
 	else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
 		scenes[currentScene].rotateObject(currentObject, 6);  // Rotate around z-axis
 	}
+    else if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
+        scenes[currentScene].scaleObject(currentObject, 'u');  // Scale up
+    }
+    else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
+        scenes[currentScene].scaleObject(currentObject, 'd');  // Scale down
+    }
 }
 
 void Application::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
     //cout << "key_callback [" << key << "," << scancode << "," << action << "," << mods << "]" << endl;
+
     Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
 
     if (app == NULL) {
         cerr << "Key_callback -> app = NULL" << endl;
     }
-
+	// Change of scenes, objects and reset of object rotation and scale
     if (app) {
         if (action == GLFW_PRESS) {
             switch (key)
@@ -265,12 +242,78 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 					app->scenes[app->currentScene].resetObjectRotation(app->currentObject);
 					break;
 
+				case GLFW_KEY_T:
+					app->scenes[app->currentScene].resetObjectScale(app->currentObject);
+
 			    default:
 				    break;
 			}
         }
     }
 }
+
+void Application::addForest(int sceneIndex, int numTrees) {
+    std::random_device rd;
+    std::mt19937 gen(rd());  // Random number generator
+
+    // Trees
+    // Range for random positions
+    std::uniform_real_distribution<> disXTree(-1.0, 1.0);  // X-axis range 
+    std::uniform_real_distribution<> disYTree(-1.0, -0.5);  // Y-axis range
+    std::uniform_real_distribution<> disZTree(-1.0, -0.5);  // Z-axis range 
+
+    // Random scaling
+    std::uniform_real_distribution<> disScaleTree(0.1, 0.2);
+
+    // Random Y-axis rotation (0 to 360 degrees in radians)
+    std::uniform_real_distribution<> disRotationY(0.0, 360.0);
+
+    // Place Trees
+    for (int i = 0; i < numTrees; ++i) {
+        // Generate random x, y, z positions 
+        float randomX = disXTree(gen);
+        float randomY = disYTree(gen);
+        float randomZ = disZTree(gen);
+        float randomRotationY = glm::radians(disRotationY(gen));  // Random rotation in radians
+
+        // Create a new DrawableObject
+        DrawableObject* treeObject = new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3);
+
+        // Set the transformation matrix (position and scale) 
+        Transformation* transform = treeObject->getTransformation();
+        transform->setPosition(glm::vec3(randomX, randomY, randomZ));  // Place at random x, y, z 
+        transform->setScale(glm::vec3(disScaleTree(gen)));  // Apply random scaling
+		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), randomRotationY, glm::vec3(0.0f, 1.0f, 0.0f));  // Rotation matrix around Y-axis
+        transform->applyRotationMatrix(rotationMatrix);  // Rotate around Y-axis
+
+        // Add the tree to the specified scene
+        scenes[sceneIndex].addObject(treeObject);
+    }
+
+	// Bushes
+    std::uniform_real_distribution<> disXBush(-1.0, 1.0);  
+    std::uniform_real_distribution<> disYBush(-0.8, -0.3); 
+    std::uniform_real_distribution<> disZBush(-1.0, -0.5);
+
+    std::uniform_real_distribution<> disScaleBush(0.05, 0.15);
+
+    for (int i = 0; i < numTrees; ++i) {
+
+        float randomX = disXBush(gen);
+        float randomY = disYBush(gen);
+        float randomZ = disZBush(gen);  
+
+        DrawableObject* bushObject = new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3);
+
+        Transformation* transform = bushObject->getTransformation();
+        transform->setPosition(glm::vec3(randomX, randomY, randomZ));  
+        transform->setScale(glm::vec3(disScaleBush(gen))); 
+
+        scenes[sceneIndex].addObject(bushObject);
+    }
+}
+
+
 
 void Application::window_focus_callback(GLFWwindow* window, int focused) { cout << "window_focus_callback" << endl; }
 

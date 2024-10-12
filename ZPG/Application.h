@@ -17,13 +17,10 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <random>  
 
 //Include custom classes
 #include "Scene.h"
-
-//Include shaders
-//#include "FragmentShaders.h"
-//#include "VertexShaders.h"
 
 //Include objects
 #include "sphere.h"
@@ -43,7 +40,6 @@ class Application
 
     public:
 	    Application();
-	    //~Application();
 	    void run();
 
 		// Change the current scene
@@ -53,6 +49,9 @@ class Application
         // Object controls
 		void currentObjectPlus();
         void processInput();
+
+		// Object generation
+		void addForest(int sceneIndex, int numTrees);
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);

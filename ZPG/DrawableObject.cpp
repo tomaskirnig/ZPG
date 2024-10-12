@@ -7,11 +7,12 @@ DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, const c
 }
 
 void DrawableObject::draw() {
+	// Set the shader to be used
     shader->use();
 
     glm::mat4 transformationMatrix = transformation->getMatrix();
 
-    // Get the cached uniform location (or retrieve it if it hasn't been cached yet)
+    // Get the uniform location
     GLint transformLoc = shader->getUniformLocation("transformationMatrix");
 
     // Send the transformation matrix to the shader
