@@ -185,6 +185,12 @@ void Application::processInput() {
 	else if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         scenes[currentScene].moveObject(currentObject, 'r');  // Move right
     }
+    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+        scenes[currentScene].moveObject(currentObject, 'b');  // Move back
+    }
+    else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+        scenes[currentScene].moveObject(currentObject, 'f');  // Move front
+    }
 	else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
 		scenes[currentScene].rotateObject(currentObject, 1);  // Rotate around x-axis
 	}

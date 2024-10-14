@@ -48,14 +48,27 @@ void Scene::moveObject(int currentObject, char direction) {
             movement = glm::vec3(movementSpeed, 0.0f, 0.0f);
             break;
 
+        case 'f':
+            movement = glm::vec3(0.0f, 0.0f, movementSpeed); // Move along Z-axis
+			break;
+
+        case 'b':
+            movement = glm::vec3(0.0f, 0.0f, -movementSpeed); 
+			break;
+
         default:
             break;
     }
 
+    //Moving in local coordinates
     // Transform movement vector by the rotation matrix to move in local space
-    glm::vec3 rotatedMovement = glm::vec3(transform->getRotationMatrix() * glm::vec4(movement, 0.0f));
+    /*glm::vec3 rotatedMovement = glm::vec3(transform->getRotationMatrix() * glm::vec4(movement, 0.0f));
 
-    transform->setPosition(currentPosition + rotatedMovement);
+    transform->setPosition(currentPosition + rotatedMovement);*/
+
+    // Move in global coordinatese
+    transform->setPosition(currentPosition + movement);
+
 }
 
 
