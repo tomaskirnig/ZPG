@@ -14,6 +14,8 @@ class Scene {
         void render();
 		int objectsCount();
 
+		vector<Shader*> getShaders();
+
 		// Object controls
 		void moveObject(int currentObject, char direction); // u - up, d - down, l - left, r - right
 		void rotateObject(int currentObject, int direction); // 1 - +x, 2 - -x, 3 - +y, 4 - -y, 5 - +z, 6 - -z

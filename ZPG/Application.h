@@ -21,6 +21,7 @@
 
 //Include custom classes
 #include "Scene.h"
+#include "Camera.h"
 
 //Include objects
 #include "sphere.h"
@@ -34,13 +35,24 @@ class Application
     private:
         GLFWwindow* window;
 	    int width, height;
-        std::vector<Scene> scenes;
-		int currentScene;
+		int lastX, lastY;
+		float aspectRatio;
+        vector<Scene> scenes;
+        vector<Camera> cameras;
+
+        int currentScene;
         int currentObject;
+		int currentCamera;
 
     public:
 	    Application();
 	    void run();
+		float getAspectRatio();
+
+		// Cursor controls
+        void centerCursor();
+		void disableAndLockCursor();
+		void enableCursor();
 
 		// Change the current scene
         void currentScenePlus();
@@ -49,6 +61,8 @@ class Application
         // Object controls
 		void currentObjectPlus();
         void processInput();
+
+		void currentCameraPlus();
 
 		// Object generation
 		void addForest(int sceneIndex, int numTrees);

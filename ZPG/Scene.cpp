@@ -130,3 +130,13 @@ void Scene::resetObjectScale(int currentObject) {
 	Transformation* transform = objects[currentObject]->getTransformation();
 	transform->resetScale();
 }
+
+vector<Shader*> Scene::getShaders() {
+	vector<Shader*> shaders;
+
+	for (int i = 0; i < objects.size(); i++) {
+		shaders.push_back(objects[i]->getShader());
+	}
+
+	return shaders;
+}

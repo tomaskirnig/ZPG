@@ -19,4 +19,8 @@ class DrawableObject {
         void applyTransformation(Transformation* transform);
 
         Transformation* getTransformation();
+
+        Shader* getShader() {
+            return this->shader;
+        }
 };
