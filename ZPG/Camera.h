@@ -20,7 +20,7 @@ public:
     float Pitch;
     float MovementSpeed;
     float MouseSensitivity;
-    float Zoom;
+    float Fov;
 
     // List of observers (shaders)
     vector<Observer*> observers;
@@ -39,12 +39,12 @@ public:
     glm::mat4 GetViewMatrix();
 
     // Processes input for camera movement
-    void ProcessKeyboardMovement(const char direction, float deltaTime, float aspectRatio);
+    void ProcessKeyboardMovement(const char direction, float aspectRatio);
 
     // Processes mouse movement
     void ProcessMouseMovement(float xOffset, float yOffset, bool constrainPitch, float aspectRatio);
 
-    // Zoom control
+    // Fov control
     void ProcessMouseScroll(float yOffset, float aspectRatio);
 
 private:

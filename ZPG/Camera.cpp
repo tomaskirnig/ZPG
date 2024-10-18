@@ -2,7 +2,7 @@
 
 // Constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
-    Position(position), WorldUp(up), Yaw(yaw), Pitch(pitch), MovementSpeed(2.5f), MouseSensitivity(0.1f), Zoom(45.0f) {
+    Position(position), WorldUp(up), Yaw(yaw), Pitch(pitch), MovementSpeed(0.05f), MouseSensitivity(0.1f), Fov(75.0f) {
     updateCameraVectors();
 }
 
@@ -13,15 +13,15 @@ glm::mat4 Camera::GetViewMatrix() {
 
 void Camera::notifyObservers(float aspectRatio) {
     glm::mat4 viewMatrix = GetViewMatrix();
-    glm::mat4 projectionMatrix = glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 100.0f);
+    glm::mat4 projectionMatrix = glm::perspective(glm::radians(Fov), aspectRatio, 0.1f, 100.0f);
     for (Observer* observer : observers) {
         observer->update(viewMatrix, projectionMatrix);
     }
 }
 
 // Processes input from keyboard for moving the camera
-void Camera::ProcessKeyboardMovement(const char direction, float deltaTime, float aspectRatio) {
-    float velocity = MovementSpeed * deltaTime;
+void Camera::ProcessKeyboardMovement(const char direction, float aspectRatio) {
+    float velocity = MovementSpeed;
     if (direction == 'w')
         Position += Target * velocity;  // Move forward
     if (direction == 's')
@@ -57,12 +57,12 @@ void Camera::ProcessMouseMovement(float xOffset, float yOffset, bool constrainPi
 
 // Processes input from the mouse scroll wheel
 void Camera::ProcessMouseScroll(float yOffset, float aspectRatio) {
-    if (Zoom >= 1.0f && Zoom <= 45.0f)
-        Zoom -= yOffset;
-    if (Zoom <= 1.0f)
-        Zoom = 1.0f;
-    if (Zoom >= 45.0f)
-        Zoom = 45.0f;
+    if (Fov >= 1.0f && Fov <= 45.0f)
+        Fov -= yOffset;
+    if (Fov <= 1.0f)
+        Fov = 1.0f;
+    if (Fov >= 45.0f)
+        Fov = 45.0f;
 
     notifyObservers(aspectRatio);
 }

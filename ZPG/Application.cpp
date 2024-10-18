@@ -56,7 +56,7 @@ Application::Application() {
         exit(EXIT_FAILURE);
     }
 
-    window = glfwCreateWindow(800, 600, "ZPG", NULL, NULL);
+    window = glfwCreateWindow(1536, 864, "ZPG", NULL, NULL);
     if (!window) {
         glfwTerminate();
         cerr << "Failed to create GLFW window" << endl;
@@ -126,6 +126,7 @@ void Application::run() {
 
 	// Create second scene
 	scenes.push_back(Scene());
+	cameras.push_back(Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f));
 
     // Adding objects to scnene
 	scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3));
@@ -141,12 +142,14 @@ void Application::run() {
 	}
 
     // After registering observers
-    cameras[0].notifyObservers(aspectRatio);
+	for (int i = 0; i < cameras.size(); i++) {
+		cameras[i].notifyObservers(aspectRatio);
+	}
 
     currentObject = 0;
 
 	// Add a forest to the second scene
-	addForest(1, 7);
+	addForest(1, 50);
 
     float currentFrame;
     
@@ -240,19 +243,19 @@ void Application::processInput() {
     // Get the current state of control keys and move the object 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         //scenes[currentScene].moveObject(currentObject, 'u');  // Move up
-		cameras[currentCamera].ProcessKeyboardMovement('w', 0.01f, aspectRatio);
+		cameras[currentCamera].ProcessKeyboardMovement('w', aspectRatio);
     }
     else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         //scenes[currentScene].moveObject(currentObject, 'd');  // Move down
-		cameras[currentCamera].ProcessKeyboardMovement('s', 0.01f, aspectRatio);
+		cameras[currentCamera].ProcessKeyboardMovement('s', aspectRatio);
     }
     else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         //scenes[currentScene].moveObject(currentObject, 'l');  // Move left
-		cameras[currentCamera].ProcessKeyboardMovement('a', 0.01f, aspectRatio);
+		cameras[currentCamera].ProcessKeyboardMovement('a', aspectRatio);
     }
 	else if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         //scenes[currentScene].moveObject(currentObject, 'r');  // Move right
-		cameras[currentCamera].ProcessKeyboardMovement('d', 0.01f, aspectRatio);
+		cameras[currentCamera].ProcessKeyboardMovement('d', aspectRatio);
     }
     else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
         scenes[currentScene].moveObject(currentObject, 'b');  // Move back
@@ -334,12 +337,12 @@ void Application::addForest(int sceneIndex, int numTrees) {
 
     // Trees
     // Range for random positions
-    //std::uniform_real_distribution<> disXTree(-1.0, 1.0);  // X-axis range 
-    std::uniform_real_distribution<> disYTree(-1.0, -0.5);  // Y-axis range
-    std::uniform_real_distribution<> disZTree(-1.0, -0.5);  // Z-axis range 
+    std::uniform_real_distribution<> disXTree(-10.0, 10.0);  // X-axis range 
+    //std::uniform_real_distribution<> disYTree(-1.0, -0.5);  // Y-axis range
+    std::uniform_real_distribution<> disZTree(-20.0, 20.0);  // Z-axis range 
 
     // Random scaling
-    std::uniform_real_distribution<> disScaleTree(0.1, 0.2);
+    std::uniform_real_distribution<> disScaleTree(0.4, 1.0);
 
     // Random Y-axis rotation (0 to 360 degrees in radians)
     std::uniform_real_distribution<> disRotationY(0.0, 360.0);
@@ -347,8 +350,8 @@ void Application::addForest(int sceneIndex, int numTrees) {
     // Place Trees
     for (int i = 0; i < numTrees; ++i) {
         // Generate random x, y, z positions 
-        float randomX = -0.5; //disXTree(gen);
-        float randomY = disYTree(gen);
+        float randomX = disXTree(gen);
+        float randomY = -0.5; //disYTree(gen);
         float randomZ = disZTree(gen);
         float randomRotationY = glm::radians(disRotationY(gen));  // Random rotation in radians
 
@@ -367,16 +370,16 @@ void Application::addForest(int sceneIndex, int numTrees) {
     }
 
 	// Bushes
-    std::uniform_real_distribution<> disXBush(-1.0, 1.0);  
-    std::uniform_real_distribution<> disYBush(-0.8, -0.3); 
-    std::uniform_real_distribution<> disZBush(-1.0, -0.5);
+    std::uniform_real_distribution<> disXBush(-10.0, 10.0);  
+    //std::uniform_real_distribution<> disYBush(-0.8, -0.3); 
+    std::uniform_real_distribution<> disZBush(-20.0, 20.0);
 
-    std::uniform_real_distribution<> disScaleBush(0.05, 0.15);
+    std::uniform_real_distribution<> disScaleBush(0.4, 1.0);
 
     for (int i = 0; i < numTrees; ++i) {
 
         float randomX = disXBush(gen);
-        float randomY = disYBush(gen);
+        float randomY = -0.5; //disYBush(gen);
         float randomZ = disZBush(gen);  
 
         DrawableObject* bushObject = new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3);
