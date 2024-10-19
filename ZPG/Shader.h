@@ -24,6 +24,7 @@ class Shader : Observer {
         void use() {
             glUseProgram(ID);
         }
+
         // Observer's update method implementation
         void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) override {
             use();
@@ -39,13 +40,5 @@ class Shader : Observer {
 		    return ID;
 	    }
 
-        // Retrieve the location of a uniform, caching it after the first retrieval
-        GLint getUniformLocation(const string& name) {
-            // If the uniform location is not in the cache, get it from the shader and cache it
-            if (uniformLocations.find(name) == uniformLocations.end()) {
-                uniformLocations[name] = glGetUniformLocation(ID, name.c_str());
-            }
-            // Return the cached location
-            return uniformLocations[name];
-        }
+        GLint getUniformLocation(const string& name);
 };

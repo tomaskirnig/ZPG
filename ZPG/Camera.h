@@ -1,5 +1,7 @@
 #pragma once
 
+
+#include <iostream>
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -8,8 +10,7 @@
 using namespace std;
 
 class Camera {
-public:
-    // Camera Attributes
+private:
     glm::vec3 Position;
     glm::vec3 Target;
     glm::vec3 Up;
@@ -22,6 +23,10 @@ public:
     float MouseSensitivity;
     float Fov;
 
+    // Updates the camera vectors
+    void updateCameraVectors();
+
+public:
     // List of observers (shaders)
     vector<Observer*> observers;
 
@@ -32,22 +37,15 @@ public:
         observers.push_back(observer);
     }
 
-    // Notify all observers of a change
     void notifyObservers(float aspectRatio);
 
-    // Returns the view matrix calculated using LookAt Matrix
     glm::mat4 GetViewMatrix();
 
-    // Processes input for camera movement
     void ProcessKeyboardMovement(const char direction, float aspectRatio);
 
-    // Processes mouse movement
-    void ProcessMouseMovement(float xOffset, float yOffset, bool constrainPitch, float aspectRatio);
+    void ProcessMouseMovement(float xOffset, float yOffset, float aspectRatio);
 
-    // Fov control
     void ProcessMouseScroll(float yOffset, float aspectRatio);
 
-private:
-    // Updates the camera vectors
-    void updateCameraVectors();
+
 };

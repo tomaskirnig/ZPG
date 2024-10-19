@@ -23,12 +23,14 @@ Model::Model(const float* points, size_t size) {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
 }
 
+// Draw the object
 void Model::draw() {
     glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, objectSize); // Possible to use GL_TRIANGLE_STRIP
     glBindVertexArray(0);
 }
 
+// Delete the model
 void Model::deleteModel() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);

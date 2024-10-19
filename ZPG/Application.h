@@ -60,6 +60,8 @@ class Application
 
         // Object controls
 		void currentObjectPlus();
+        void currentObjectMinus();
+
         void processInput();
 
 		void currentCameraPlus();
@@ -75,6 +77,7 @@ class Application
         static void window_size_callback(GLFWwindow* window, int width, int height);
         static void cursor_callback(GLFWwindow* window, double x, double y);
         static void button_callback(GLFWwindow* window, int button, int action, int mode);
+		static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 };
 

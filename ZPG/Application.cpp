@@ -30,7 +30,7 @@ const char* fragmentShaderSource =
 "out vec4 frag_colour;"
 "void main () {"
 "     frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
-//"     frag_colour = vec4 (0.5, 0.0, hello, 1.0);" // CHYBA SCHVALNE
+//"     frag_colour = vec4 (0.5, 0.0, hello, 1.0);" // Shader compilation error test
 "}";
 
 const char* fragmentShaderSource2 =
@@ -38,7 +38,7 @@ const char* fragmentShaderSource2 =
 "in vec3 color;"
 "out vec4 frag_colour;"
 "void main () {"
-"     frag_colour = vec4(color, 1.0);"  // Use the color passed from the vertex shader
+"     frag_colour = vec4(color, 0.5);"  // Use the color passed from the vertex shader
 "}";
 
 const char* fragmentShaderSource3 =
@@ -56,7 +56,7 @@ Application::Application() {
         exit(EXIT_FAILURE);
     }
 
-    window = glfwCreateWindow(1536, 864, "ZPG", NULL, NULL);
+    window = glfwCreateWindow(1152, 648, "ZPG", NULL, NULL);
     if (!window) {
         glfwTerminate();
         cerr << "Failed to create GLFW window" << endl;
@@ -65,7 +65,6 @@ Application::Application() {
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
-
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
@@ -90,9 +89,12 @@ Application::Application() {
 	//glfwSetWindowIconifyCallback(window, window_iconify_callback);
 	glfwSetCursorPosCallback(window, cursor_callback);
 	//glfwSetMouseButtonCallback(window, button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSetWindowUserPointer(window, this);
 
+    glfwSetWindowUserPointer(window, this); // Creates pointer to app window
+
+    // Settings of app window
     glfwGetFramebufferSize(window, &width, &height);
     aspectRatio = width / (float)height;
     glViewport(0, 0, width, height);	
@@ -108,60 +110,53 @@ Application::Application() {
 }
 
 void Application::run() {
-    float deltaTime = 0.0f; // Time between current frame and last frame
-    float lastFrame = 0.0f; // Time of last frame
-
     float square[] = {
-        0.5f,  0.5f, 0.0f,  0, 0, 1,
-        0.8f,  0.5f, 0.0f,  0, 0, 1,
-        0.5f,  0.8f, 0.0f,  0, 0, 1,
+        0.5f,  0.5f, 0.0f,  0.5f,  0.5f, 1.0f,
+        0.8f,  0.5f, 0.0f,  0.5f,  0.5f, 0.0f,
+        0.5f,  0.8f, 0.0f,  0.0f,  0.5f, 0.0f,
 
-        0.5f,  0.8f, 0.0f,  0, 0, 1,
-        0.8f,  0.5f, 0.0f,  0, 0, 1,
-        0.8f,  0.8f, 0.0f,  0, 0, 1
+        0.5f,  0.8f, 0.0f,  0.5f,  0.5f, 0.0f,
+        0.8f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f,
+        0.8f,  0.8f, 0.0f,  0.5f,  0.5f, 0.0f,
     };
 
     glEnable(GL_DEPTH_TEST);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	// Create second scene
+	// Create second scene and camera
 	scenes.push_back(Scene());
 	cameras.push_back(Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f));
 
-    // Adding objects to scnene
+    // Adding objects to first scene
 	scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3));
 	scenes[0].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3));
-    scenes[0].addObject(new DrawableObject(square, sizeof(square), vertexShaderSource3, fragmentShaderSource));
-
-
-    for (int i = 0; i < scenes.size(); i++) {
-		vector<Shader*> shaders = scenes[i].getShaders();
-        for (int j = 0; j < shaders.size(); j++) {
-			cameras[0].registerObserver((Observer*)shaders[j]);
-        }
-	}
-
-    // After registering observers
-	for (int i = 0; i < cameras.size(); i++) {
-		cameras[i].notifyObservers(aspectRatio);
-	}
+    scenes[0].addObject(new DrawableObject(square, sizeof(square), vertexShaderSource3, fragmentShaderSource3));
 
     currentObject = 0;
 
 	// Add a forest to the second scene
 	addForest(1, 50);
 
-    float currentFrame;
+    // Registering object shaders for cameras
+    for (int i = 0; i < scenes.size(); i++) {
+        vector<Shader*> shaders = scenes[i].getShaders();
+        for (int j = 0; j < shaders.size(); j++) {
+            for (int k = 0; k < 2; k++) {
+                cameras[k].registerObserver((Observer*)shaders[j]);
+            }
+        }
+    }
+
+    // Inicialize the camera (projection and view matrixes)
+    for (int i = 0; i < cameras.size(); i++) {
+        cameras[i].notifyObservers(aspectRatio);
+    }
     
+    // Hide and lock cursor in app window
 	centerCursor();
 	disableAndLockCursor();
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
-        currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         processInput();
 
@@ -201,13 +196,16 @@ float Application::getAspectRatio() {
 	return aspectRatio;
 }
 
-
 // Change the current scene to the next one
 void Application::currentScenePlus() {
     currentScene++;
     if (currentScene >= scenes.size()) {
         currentScene = 0; 
     }
+    
+    cameras[currentCamera].notifyObservers(aspectRatio);
+
+	cout << "Current scene: " << currentScene << endl;
 }
 
 // Change the current scene to the previous one
@@ -216,6 +214,10 @@ void Application::currentSceneMinus() {
     if (currentScene < 0) {
         currentScene = scenes.size() - 1;
     }
+
+    cameras[currentCamera].notifyObservers(aspectRatio);
+    
+	cout << "Current scene: " << currentScene << endl;
 }
 
 // Change the current object to the next one
@@ -227,11 +229,23 @@ void Application::currentObjectPlus() {
 	cout << "Current object: " << currentObject << endl;
 }
 
+void Application::currentObjectMinus() {
+    currentObject--;
+    if (currentObject < 0) {
+        currentObject = scenes[currentScene].objectsCount() - 1;
+    }
+    cout << "Current object: " << currentObject << endl;
+}
+
 void Application::currentCameraPlus() {
 	currentCamera++;
 	if (currentCamera >= cameras.size()) {
 		currentCamera = 0;
 	}
+
+    // Inicialize the camera (projection and view matrixes)
+    cameras[currentCamera].notifyObservers(aspectRatio);
+
 	cout << "Current camera: " << currentCamera << endl;
 }
 
@@ -240,28 +254,35 @@ void Application::error_callback(int error, const char* description) {
 }
 
 void Application::processInput() {
-    // Get the current state of control keys and move the object 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        //scenes[currentScene].moveObject(currentObject, 'u');  // Move up
-		cameras[currentCamera].ProcessKeyboardMovement('w', aspectRatio);
+		cameras[currentCamera].ProcessKeyboardMovement('u', aspectRatio); // Move camera up
     }
-    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        //scenes[currentScene].moveObject(currentObject, 'd');  // Move down
-		cameras[currentCamera].ProcessKeyboardMovement('s', aspectRatio);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		cameras[currentCamera].ProcessKeyboardMovement('d', aspectRatio); // Move camera down
     }
-    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        //scenes[currentScene].moveObject(currentObject, 'l');  // Move left
-		cameras[currentCamera].ProcessKeyboardMovement('a', aspectRatio);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		cameras[currentCamera].ProcessKeyboardMovement('l', aspectRatio); // Move camera left
     }
-	else if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        //scenes[currentScene].moveObject(currentObject, 'r');  // Move right
-		cameras[currentCamera].ProcessKeyboardMovement('d', aspectRatio);
+	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		cameras[currentCamera].ProcessKeyboardMovement('r', aspectRatio); // Move camera right
     }
-    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(currentObject, 'b');  // Move back
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+        scenes[currentScene].moveObject(currentObject, 'u'); // Move object up
     }
-    else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(currentObject, 'f');  // Move front
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
+        scenes[currentScene].moveObject(currentObject, 'd'); // Move object down
+    }
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
+        scenes[currentScene].moveObject(currentObject, 'l'); // Move object left
+    }
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+        scenes[currentScene].moveObject(currentObject, 'r'); // Move object right
+    }
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
+        scenes[currentScene].moveObject(currentObject, 'b');  // Move object back
+    }
+    else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
+        scenes[currentScene].moveObject(currentObject, 'f');  // Move object front
     }
 	else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
 		scenes[currentScene].rotateObject(currentObject, 1);  // Rotate around x-axis
@@ -299,30 +320,36 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
     if (app == NULL) {
         cerr << "Key_callback -> app = NULL" << endl;
     }
-	// Change of scenes, objects and reset of object rotation and scale
     if (app) {
         if (action == GLFW_PRESS) {
             switch (key)
             {
                 case GLFW_KEY_RIGHT:
-                    app->currentScenePlus();
+					app->currentScenePlus();    // Change to the next scene
                     break;
 
                 case GLFW_KEY_LEFT:
-                    app->currentSceneMinus();
+					app->currentSceneMinus();   // Change to the previous scene
+                    break;
+                
+                case GLFW_KEY_UP:
+					app->currentObjectPlus();   // Change to the next object
+                    break;
+
+                case GLFW_KEY_DOWN:
+					app->currentObjectMinus();  // Change to the previous object
                     break;
 
 				case GLFW_KEY_TAB:
-					//app->currentObjectPlus();
-					app->currentCameraPlus();
+					app->currentCameraPlus();   // Change to the next camera
 					break;
 
 				case GLFW_KEY_R:
-					app->scenes[app->currentScene].resetObjectRotation(app->currentObject);
+					app->scenes[app->currentScene].resetObjectRotation(app->currentObject); // Reset object rotation
 					break;
 
 				case GLFW_KEY_T:
-					app->scenes[app->currentScene].resetObjectScale(app->currentObject);
+					app->scenes[app->currentScene].resetObjectScale(app->currentObject); // Reset object scale
 
 			    default:
 				    break;
@@ -332,65 +359,63 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 }
 
 void Application::addForest(int sceneIndex, int numTrees) {
-    std::random_device rd;
-    std::mt19937 gen(rd());  // Random number generator
+    random_device rd;
+    mt19937 gen(rd());  // Random number generator
 
     // Trees
     // Range for random positions
-    std::uniform_real_distribution<> disXTree(-10.0, 10.0);  // X-axis range 
-    //std::uniform_real_distribution<> disYTree(-1.0, -0.5);  // Y-axis range
-    std::uniform_real_distribution<> disZTree(-20.0, 20.0);  // Z-axis range 
+    uniform_real_distribution<> disXTree(-10.0, 10.0);  // X-axis range 
+    uniform_real_distribution<> disZTree(-20.0, 20.0);  // Z-axis range 
 
     // Random scaling
-    std::uniform_real_distribution<> disScaleTree(0.4, 1.0);
+    uniform_real_distribution<> disScaleTree(0.4, 1.0);
 
     // Random Y-axis rotation (0 to 360 degrees in radians)
-    std::uniform_real_distribution<> disRotationY(0.0, 360.0);
+    uniform_real_distribution<> disRotationY(0.0, 360.0);
 
     // Place Trees
     for (int i = 0; i < numTrees; ++i) {
-        // Generate random x, y, z positions 
+        // Generate random x, z positions 
         float randomX = disXTree(gen);
-        float randomY = -0.5; //disYTree(gen);
         float randomZ = disZTree(gen);
         float randomRotationY = glm::radians(disRotationY(gen));  // Random rotation in radians
 
-        // Create a new DrawableObject
         DrawableObject* treeObject = new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3);
 
         // Set the transformation matrix (position and scale) 
         Transformation* transform = treeObject->getTransformation();
-        transform->setPosition(glm::vec3(randomX, randomY, randomZ));  // Place at random x, y, z 
+        transform->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
         transform->setScale(glm::vec3(disScaleTree(gen)));  // Apply random scaling
 		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), randomRotationY, glm::vec3(0.0f, 1.0f, 0.0f));  // Rotation matrix around Y-axis
-        transform->applyRotationMatrix(rotationMatrix);  // Rotate around Y-axis
+        transform->setRotationMatrix(transform->getRotationMatrix() * rotationMatrix);  // Rotate around Y-axis
 
         // Add the tree to the specified scene
         scenes[sceneIndex].addObject(treeObject);
     }
 
 	// Bushes
-    std::uniform_real_distribution<> disXBush(-10.0, 10.0);  
-    //std::uniform_real_distribution<> disYBush(-0.8, -0.3); 
-    std::uniform_real_distribution<> disZBush(-20.0, 20.0);
-
-    std::uniform_real_distribution<> disScaleBush(0.4, 1.0);
+    uniform_real_distribution<> disXBush(-10.0, 10.0);  
+    uniform_real_distribution<> disZBush(-20.0, 20.0);
+    uniform_real_distribution<> disScaleBush(0.4, 1.0);
 
     for (int i = 0; i < numTrees; ++i) {
 
         float randomX = disXBush(gen);
-        float randomY = -0.5; //disYBush(gen);
         float randomZ = disZBush(gen);  
+        float randomRotationY = glm::radians(disRotationY(gen));  
 
         DrawableObject* bushObject = new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3);
 
         Transformation* transform = bushObject->getTransformation();
-        transform->setPosition(glm::vec3(randomX, randomY, randomZ));  
+        transform->setPosition(glm::vec3(randomX, -0.5, randomZ));
         transform->setScale(glm::vec3(disScaleBush(gen))); 
+        glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), randomRotationY, glm::vec3(0.0f, 1.0f, 0.0f));  
+        transform->setRotationMatrix(transform->getRotationMatrix() * rotationMatrix);
 
         scenes[sceneIndex].addObject(bushObject);
     }
 
+	// Register object shaders for camera
 	for (int i = 0; i < scenes.size(); i++) {
 		vector<Shader*> shaders = scenes[i].getShaders();
 		for (int j = 0; j < shaders.size(); j++) {
@@ -399,8 +424,6 @@ void Application::addForest(int sceneIndex, int numTrees) {
 	}
 }
 
-
-
 void Application::window_focus_callback(GLFWwindow* window, int focused) { cout << "window_focus_callback" << endl; }
 
 void Application::window_iconify_callback(GLFWwindow* window, int iconified) { cout << "window_iconify_callback" << endl;
@@ -408,13 +431,14 @@ void Application::window_iconify_callback(GLFWwindow* window, int iconified) { c
 void Application::window_size_callback(GLFWwindow* window, int width, int height) {
     //cout << "resize " << width << ", " << height << endl;
     glViewport(0, 0, width, height);
-	Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+	Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window)); // Get pointer to the app window
 
 	if (app == NULL) {
 		cerr << "Window_size_callback -> app = NULL" << endl;
 	}
 
 	if (app) {
+		// Resize the app window
 		app->width = width;
 		app->height = height;
 		app->aspectRatio = width / (float)height;
@@ -432,13 +456,16 @@ void Application::cursor_callback(GLFWwindow* window, double x, double y) {
         cerr << "Cursor_callback -> app = NULL" << endl;
     }
 	if (app) {
+		// Calculate the offset of the cursor position
         double xOffset = x - app->lastX;
         double yOffset =  app->lastY - y;
 
+		// Update the last cursor position
         app->lastX = x;
         app->lastY = y;
 
-		app->cameras[app->currentCamera].ProcessMouseMovement(xOffset, yOffset, true, app->aspectRatio);
+		// Process the mouse movement
+		app->cameras[app->currentCamera].ProcessMouseMovement(xOffset, yOffset, app->aspectRatio);
 	}
 }
 
@@ -446,4 +473,13 @@ void Application::button_callback(GLFWwindow* window, int button, int action, in
     if (action == GLFW_PRESS) {
 		cout << "button_callback [" << button << "," << action << "," << mode << "]" << endl;
 	}
+}
+
+void Application::scroll_callback(GLFWwindow* window, double xOffset, double yOffset) {
+    Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+
+    // Process the scroll input
+    if (app != nullptr) {
+        app->cameras[app->currentCamera].ProcessMouseScroll(yOffset, app->aspectRatio);  // Pass the scroll input to your Application class
+    }
 }

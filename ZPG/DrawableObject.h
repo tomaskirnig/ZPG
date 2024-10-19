@@ -20,6 +20,7 @@ class DrawableObject {
 
         Transformation* getTransformation();
 
+		// Get the shader of the object
         Shader* getShader() {
             return this->shader;
         }

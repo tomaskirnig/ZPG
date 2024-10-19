@@ -15,6 +15,7 @@ Shader::Shader(const char* vertexSource, const char* fragmentSource) {
     glDeleteShader(fragmentShader);
 }
 
+// Compile a shader from source code
 GLuint Shader::compileShader(const char* source, GLenum type) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
@@ -23,7 +24,7 @@ GLuint Shader::compileShader(const char* source, GLenum type) {
     return shader;
 }
 
-
+// Check for compilation errors
 void Shader::checkCompileErrors(GLuint shader, string type) {
     GLint success;
     GLchar infoLog[1024];
@@ -43,4 +44,14 @@ void Shader::checkCompileErrors(GLuint shader, string type) {
             exit(EXIT_FAILURE);
         }
     }
+}
+
+// Retrieve the location of a uniform, caching it after the first retrieval
+GLint Shader::getUniformLocation(const string& name) {
+    // If the uniform location is not in the cache, get it from the shader and cache it
+    if (uniformLocations.find(name) == uniformLocations.end()) {
+        uniformLocations[name] = glGetUniformLocation(ID, name.c_str());
+    }
+    // Return the cached location
+    return uniformLocations[name];
 }

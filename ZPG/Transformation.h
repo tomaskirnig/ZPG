@@ -36,7 +36,7 @@ class Transformation
 
 		// Rotation
 		void setRotationMatrix(const glm::mat4& newRotationMatrix);
-        void applyRotationMatrix(const glm::mat4& newRotationMatrix);
+        //void applyRotationMatrix(const glm::mat4& newRotationMatrix);
 		glm::mat4 getRotationMatrix();
         void resetRotation();
 

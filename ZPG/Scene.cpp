@@ -1,9 +1,11 @@
 #include "Scene.h"
 
+// Adds a new object to the scene
 void Scene::addObject(DrawableObject* object) {
     objects.push_back(object);
 }
 
+// Deletes an object from the scene
 void Scene::deleteObject(DrawableObject* object) {
 	for (int i = 0; i < objects.size(); i++) {
 		if (objects[i] == object) {
@@ -13,16 +15,19 @@ void Scene::deleteObject(DrawableObject* object) {
 	}
 }
 
+// Renders all objects in the scene
 void Scene::render() {
     for (DrawableObject* object : objects) {
         object->draw();
     }
 }
 
+// Returns the number of objects in the scene
 int Scene::objectsCount() {
 	return objects.size();
 }
 
+// Moves the current object in the scene
 void Scene::moveObject(int currentObject, char direction) {
     Transformation* transform = objects[currentObject]->getTransformation();
     glm::vec3 currentPosition = transform->getPosition();  // Get the current position
@@ -33,45 +38,39 @@ void Scene::moveObject(int currentObject, char direction) {
     switch (direction)
     {
         case 'u':
-            movement = glm::vec3(0.0f, movementSpeed, 0.0f); // Move along Y-axis
+            movement = glm::vec3(0.0f, movementSpeed, 0.0f); // Move along Y-axis +
             break;
 
         case 'd':
-            movement = glm::vec3(0.0f, -movementSpeed, 0.0f);
+            movement = glm::vec3(0.0f, -movementSpeed, 0.0f);// Move along Y-axis - 
             break;
 
         case 'l':
-            movement = glm::vec3(-movementSpeed, 0.0f, 0.0f); // Move along X-axis
+            movement = glm::vec3(-movementSpeed, 0.0f, 0.0f); // Move along X-axis + 
             break;
 
         case 'r':
-            movement = glm::vec3(movementSpeed, 0.0f, 0.0f);
+			movement = glm::vec3(movementSpeed, 0.0f, 0.0f); // Move along X-axis - 
             break;
 
         case 'f':
-            movement = glm::vec3(0.0f, 0.0f, movementSpeed); // Move along Z-axis
+            movement = glm::vec3(0.0f, 0.0f, movementSpeed); // Move along Z-axis +
 			break;
 
         case 'b':
-            movement = glm::vec3(0.0f, 0.0f, -movementSpeed); 
+			movement = glm::vec3(0.0f, 0.0f, -movementSpeed); // Move along Z-axis -
 			break;
 
         default:
             break;
     }
 
-    //Moving in local coordinates
-    // Transform movement vector by the rotation matrix to move in local space
-    /*glm::vec3 rotatedMovement = glm::vec3(transform->getRotationMatrix() * glm::vec4(movement, 0.0f));
-
-    transform->setPosition(currentPosition + rotatedMovement);*/
-
     // Move in global coordinatese
     transform->setPosition(currentPosition + movement);
 
 }
 
-
+// Rotates the current object in the scene
 void Scene::rotateObject(int currentObject, int direction) {
     Transformation* transform = objects[currentObject]->getTransformation();
 
@@ -107,30 +106,34 @@ void Scene::rotateObject(int currentObject, int direction) {
     }
 
     // Apply the new rotation matrix to the current object's transformation
-    transform->applyRotationMatrix(rotationMatrix);
+	transform->setRotationMatrix(transform->getRotationMatrix() *  rotationMatrix);
 }
 
+// Scales the current object in the scene
 void Scene::scaleObject(int currentObject, char direction) {
     Transformation* transform = objects[currentObject]->getTransformation();
 
-	if (direction == 'u') { // Scale up
-		transform->setScale(transform->getScale() + 0.01f);
+	if (direction == 'u') { 
+		transform->setScale(transform->getScale() + 0.01f); // Scale up
 	}
-	else if (direction == 'd') { // Scale down
-        transform->setScale(transform->getScale() - 0.01f);
+	else if (direction == 'd') { 
+        transform->setScale(transform->getScale() - 0.01f); // Scale down
     }
 }
 
+// Resets the rotation of the current object in the scene
 void Scene::resetObjectRotation(int currentObject) {
     Transformation* transform = objects[currentObject]->getTransformation();
     transform->resetRotation();
 }
 
+// Resets the scale of the current object in the scene
 void Scene::resetObjectScale(int currentObject) {
 	Transformation* transform = objects[currentObject]->getTransformation();
 	transform->resetScale();
 }
 
+// Returns the shaders used by the objects in the scene
 vector<Shader*> Scene::getShaders() {
 	vector<Shader*> shaders;
 
