@@ -137,6 +137,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Subject.cpp" />
     <ClCompile Include="Transformation.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +148,7 @@
     <ClInclude Include="Observer.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Subject.h" />
     <ClInclude Include="Transformation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

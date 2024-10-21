@@ -39,6 +39,9 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="Subject.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -63,6 +66,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="Observer.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="Subject.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
   </ItemGroup>
