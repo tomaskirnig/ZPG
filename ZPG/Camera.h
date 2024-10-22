@@ -6,10 +6,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Observer.h"
+#include "Subject.h"
 
 using namespace std;
 
-class Camera {
+class Camera : Subject {
 private:
     glm::vec3 Position;
     glm::vec3 Target;
