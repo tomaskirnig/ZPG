@@ -16,7 +16,8 @@ class Scene {
 		vector<Shader*> getShaders();
 
 		// Object controls
-		void moveObject(int currentObject, char direction);
+		void moveObject(int object, char direction);
+		void moveObject(int object, char direction, float amount);
 		void rotateObject(int currentObject, int direction);
 		void resetObjectRotation(int currentObject);
 		void scaleObject(int currentObject, char direction);

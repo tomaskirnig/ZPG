@@ -22,6 +22,7 @@
 //Include custom classes
 #include "Scene.h"
 #include "Camera.h"
+#include "Light.h"
 
 //Include objects
 #include "sphere.h"
@@ -37,8 +38,10 @@ class Application
 	    int width, height;
 		int lastX, lastY;
 		float aspectRatio;
+
         vector<Scene> scenes;
         vector<Camera> cameras;
+		vector<Light> lights;
 
         int currentScene;
         int currentObject;
@@ -48,6 +51,9 @@ class Application
 	    Application();
 	    void run();
 		float getAspectRatio();
+
+		void registerAllObservers();
+        void calculateLight();
 
 		// Cursor controls
         void centerCursor();
@@ -68,6 +74,7 @@ class Application
 
 		// Object generation
 		void addForest(int sceneIndex, int numTrees);
+        void addBalls(int sceneIndex);
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);

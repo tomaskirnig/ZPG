@@ -17,6 +17,15 @@ void Scene::deleteObject(DrawableObject* object) {
 
 // Renders all objects in the scene
 void Scene::render() {
+    //// Apply camera's view and projection matrices
+    //cameras[currentCamera].notifyObservers(aspectRatio);
+
+    //// Apply light properties to each shader
+    //for (DrawableObject* object : objects) {
+    //    Shader* shader = object->getShader();
+    //    light.applyLighting(shader);  // Apply light to each object shader
+    //}
+
     for (DrawableObject* object : objects) {
         object->draw();
     }
@@ -28,8 +37,8 @@ int Scene::objectsCount() {
 }
 
 // Moves the current object in the scene
-void Scene::moveObject(int currentObject, char direction) {
-    Transformation* transform = objects[currentObject]->getTransformation();
+void Scene::moveObject(int object, char direction) {
+    Transformation* transform = objects[object]->getTransformation();
     glm::vec3 currentPosition = transform->getPosition();  // Get the current position
 
     glm::vec3 movement(0.0f);
@@ -68,6 +77,46 @@ void Scene::moveObject(int currentObject, char direction) {
     // Move in global coordinatese
     transform->setPosition(currentPosition + movement);
 
+}
+
+void Scene::moveObject(int object, char direction, float amount) {
+    Transformation* transform = objects[object]->getTransformation();
+    glm::vec3 currentPosition = transform->getPosition();  // Get the current position
+
+    glm::vec3 movement(0.0f);
+
+    switch (direction)
+    {
+    case 'u':
+        movement = glm::vec3(0.0f, amount, 0.0f); // Move along Y-axis +
+        break;
+
+    case 'd':
+        movement = glm::vec3(0.0f, -amount, 0.0f);// Move along Y-axis - 
+        break;
+
+    case 'l':
+        movement = glm::vec3(-amount, 0.0f, 0.0f); // Move along X-axis + 
+        break;
+
+    case 'r':
+        movement = glm::vec3(amount, 0.0f, 0.0f); // Move along X-axis - 
+        break;
+
+    case 'f':
+        movement = glm::vec3(0.0f, 0.0f, amount); // Move along Z-axis +
+        break;
+
+    case 'b':
+        movement = glm::vec3(0.0f, 0.0f, -amount); // Move along Z-axis -
+        break;
+
+    default:
+        break;
+    }
+
+    // Move in global coordinatese
+    transform->setPosition(currentPosition + movement);
 }
 
 // Rotates the current object in the scene

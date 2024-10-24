@@ -7,8 +7,8 @@ const char* vertexShaderSource2 =
 "layout(location=1) in vec3 vn;"  // Color attribute
 "out vec3 color;"                 // Passing color to the fragment shader
 "void main () {"
-"     gl_Position = vec4 (vp, 1.0);"
-"     color = vn;"                // Assigning input color to the output
+"   gl_Position = vec4 (vp, 1.0);"
+"   color = vn;"                // Assigning input color to the output
 "}";
 
 const char* vertexShaderSource3 =
@@ -20,9 +20,26 @@ const char* vertexShaderSource3 =
 "uniform mat4 projectionMatrix;"      // Projection matrix (perspective or orthographic)
 "out vec3 color;"                     // Passing color to the fragment shader
 "void main() {"
-"    gl_Position = projectionMatrix * viewMatrix * transformationMatrix * vec4(vp, 1.0);"  // Combine matrices
-"    color = vn;"  // Pass color to the fragment shader
+"   gl_Position = projectionMatrix * viewMatrix * transformationMatrix * vec4(vp, 1.0);"  // Combine matrices
+"   color = vn;"  // Pass color to the fragment shader
 "}";
+
+const char* vertexShaderSource4 =
+"# version 400\n"
+"layout(location = 0) in vec3 vp;" // position
+"layout(location = 1) in vec3 vn;" // normal
+"out vec4 worldPos;"
+"out vec3 worldNorm;"
+"uniform mat4 transformationMatrix;"
+"uniform mat4 viewMatrix;"
+"uniform mat4 projectionMatrix;"
+"void main() {"
+"   worldPos = transformationMatrix * vec4(vp, 1.0);"
+"   mat4 normal = transformationMatrix; "          // problem - priste vysvetlime
+"   worldNorm = vec3(normal * vec4(vn, 1.0));"
+"   gl_Position = projectionMatrix * viewMatrix * transformationMatrix * vec4(vp, 1.0);" 
+"}";
+
 
 // Fragment shader source code
 const char* fragmentShaderSource =
@@ -47,6 +64,21 @@ const char* fragmentShaderSource3 =
 "out vec4 frag_colour;"  // Declare the output color variable
 "void main() {"
 "    frag_colour = vec4(color, 1.0);"  // Set the fragment color using the input color and alpha = 1.0
+"}";
+
+const char* fragmentShaderSource4 =
+"#version 330 core\n"
+"in vec3 ex_worldNormal;"
+"in vec4 ex_worldPosition;"
+"out vec4 out_Color;"
+"uniform vec3 lightPosition;"
+"uniform vec3 lightColor;"
+"void main() {"
+    "vec3 lightVector = normalize(lightPosition - vec3(ex_worldPosition));" // Calculate the light direction
+    "float diff = max(dot(normalize(ex_worldNormal), lightVector), 0.0);"   // Calculate the diffuse lighting component
+    "vec4 diffuse = vec4(diff * lightColor, 1.0);"
+    "vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0);"  // Add ambient lighting
+    "out_Color = ambient + diffuse;"
 "}";
 
 
@@ -91,7 +123,6 @@ Application::Application() {
 	//glfwSetMouseButtonCallback(window, button_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-
     glfwSetWindowUserPointer(window, this); // Creates pointer to app window
 
     // Settings of app window
@@ -101,7 +132,8 @@ Application::Application() {
 
     scenes.push_back(Scene());
 	cameras.push_back(Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f));
-	
+	lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+
     currentScene = 0;
 	currentCamera = 0;
     
@@ -122,8 +154,9 @@ void Application::run() {
 
     glEnable(GL_DEPTH_TEST);
 
-	// Create second scene and camera
-	scenes.push_back(Scene());
+	// Create scenens and camera
+    scenes.push_back(Scene());
+    scenes.push_back(Scene());
 	cameras.push_back(Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f));
 
     // Adding objects to first scene
@@ -136,21 +169,10 @@ void Application::run() {
 	// Add a forest to the second scene
 	addForest(1, 50);
 
-    // Registering object shaders for cameras
-    for (int i = 0; i < scenes.size(); i++) {
-        vector<Shader*> shaders = scenes[i].getShaders();
-        for (int j = 0; j < shaders.size(); j++) {
-            for (int k = 0; k < 2; k++) {
-                cameras[k].registerObserver((Observer*)shaders[j]);
-            }
-        }
-    }
-
-    // Inicialize the camera (projection and view matrixes)
-    for (int i = 0; i < cameras.size(); i++) {
-        cameras[i].notifyObservers(aspectRatio);
-    }
+	addBalls(2);
     
+    registerAllObservers();
+
     // Hide and lock cursor in app window
 	centerCursor();
 	disableAndLockCursor();
@@ -159,6 +181,10 @@ void Application::run() {
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         processInput();
+
+        if (currentScene == 2) {
+            calculateLight();
+        }
 
 		scenes[currentScene].render();
 
@@ -206,6 +232,8 @@ void Application::currentScenePlus() {
     cameras[currentCamera].notifyObservers(aspectRatio);
 
 	cout << "Current scene: " << currentScene << endl;
+
+    //calculateLight();
 }
 
 // Change the current scene to the previous one
@@ -218,6 +246,8 @@ void Application::currentSceneMinus() {
     cameras[currentCamera].notifyObservers(aspectRatio);
     
 	cout << "Current scene: " << currentScene << endl;
+
+    //calculateLight();
 }
 
 // Change the current object to the next one
@@ -247,10 +277,8 @@ void Application::currentCameraPlus() {
     cameras[currentCamera].notifyObservers(aspectRatio);
 
 	cout << "Current camera: " << currentCamera << endl;
-}
 
-void Application::error_callback(int error, const char* description) {
-    fputs(description, stderr);
+    calculateLight();
 }
 
 void Application::processInput() {
@@ -308,6 +336,25 @@ void Application::processInput() {
     else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
         scenes[currentScene].scaleObject(currentObject, 'd');  // Scale down
     }
+
+    //calculateLight();
+}
+
+void Application::registerAllObservers() {
+    // Registering object shaders for cameras
+    for (int i = 0; i < scenes.size(); i++) {
+        vector<Shader*> shaders = scenes[i].getShaders();
+        for (int j = 0; j < shaders.size(); j++) {
+            for (int k = 0; k < 2; k++) {
+                cameras[k].registerObserver((Observer*)shaders[j]);
+            }
+        }
+    }
+
+    // Inicialize the camera (projection and view matrixes)
+    for (int i = 0; i < cameras.size(); i++) {
+        cameras[i].notifyObservers(aspectRatio);
+    }
 }
 
 void Application::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -354,10 +401,12 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 			    default:
 				    break;
 			}
+            //app->calculateLight();
         }
     }
 }
 
+// Functions for generating objects in scenes
 void Application::addForest(int sceneIndex, int numTrees) {
     random_device rd;
     mt19937 gen(rd());  // Random number generator
@@ -414,20 +463,39 @@ void Application::addForest(int sceneIndex, int numTrees) {
 
         scenes[sceneIndex].addObject(bushObject);
     }
+}
 
-	// Register object shaders for camera
-	for (int i = 0; i < scenes.size(); i++) {
-		vector<Shader*> shaders = scenes[i].getShaders();
-		for (int j = 0; j < shaders.size(); j++) {
-			cameras[0].registerObserver((Observer*)shaders[j]);
-		}
+void Application::addBalls(int sceneIndex) {
+	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
+    for (int i = 0; i < 4; i++) {
+        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSource4, fragmentShaderSource4));
+    }
+
+    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
+    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'd', 1.0);
+    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'l', 1.0);
+    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'r', 1.0);
+}
+
+void Application::calculateLight() {
+	cout << "Calculating light" << endl;
+	vector<Shader*> objShaders = scenes[currentScene].getShaders();
+	for (int i = 0; i < lights.size(); i++) {
+        for (int j = 0; j < objShaders.size(); j++) {
+            lights[i].applyLighting(objShaders[j]);
+        }
 	}
+}
+
+// Other callback functions
+void Application::error_callback(int error, const char* description) {
+    fputs(description, stderr);
 }
 
 void Application::window_focus_callback(GLFWwindow* window, int focused) { cout << "window_focus_callback" << endl; }
 
-void Application::window_iconify_callback(GLFWwindow* window, int iconified) { cout << "window_iconify_callback" << endl;
-}
+void Application::window_iconify_callback(GLFWwindow* window, int iconified) { cout << "window_iconify_callback" << endl; }
+
 void Application::window_size_callback(GLFWwindow* window, int width, int height) {
     //cout << "resize " << width << ", " << height << endl;
     glViewport(0, 0, width, height);
@@ -449,7 +517,7 @@ void Application::window_size_callback(GLFWwindow* window, int width, int height
 }
 
 void Application::cursor_callback(GLFWwindow* window, double x, double y) { 
-    cout << "cursor_callback" << "x: " << x << " y: " << y << endl;
+    //cout << "cursor_callback" << "x: " << x << " y: " << y << endl;
 	Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
 
     if (app == NULL) {
@@ -466,7 +534,9 @@ void Application::cursor_callback(GLFWwindow* window, double x, double y) {
 
 		// Process the mouse movement
 		app->cameras[app->currentCamera].ProcessMouseMovement(xOffset, yOffset, app->aspectRatio);
-	}
+	    
+        //app->calculateLight();
+    }
 }
 
 void Application::button_callback(GLFWwindow* window, int button, int action, int mode) {
