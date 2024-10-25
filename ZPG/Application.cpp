@@ -130,12 +130,10 @@ Application::Application() {
     aspectRatio = width / (float)height;
     glViewport(0, 0, width, height);	
 
-    scenes.push_back(Scene());
-	cameras.push_back(Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f));
-	lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+    addScene();
+    scenes[0].addCamera();
 
     currentScene = 0;
-	currentCamera = 0;
     
 	lastX = width / 2;
 	lastY = height / 2;
@@ -154,17 +152,13 @@ void Application::run() {
 
     glEnable(GL_DEPTH_TEST);
 
-	// Create scenens and camera
-    scenes.push_back(Scene());
-    scenes.push_back(Scene());
-	cameras.push_back(Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f));
+	addScene();
+    addScene();
 
     // Adding objects to first scene
 	scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3));
 	scenes[0].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3));
     scenes[0].addObject(new DrawableObject(square, sizeof(square), vertexShaderSource3, fragmentShaderSource3));
-
-    currentObject = 0;
 
 	// Add a forest to the second scene
 	addForest(1, 50);
@@ -182,9 +176,9 @@ void Application::run() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         processInput();
 
-        if (currentScene == 2) {
+        /*if (currentScene == 2) {
             calculateLight();
-        }
+        }*/
 
 		scenes[currentScene].render();
 
@@ -229,7 +223,7 @@ void Application::currentScenePlus() {
         currentScene = 0; 
     }
     
-    cameras[currentCamera].notifyObservers(aspectRatio);
+	scenes[currentScene].notifyCurrObservers(aspectRatio);
 
 	cout << "Current scene: " << currentScene << endl;
 
@@ -243,7 +237,7 @@ void Application::currentSceneMinus() {
         currentScene = scenes.size() - 1;
     }
 
-    cameras[currentCamera].notifyObservers(aspectRatio);
+	scenes[currentScene].notifyCurrObservers(aspectRatio);
     
 	cout << "Current scene: " << currentScene << endl;
 
@@ -252,108 +246,81 @@ void Application::currentSceneMinus() {
 
 // Change the current object to the next one
 void Application::currentObjectPlus() {
-	currentObject++;
-	if (currentObject >= scenes[currentScene].objectsCount()) {
-		currentObject = 0;
-	}
-	cout << "Current object: " << currentObject << endl;
+	scenes[currentScene].currentObjectPlus();
 }
 
 void Application::currentObjectMinus() {
-    currentObject--;
-    if (currentObject < 0) {
-        currentObject = scenes[currentScene].objectsCount() - 1;
-    }
-    cout << "Current object: " << currentObject << endl;
+	scenes[currentScene].currentObjectMinus();
 }
 
 void Application::currentCameraPlus() {
-	currentCamera++;
-	if (currentCamera >= cameras.size()) {
-		currentCamera = 0;
-	}
-
-    // Inicialize the camera (projection and view matrixes)
-    cameras[currentCamera].notifyObservers(aspectRatio);
-
-	cout << "Current camera: " << currentCamera << endl;
-
-    calculateLight();
+	scenes[currentScene].currentCameraPlus(aspectRatio);
 }
 
 void Application::processInput() {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		cameras[currentCamera].ProcessKeyboardMovement('u', aspectRatio); // Move camera up
+        scenes[currentScene].moveCamera(scenes[currentScene].getCurrCamera(), 'u', aspectRatio); // Move camera up
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		cameras[currentCamera].ProcessKeyboardMovement('d', aspectRatio); // Move camera down
+        scenes[currentScene].moveCamera(scenes[currentScene].getCurrCamera(), 'd', aspectRatio); // Move camera down
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		cameras[currentCamera].ProcessKeyboardMovement('l', aspectRatio); // Move camera left
+        scenes[currentScene].moveCamera(scenes[currentScene].getCurrCamera(), 'l', aspectRatio); // Move camera left
     }
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		cameras[currentCamera].ProcessKeyboardMovement('r', aspectRatio); // Move camera right
+        scenes[currentScene].moveCamera(scenes[currentScene].getCurrCamera(), 'r', aspectRatio); // Move camera right
     }
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(currentObject, 'u'); // Move object up
+        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'u'); // Move object up
     }
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(currentObject, 'd'); // Move object down
+        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'd'); // Move object down
     }
     if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(currentObject, 'l'); // Move object left
+        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'l'); // Move object left
     }
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(currentObject, 'r'); // Move object right
+        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'r'); // Move object right
     }
     if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(currentObject, 'b');  // Move object back
+        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'b');  // Move object back
     }
     else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(currentObject, 'f');  // Move object front
+        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'f');  // Move object front
     }
 	else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-		scenes[currentScene].rotateObject(currentObject, 1);  // Rotate around x-axis
+        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 1);  // Rotate around x-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-		scenes[currentScene].rotateObject(currentObject, 2);  // Rotate around x-axis
+        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 2);  // Rotate around x-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-		scenes[currentScene].rotateObject(currentObject, 3);  // Rotate around y-axis
+        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 3);  // Rotate around y-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
-		scenes[currentScene].rotateObject(currentObject, 4);  // Rotate around y-axis
+        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 4);  // Rotate around y-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
-		scenes[currentScene].rotateObject(currentObject, 5);  // Rotate around z-axis
+        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 5);  // Rotate around z-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
-		scenes[currentScene].rotateObject(currentObject, 6);  // Rotate around z-axis
+        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 6);  // Rotate around z-axis
 	}
     else if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
-        scenes[currentScene].scaleObject(currentObject, 'u');  // Scale up
+        scenes[currentScene].scaleObject(scenes[currentScene].getCurrObject(), 'u'); // Scale up
     }
     else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
-        scenes[currentScene].scaleObject(currentObject, 'd');  // Scale down
+        scenes[currentScene].scaleObject(scenes[currentScene].getCurrObject(), 'd');  // Scale down
     }
+}
 
-    //calculateLight();
+void Application::addScene() {
+	scenes.push_back(Scene());
 }
 
 void Application::registerAllObservers() {
-    // Registering object shaders for cameras
-    for (int i = 0; i < scenes.size(); i++) {
-        vector<Shader*> shaders = scenes[i].getShaders();
-        for (int j = 0; j < shaders.size(); j++) {
-            for (int k = 0; k < 2; k++) {
-                cameras[k].registerObserver((Observer*)shaders[j]);
-            }
-        }
-    }
-
-    // Inicialize the camera (projection and view matrixes)
-    for (int i = 0; i < cameras.size(); i++) {
-        cameras[i].notifyObservers(aspectRatio);
+    for (Scene scene : scenes) {
+        scene.registerAllObservers(aspectRatio);
     }
 }
 
@@ -392,16 +359,15 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 					break;
 
 				case GLFW_KEY_R:
-					app->scenes[app->currentScene].resetObjectRotation(app->currentObject); // Reset object rotation
+					app->scenes[app->currentScene].resetObjectRotation(app->scenes[app->currentScene].getCurrObject()); // Reset object rotation
 					break;
 
 				case GLFW_KEY_T:
-					app->scenes[app->currentScene].resetObjectScale(app->currentObject); // Reset object scale
+                    app->scenes[app->currentScene].resetObjectScale(app->scenes[app->currentScene].getCurrObject()); // Reset object scale
 
 			    default:
 				    break;
 			}
-            //app->calculateLight();
         }
     }
 }
@@ -466,6 +432,8 @@ void Application::addForest(int sceneIndex, int numTrees) {
 }
 
 void Application::addBalls(int sceneIndex) {
+    scenes[sceneIndex].addLight();
+
 	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
     for (int i = 0; i < 4; i++) {
         scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSource4, fragmentShaderSource4));
@@ -474,18 +442,18 @@ void Application::addBalls(int sceneIndex) {
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'd', 1.0);
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'l', 1.0);
-    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'r', 1.0);
+    scenes[sceneIndex].moveObject(numOfObjectInScene, 'r', 1.0);
 }
 
-void Application::calculateLight() {
-	cout << "Calculating light" << endl;
-	vector<Shader*> objShaders = scenes[currentScene].getShaders();
-	for (int i = 0; i < lights.size(); i++) {
-        for (int j = 0; j < objShaders.size(); j++) {
-            lights[i].applyLighting(objShaders[j]);
-        }
-	}
-}
+//void Application::calculateLight() {
+//	cout << "Calculating light" << endl;
+//	vector<Shader*> objShaders = scenes[currentScene].getShaders();
+//	for (int i = 0; i < lights.size(); i++) {
+//        for (int j = 0; j < objShaders.size(); j++) {
+//            lights[i].applyLighting(objShaders[j]);
+//        }
+//	}
+//}
 
 // Other callback functions
 void Application::error_callback(int error, const char* description) {
@@ -511,8 +479,12 @@ void Application::window_size_callback(GLFWwindow* window, int width, int height
 		app->height = height;
 		app->aspectRatio = width / (float)height;
 
+        for (Scene scene : app->scenes) {
+            scene.setAspectRatio(app->aspectRatio);
+        }
+
         // Notify camera of the aspect ratio change
-        app->cameras[app->currentCamera].notifyObservers(app->aspectRatio);
+        app->scenes[app->currentScene].notifyCurrObservers(app->aspectRatio);
     }
 }
 
@@ -533,7 +505,7 @@ void Application::cursor_callback(GLFWwindow* window, double x, double y) {
         app->lastY = y;
 
 		// Process the mouse movement
-		app->cameras[app->currentCamera].ProcessMouseMovement(xOffset, yOffset, app->aspectRatio);
+        app->scenes[app->currentScene].mouseMovementCamera(app->scenes[app->currentScene].getCurrCamera(), xOffset, yOffset, app->aspectRatio);
 	    
         //app->calculateLight();
     }
@@ -550,6 +522,6 @@ void Application::scroll_callback(GLFWwindow* window, double xOffset, double yOf
 
     // Process the scroll input
     if (app != nullptr) {
-        app->cameras[app->currentCamera].ProcessMouseScroll(yOffset, app->aspectRatio);  // Pass the scroll input to your Application class
+        app->scenes[app->currentScene].zoomCamera(app->scenes[app->currentScene].getCurrCamera(), yOffset, app->aspectRatio);  // Pass the scroll input to your Application class
     }
 }

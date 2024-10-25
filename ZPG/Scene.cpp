@@ -1,5 +1,10 @@
 #include "Scene.h"
 
+Scene::Scene() : currentObject(0), currentCamera(0) {
+	addCamera();
+	addLight();
+}
+
 // Adds a new object to the scene
 void Scene::addObject(DrawableObject* object) {
     objects.push_back(object);
@@ -13,6 +18,16 @@ void Scene::deleteObject(DrawableObject* object) {
 			break;
 		}
 	}
+}
+
+void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
+{
+	cameras.push_back(Camera(position, up, yaw, pitch));
+}
+
+void Scene::addLight(glm::vec3 position, glm::vec3 color)
+{
+	lights.push_back(Light(position, color));
 }
 
 // Renders all objects in the scene
@@ -31,9 +46,78 @@ void Scene::render() {
     }
 }
 
+void Scene::registerAllObservers(float aspectRatio)
+{
+	for (Camera camera : cameras) {
+		for (DrawableObject* object : objects) {
+			camera.registerObserver((Observer*)object->getShader());
+		}
+	}
+
+    for (Camera camera : cameras) {
+		camera.notifyObservers(aspectRatio);
+    }
+}
+
+void Scene::notifyCurrObservers(float aspectRatio)
+{
+	/*for (Camera camera : cameras) {
+		camera.notifyObservers(aspectRatio);
+	}*/
+	cameras[currentCamera].notifyObservers(aspectRatio);
+}
+
+void Scene::calculateLight()
+{
+}
+
 // Returns the number of objects in the scene
 int Scene::objectsCount() {
 	return objects.size();
+}
+
+int Scene::getCurrCamera()
+{
+    return currentCamera;
+}
+
+int Scene::getCurrObject()
+{
+    return currentObject;
+}
+
+void Scene::setAspectRatio(float aspectRatio)
+{
+    this->aspectRatio = aspectRatio;
+}
+
+void Scene::currentObjectPlus()
+{
+	currentObject++;
+	if (currentObject >= objects.size()) {
+		currentObject = 0;
+	}
+    cout << "Current object: " << currentObject << endl;
+}
+
+void Scene::currentObjectMinus()
+{
+	currentObject--;
+	if (currentObject < 0) {
+		currentObject = objects.size() - 1;
+	}
+    cout << "Current object: " << currentObject << endl;
+}
+
+void Scene::currentCameraPlus(float aspectRatio)
+{
+    currentCamera++;
+    if (currentCamera >= cameras.size()) {
+        currentCamera = 0;
+    }
+    cout << "Current camera: " << currentCamera << endl;
+
+	notifyCurrObservers(aspectRatio);
 }
 
 // Moves the current object in the scene
@@ -182,11 +266,26 @@ void Scene::resetObjectScale(int currentObject) {
 	transform->resetScale();
 }
 
+void Scene::moveCamera(int camera, char direction, float aspectRatio)
+{
+	cameras[camera].ProcessKeyboardMovement(direction, aspectRatio);
+}
+
+void Scene::mouseMovementCamera(int camera, float xOffset, float yOffset, float aspectRatio)
+{
+	cameras[camera].ProcessMouseMovement(xOffset, yOffset, aspectRatio);
+}
+
+void Scene::zoomCamera(int camera, double yOffset, float aspectRatio)
+{
+	cameras[camera].ProcessMouseScroll(yOffset, aspectRatio);
+}
+
 // Returns the shaders used by the objects in the scene
 vector<Shader*> Scene::getShaders() {
 	vector<Shader*> shaders;
 
-	for (int i = 0; i < objects.size(); i++) {
+	for (int i = 0; i < objectsCount(); i++) {
 		shaders.push_back(objects[i]->getShader());
 	}
 

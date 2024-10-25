@@ -40,20 +40,14 @@ class Application
 		float aspectRatio;
 
         vector<Scene> scenes;
-        vector<Camera> cameras;
-		vector<Light> lights;
 
         int currentScene;
-        int currentObject;
-		int currentCamera;
+
 
     public:
 	    Application();
 	    void run();
 		float getAspectRatio();
-
-		void registerAllObservers();
-        void calculateLight();
 
 		// Cursor controls
         void centerCursor();
@@ -64,14 +58,17 @@ class Application
         void currentScenePlus();
 		void currentSceneMinus();
 
-        // Object controls
-		void currentObjectPlus();
-        void currentObjectMinus();
+        void currentObjectPlus();
+		void currentObjectMinus();
+
+        void currentCameraPlus();   
 
         void processInput();
 
-		void currentCameraPlus();
+        void registerAllObservers();
 
+		void addScene();
+         
 		// Object generation
 		void addForest(int sceneIndex, int numTrees);
         void addBalls(int sceneIndex);
