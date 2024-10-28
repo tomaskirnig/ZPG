@@ -48,13 +48,13 @@ void Scene::render() {
 
 void Scene::registerAllObservers(float aspectRatio)
 {
-	for (Camera camera : cameras) {
+	for (Camera& camera : cameras) {
 		for (DrawableObject* object : objects) {
 			camera.registerObserver((Observer*)object->getShader());
 		}
 	}
 
-    for (Camera camera : cameras) {
+    for (Camera& camera : cameras) {
 		camera.notifyObservers(aspectRatio);
     }
 }

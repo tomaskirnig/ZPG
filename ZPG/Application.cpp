@@ -319,7 +319,7 @@ void Application::addScene() {
 }
 
 void Application::registerAllObservers() {
-    for (Scene scene : scenes) {
+    for (Scene& scene : scenes) {
         scene.registerAllObservers(aspectRatio);
     }
 }
@@ -479,7 +479,7 @@ void Application::window_size_callback(GLFWwindow* window, int width, int height
 		app->height = height;
 		app->aspectRatio = width / (float)height;
 
-        for (Scene scene : app->scenes) {
+        for (Scene& scene : app->scenes) {
             scene.setAspectRatio(app->aspectRatio);
         }
 

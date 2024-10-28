@@ -1,2 +1,31 @@
-﻿  Camera.cpp
+﻿  Application.cpp
+F:\VS\ZPG\ZPG\Application.cpp(237,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(394,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(395,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(396,31): warning C4244: inicializování: genType se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(396,31): warning C4244:         with
+F:\VS\ZPG\ZPG\Application.cpp(396,31): warning C4244:         [
+F:\VS\ZPG\ZPG\Application.cpp(396,31): warning C4244:             genType=double
+F:\VS\ZPG\ZPG\Application.cpp(396,31): warning C4244:         ]
+F:\VS\ZPG\ZPG\Application.cpp(403,51): warning C4244: argument: double se převádí na T; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(403,51): warning C4244:         with
+F:\VS\ZPG\ZPG\Application.cpp(403,51): warning C4244:         [
+F:\VS\ZPG\ZPG\Application.cpp(403,51): warning C4244:             T=float
+F:\VS\ZPG\ZPG\Application.cpp(403,51): warning C4244:         ]
+F:\VS\ZPG\ZPG\Application.cpp(418,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(419,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(420,31): warning C4244: inicializování: genType se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(420,31): warning C4244:         with
+F:\VS\ZPG\ZPG\Application.cpp(420,31): warning C4244:         [
+F:\VS\ZPG\ZPG\Application.cpp(420,31): warning C4244:             genType=double
+F:\VS\ZPG\ZPG\Application.cpp(420,31): warning C4244:         ]
+F:\VS\ZPG\ZPG\Application.cpp(426,51): warning C4244: argument: double se převádí na T; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(426,51): warning C4244:         with
+F:\VS\ZPG\ZPG\Application.cpp(426,51): warning C4244:         [
+F:\VS\ZPG\ZPG\Application.cpp(426,51): warning C4244:             T=float
+F:\VS\ZPG\ZPG\Application.cpp(426,51): warning C4244:         ]
+F:\VS\ZPG\ZPG\Application.cpp(504,22): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(505,22): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(508,117): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(508,108): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
   ZPG.vcxproj -> F:\VS\ZPG\ZPG\x64\Debug\ZPG.exe
