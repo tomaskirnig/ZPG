@@ -2,10 +2,8 @@
 
 
 #include <iostream>
-#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Observer.h"
 #include "Subject.h"
 
 using namespace std;
@@ -34,19 +32,19 @@ public:
     Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
 
     // Register an observer
-    void registerObserver(Observer* observer) {
+    void registerObserver(Observer* observer) override {
         observers.push_back(observer);
     }
 
-    void notifyObservers(float aspectRatio);
+    void notifyObservers(float aspectRatio, vector<Light>& lights) override;
 
     glm::mat4 GetViewMatrix();
 
-    void ProcessKeyboardMovement(const char direction, float aspectRatio);
+    void ProcessKeyboardMovement(const char direction, float aspectRatio, vector<Light> lights);
 
-    void ProcessMouseMovement(float xOffset, float yOffset, float aspectRatio);
+    void ProcessMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light> lights);
 
-    void ProcessMouseScroll(float yOffset, float aspectRatio);
+    void ProcessMouseScroll(float yOffset, float aspectRatio, vector<Light> lights);
 
 
 };

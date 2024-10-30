@@ -46,6 +46,22 @@ void Shader::checkCompileErrors(GLuint shader, string type) {
     }
 }
 
+// Updates the shader with the view and projection matrices + light properties
+void Shader::update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, glm::vec3 lightPosition, glm::vec3 lightColor) {
+    use();  // Activate the shader
+
+    glUniformMatrix4fv(getUniformLocation("viewMatrix"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+    glUniformMatrix4fv(getUniformLocation("projectionMatrix"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+    GLint tmpLoc = getUniformLocation("lightPosition");
+    GLint tmpColorLoc = getUniformLocation("lightColor");
+
+    if (tmpLoc != -1 && tmpColorLoc != -1) {
+        glUniform3fv(tmpLoc, 1, glm::value_ptr(lightPosition));
+        glUniform3fv(tmpColorLoc, 1, glm::value_ptr(lightColor));
+    }
+}
+
 // Retrieve the location of a uniform, caching it after the first retrieval
 GLint Shader::getUniformLocation(const string& name) {
     // If the uniform location is not in the cache, get it from the shader and cache it

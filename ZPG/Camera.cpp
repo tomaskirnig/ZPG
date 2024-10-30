@@ -12,17 +12,17 @@ glm::mat4 Camera::GetViewMatrix() {
 }
 
 // Notify all observers of a change
-void Camera::notifyObservers(float aspectRatio) {
+void Camera::notifyObservers(float aspectRatio, vector<Light>& lights) {
     glm::mat4 viewMatrix = GetViewMatrix();
     glm::mat4 projectionMatrix = glm::perspective(glm::radians(Fov), aspectRatio, 0.1f, 100.0f);
     
     for (Observer* observer : observers) {
-        observer->update(viewMatrix, projectionMatrix);
+        observer->update(viewMatrix, projectionMatrix, lights[0].getPosition(), lights[0].getColor());
     }
 }
 
 // Move camera in a direction
-void Camera::ProcessKeyboardMovement(const char direction, float aspectRatio) {
+void Camera::ProcessKeyboardMovement(const char direction, float aspectRatio, vector<Light> lights) {
     float velocity = MovementSpeed;
     if (direction == 'u')
         Position += Target * velocity;  // Move forward
@@ -33,11 +33,11 @@ void Camera::ProcessKeyboardMovement(const char direction, float aspectRatio) {
     if (direction == 'r')
         Position += Right * velocity;   // Move right
 
-	notifyObservers(aspectRatio);
+	notifyObservers(aspectRatio, lights);
 }
 
 // Change the looking direction of the camera
-void Camera::ProcessMouseMovement(float xOffset, float yOffset, float aspectRatio) {
+void Camera::ProcessMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light> lights) {
     xOffset *= MouseSensitivity;
     yOffset *= MouseSensitivity;
 
@@ -51,11 +51,11 @@ void Camera::ProcessMouseMovement(float xOffset, float yOffset, float aspectRati
 
     // Update Target, Right, and Up Vectors
     updateCameraVectors();
-    notifyObservers(aspectRatio);
+    notifyObservers(aspectRatio, lights);
 }
 
 // Processes input from the mouse scroll wheel
-void Camera::ProcessMouseScroll(float yOffset, float aspectRatio) {
+void Camera::ProcessMouseScroll(float yOffset, float aspectRatio, vector<Light> lights) {
     if (Fov >= 1.0f && Fov <= 175.0f)
         Fov -= yOffset;
     if (Fov <= 1.0f)
@@ -65,7 +65,7 @@ void Camera::ProcessMouseScroll(float yOffset, float aspectRatio) {
 
 	std::cout << "Fov: " << Fov << endl;
 
-    notifyObservers(aspectRatio);
+    notifyObservers(aspectRatio, lights);
 }
 
 // Updates the Target, Right, and Up vectors using the current Euler angles

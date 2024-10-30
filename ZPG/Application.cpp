@@ -25,11 +25,11 @@ const char* vertexShaderSource3 =
 "}";
 
 const char* vertexShaderSource4 =
-"# version 400\n"
+"#version 330\n"        // 400
 "layout(location = 0) in vec3 vp;" // position
 "layout(location = 1) in vec3 vn;" // normal
-"out vec4 worldPos;"
 "out vec3 worldNorm;"
+"out vec4 worldPos;"
 "uniform mat4 transformationMatrix;"
 "uniform mat4 viewMatrix;"
 "uniform mat4 projectionMatrix;"
@@ -38,6 +38,22 @@ const char* vertexShaderSource4 =
 "   mat4 normal = transformationMatrix; "          // problem - priste vysvetlime
 "   worldNorm = vec3(normal * vec4(vn, 1.0));"
 "   gl_Position = projectionMatrix * viewMatrix * transformationMatrix * vec4(vp, 1.0);" 
+"}";
+
+const char* vertexShaderSource5 =
+"#version 330\n"        // 400
+"layout(location = 0) in vec3 vp;" // position
+"layout(location = 1) in vec3 vn;" // normal
+"out vec3 worldNorm;"
+"out vec4 worldPos;"
+"uniform mat4 transformationMatrix;"
+"uniform mat4 viewMatrix;"
+"uniform mat4 projectionMatrix;"
+"void main() {"
+"   worldPos = transformationMatrix * vec4(vp, 1.0);"
+"   mat3 normalMatrix = transpose(inverse(mat3(transformationMatrix / transformationMatrix[3][3])));"
+"   worldNorm = normalize(normalMatrix * vn);"
+"   gl_Position = projectionMatrix * viewMatrix * worldPos;"
 "}";
 
 
@@ -68,14 +84,14 @@ const char* fragmentShaderSource3 =
 
 const char* fragmentShaderSource4 =
 "#version 330 core\n"
-"in vec3 ex_worldNormal;"
-"in vec4 ex_worldPosition;"
+"in vec3 worldNorm;"
+"in vec4 worldPos;"
 "out vec4 out_Color;"
 "uniform vec3 lightPosition;"
 "uniform vec3 lightColor;"
 "void main() {"
-    "vec3 lightVector = normalize(lightPosition - vec3(ex_worldPosition));" // Calculate the light direction
-    "float diff = max(dot(normalize(ex_worldNormal), lightVector), 0.0);"   // Calculate the diffuse lighting component
+    "vec3 lightVector = normalize(lightPosition - vec3(worldPos));" // Calculate the light direction
+    "float diff = max(dot(normalize(worldNorm), lightVector), 0.0);"   // Calculate the diffuse lighting component
     "vec4 diffuse = vec4(diff * lightColor, 1.0);"
     "vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0);"  // Add ambient lighting
     "out_Color = ambient + diffuse;"
@@ -140,11 +156,7 @@ Application::Application() {
 }
 
 void Application::run() {
-    float square[] = {
-        0.5f,  0.5f, 0.0f,  0.5f,  0.5f, 1.0f,
-        0.8f,  0.5f, 0.0f,  0.5f,  0.5f, 0.0f,
-        0.5f,  0.8f, 0.0f,  0.0f,  0.5f, 0.0f,
-
+    float triangle[] = {
         0.5f,  0.8f, 0.0f,  0.5f,  0.5f, 0.0f,
         0.8f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f,
         0.8f,  0.8f, 0.0f,  0.5f,  0.5f, 0.0f,
@@ -158,7 +170,7 @@ void Application::run() {
     // Adding objects to first scene
 	scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3));
 	scenes[0].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3));
-    scenes[0].addObject(new DrawableObject(square, sizeof(square), vertexShaderSource3, fragmentShaderSource3));
+    scenes[0].addObject(new DrawableObject(triangle, sizeof(triangle), vertexShaderSource3, fragmentShaderSource3));
 
 	// Add a forest to the second scene
 	addForest(1, 50);
@@ -226,8 +238,6 @@ void Application::currentScenePlus() {
 	scenes[currentScene].notifyCurrObservers(aspectRatio);
 
 	cout << "Current scene: " << currentScene << endl;
-
-    //calculateLight();
 }
 
 // Change the current scene to the previous one
@@ -240,8 +250,6 @@ void Application::currentSceneMinus() {
 	scenes[currentScene].notifyCurrObservers(aspectRatio);
     
 	cout << "Current scene: " << currentScene << endl;
-
-    //calculateLight();
 }
 
 // Change the current object to the next one
@@ -414,7 +422,6 @@ void Application::addForest(int sceneIndex, int numTrees) {
     uniform_real_distribution<> disScaleBush(0.4, 1.0);
 
     for (int i = 0; i < numTrees; ++i) {
-
         float randomX = disXBush(gen);
         float randomZ = disZBush(gen);  
         float randomRotationY = glm::radians(disRotationY(gen));  
@@ -429,6 +436,13 @@ void Application::addForest(int sceneIndex, int numTrees) {
 
         scenes[sceneIndex].addObject(bushObject);
     }
+
+	DrawableObject* plainObj = new DrawableObject(plain, sizeof(plain), vertexShaderSource3, fragmentShaderSource3);
+	Transformation* transform = plainObj->getTransformation();
+	transform->setPosition(glm::vec3(0.0, -0.5, 0.0));
+	transform->setScale(glm::vec3(20.0));
+
+	scenes[sceneIndex].addObject(plainObj);
 }
 
 void Application::addBalls(int sceneIndex) {
@@ -436,7 +450,7 @@ void Application::addBalls(int sceneIndex) {
 
 	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSource4, fragmentShaderSource4));
+        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSource5, fragmentShaderSource4));
     }
 
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
@@ -444,16 +458,6 @@ void Application::addBalls(int sceneIndex) {
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'l', 1.0);
     scenes[sceneIndex].moveObject(numOfObjectInScene, 'r', 1.0);
 }
-
-//void Application::calculateLight() {
-//	cout << "Calculating light" << endl;
-//	vector<Shader*> objShaders = scenes[currentScene].getShaders();
-//	for (int i = 0; i < lights.size(); i++) {
-//        for (int j = 0; j < objShaders.size(); j++) {
-//            lights[i].applyLighting(objShaders[j]);
-//        }
-//	}
-//}
 
 // Other callback functions
 void Application::error_callback(int error, const char* description) {
@@ -506,8 +510,6 @@ void Application::cursor_callback(GLFWwindow* window, double x, double y) {
 
 		// Process the mouse movement
         app->scenes[app->currentScene].mouseMovementCamera(app->scenes[app->currentScene].getCurrCamera(), xOffset, yOffset, app->aspectRatio);
-	    
-        //app->calculateLight();
     }
 }
 

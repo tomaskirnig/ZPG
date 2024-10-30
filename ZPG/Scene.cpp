@@ -11,13 +11,13 @@ void Scene::addObject(DrawableObject* object) {
 }
 
 // Deletes an object from the scene
-void Scene::deleteObject(DrawableObject* object) {
-	for (int i = 0; i < objects.size(); i++) {
-		if (objects[i] == object) {
-			objects.erase(objects.begin() + i);
-			break;
-		}
-	}
+void Scene::deleteObject(DrawableObject* delObject) {
+    for (auto obj = objects.begin(); obj != objects.end(); obj++) {
+        if (*obj == delObject) {
+            objects.erase(obj);
+            break;
+        }
+    }
 }
 
 void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
@@ -32,15 +32,10 @@ void Scene::addLight(glm::vec3 position, glm::vec3 color)
 
 // Renders all objects in the scene
 void Scene::render() {
-    //// Apply camera's view and projection matrices
-    //cameras[currentCamera].notifyObservers(aspectRatio);
+    // Apply camera's view and projection matrices
+    //cameras[currentCamera].notifyObservers(aspectRatio, lights);
 
-    //// Apply light properties to each shader
-    //for (DrawableObject* object : objects) {
-    //    Shader* shader = object->getShader();
-    //    light.applyLighting(shader);  // Apply light to each object shader
-    //}
-
+	// Render all objects in the scene
     for (DrawableObject* object : objects) {
         object->draw();
     }
@@ -55,7 +50,7 @@ void Scene::registerAllObservers(float aspectRatio)
 	}
 
     for (Camera& camera : cameras) {
-		camera.notifyObservers(aspectRatio);
+		camera.notifyObservers(aspectRatio, lights);
     }
 }
 
@@ -64,11 +59,7 @@ void Scene::notifyCurrObservers(float aspectRatio)
 	/*for (Camera camera : cameras) {
 		camera.notifyObservers(aspectRatio);
 	}*/
-	cameras[currentCamera].notifyObservers(aspectRatio);
-}
-
-void Scene::calculateLight()
-{
+	cameras[currentCamera].notifyObservers(aspectRatio, lights);
 }
 
 // Returns the number of objects in the scene
@@ -268,17 +259,17 @@ void Scene::resetObjectScale(int currentObject) {
 
 void Scene::moveCamera(int camera, char direction, float aspectRatio)
 {
-	cameras[camera].ProcessKeyboardMovement(direction, aspectRatio);
+	cameras[camera].ProcessKeyboardMovement(direction, aspectRatio, lights);
 }
 
 void Scene::mouseMovementCamera(int camera, float xOffset, float yOffset, float aspectRatio)
 {
-	cameras[camera].ProcessMouseMovement(xOffset, yOffset, aspectRatio);
+	cameras[camera].ProcessMouseMovement(xOffset, yOffset, aspectRatio, lights);
 }
 
 void Scene::zoomCamera(int camera, double yOffset, float aspectRatio)
 {
-	cameras[camera].ProcessMouseScroll(yOffset, aspectRatio);
+	cameras[camera].ProcessMouseScroll(yOffset, aspectRatio, lights);
 }
 
 // Returns the shaders used by the objects in the scene

@@ -26,11 +26,7 @@ class Shader : Observer {
         }
 
         // Observer's update method implementation
-        void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) override {
-            use();
-            glUniformMatrix4fv(getUniformLocation("viewMatrix"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-            glUniformMatrix4fv(getUniformLocation("projectionMatrix"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-        }
+        void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, glm::vec3 lightPosition, glm::vec3 lightColor) override;
 
         void deleteShader() {
             glDeleteProgram(ID);

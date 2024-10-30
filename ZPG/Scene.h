@@ -26,7 +26,6 @@ class Scene {
         void render();
 		void registerAllObservers(float aspectRatio);
 		void notifyCurrObservers(float aspectRatio);
-		void calculateLight();
 
 		int objectsCount();
 		int getCurrCamera();
