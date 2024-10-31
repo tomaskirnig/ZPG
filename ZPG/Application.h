@@ -23,6 +23,7 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "Light.h"
+#include "Shader.h"
 
 //Include objects
 #include "sphere.h"

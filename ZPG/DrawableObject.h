@@ -12,7 +12,7 @@ class DrawableObject {
         Transformation* transformation;
 
     public:
-        DrawableObject(const float* points, size_t size, const char* vertexShader, const char* fragmentShader);
+        DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile);
 
         void draw();
 

@@ -4,11 +4,11 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Subject.h"
+#include "ISubject.h"
 
 using namespace std;
 
-class Camera : Subject {
+class Camera : ISubject {
 private:
     glm::vec3 Position;
     glm::vec3 Target;
@@ -27,12 +27,12 @@ private:
 
 public:
     // List of observers (shaders)
-    vector<Observer*> observers;
+    vector<IObserver*> observers;
 
     Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
 
     // Register an observer
-    void registerObserver(Observer* observer) override {
+    void registerObserver(IObserver* observer) override {
         observers.push_back(observer);
     }
 

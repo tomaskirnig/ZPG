@@ -16,7 +16,7 @@ void Camera::notifyObservers(float aspectRatio, vector<Light>& lights) {
     glm::mat4 viewMatrix = GetViewMatrix();
     glm::mat4 projectionMatrix = glm::perspective(glm::radians(Fov), aspectRatio, 0.1f, 100.0f);
     
-    for (Observer* observer : observers) {
+    for (IObserver* observer : observers) {
         observer->update(viewMatrix, projectionMatrix, lights[0].getPosition(), lights[0].getColor());
     }
 }

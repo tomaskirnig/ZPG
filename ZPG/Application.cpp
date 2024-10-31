@@ -35,22 +35,6 @@ const char* vertexShaderSource4 =
 "uniform mat4 projectionMatrix;"
 "void main() {"
 "   worldPos = transformationMatrix * vec4(vp, 1.0);"
-"   mat4 normal = transformationMatrix; "          // problem - priste vysvetlime
-"   worldNorm = vec3(normal * vec4(vn, 1.0));"
-"   gl_Position = projectionMatrix * viewMatrix * transformationMatrix * vec4(vp, 1.0);" 
-"}";
-
-const char* vertexShaderSource5 =
-"#version 330\n"        // 400
-"layout(location = 0) in vec3 vp;" // position
-"layout(location = 1) in vec3 vn;" // normal
-"out vec3 worldNorm;"
-"out vec4 worldPos;"
-"uniform mat4 transformationMatrix;"
-"uniform mat4 viewMatrix;"
-"uniform mat4 projectionMatrix;"
-"void main() {"
-"   worldPos = transformationMatrix * vec4(vp, 1.0);"
 "   mat3 normalMatrix = transpose(inverse(mat3(transformationMatrix / transformationMatrix[3][3])));"
 "   worldNorm = normalize(normalMatrix * vn);"
 "   gl_Position = projectionMatrix * viewMatrix * worldPos;"
@@ -97,6 +81,8 @@ const char* fragmentShaderSource4 =
     "out_Color = ambient + diffuse;"
 "}";
 
+vector<string> vertexShaderSources = {"vertexShaderSource1", "vertexShaderSource2", "vertexShaderSource3"};
+vector<string> fragmentShaderSources = {"fragmentShaderSource1", "fragmentShaderSource2", "fragmentShaderSource3", "fragmentShaderSource4"};
 
 Application::Application() {
     if (!glfwInit()) {
@@ -157,20 +143,25 @@ Application::Application() {
 
 void Application::run() {
     float triangle[] = {
-        0.5f,  0.8f, 0.0f,  0.5f,  0.5f, 0.0f,
-        0.8f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f,
-        0.8f,  0.8f, 0.0f,  0.5f,  0.5f, 0.0f,
+        -0.5f,  -0.3f, 0.0f,  0.5f,  0.5f, 0.0f,
+        0.5f,  -0.3f, 0.0f,  0.0f,  0.0f, 1.0f,
+        0.0f,  0.7f, 0.0f,  0.5f,  0.5f, 0.0f,
     };
+
+	//vertexShaderSources[1], fragmentShaderSources[0]     // One color
+	//vertexShaderSources[1], fragmentShaderSources[2]    // Normals as colors
+	//vertexShaderSources[2], fragmentShaderSources[3]    // With lighting
 
     glEnable(GL_DEPTH_TEST);
 
 	addScene();
     addScene();
+    addScene();
 
     // Adding objects to first scene
-	scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3));
-	scenes[0].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3));
-    scenes[0].addObject(new DrawableObject(triangle, sizeof(triangle), vertexShaderSource3, fragmentShaderSource3));
+	//scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSources[1], fragmentShaderSources[2]));
+	//scenes[0].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSources[1], fragmentShaderSources[2]));
+    scenes[0].addObject(new DrawableObject(triangle, sizeof(triangle), vertexShaderSources[1], fragmentShaderSources[2]));
 
 	// Add a forest to the second scene
 	addForest(1, 50);
@@ -403,7 +394,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         float randomZ = disZTree(gen);
         float randomRotationY = glm::radians(disRotationY(gen));  // Random rotation in radians
 
-        DrawableObject* treeObject = new DrawableObject(tree, sizeof(tree), vertexShaderSource3, fragmentShaderSource3);
+        DrawableObject* treeObject = new DrawableObject(tree, sizeof(tree), vertexShaderSources[1], fragmentShaderSources[2]);
 
         // Set the transformation matrix (position and scale) 
         Transformation* transform = treeObject->getTransformation();
@@ -426,7 +417,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         float randomZ = disZBush(gen);  
         float randomRotationY = glm::radians(disRotationY(gen));  
 
-        DrawableObject* bushObject = new DrawableObject(bushes, sizeof(bushes), vertexShaderSource3, fragmentShaderSource3);
+        DrawableObject* bushObject = new DrawableObject(bushes, sizeof(bushes), vertexShaderSources[1], fragmentShaderSources[2]);
 
         Transformation* transform = bushObject->getTransformation();
         transform->setPosition(glm::vec3(randomX, -0.5, randomZ));
@@ -437,7 +428,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex].addObject(bushObject);
     }
 
-	DrawableObject* plainObj = new DrawableObject(plain, sizeof(plain), vertexShaderSource3, fragmentShaderSource3);
+	DrawableObject* plainObj = new DrawableObject(plain, sizeof(plain), vertexShaderSources[1], fragmentShaderSources[2]);
 	Transformation* transform = plainObj->getTransformation();
 	transform->setPosition(glm::vec3(0.0, -0.5, 0.0));
 	transform->setScale(glm::vec3(20.0));
@@ -450,7 +441,7 @@ void Application::addBalls(int sceneIndex) {
 
 	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSource5, fragmentShaderSource4));
+        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[3]));
     }
 
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);

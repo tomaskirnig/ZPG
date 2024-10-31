@@ -1,9 +1,9 @@
 #include "DrawableObject.h"
 
-DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, const char* vertexShader, const char* fragmentShader) 
+DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile)
     : transformation(new Transformation()) {
     model = new Model(points, sizeOfPoints);
-    shader = new Shader(vertexShader, fragmentShader);
+    shader = new Shader(vertexShaderFile, fragmentShaderFile);
 }
 
 // Draw the object

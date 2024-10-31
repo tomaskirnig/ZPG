@@ -45,7 +45,7 @@ void Scene::registerAllObservers(float aspectRatio)
 {
 	for (Camera& camera : cameras) {
 		for (DrawableObject* object : objects) {
-			camera.registerObserver((Observer*)object->getShader());
+			camera.registerObserver((IObserver*)object->getShader());
 		}
 	}
 

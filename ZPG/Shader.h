@@ -6,11 +6,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Observer.h"
+#include "IObserver.h"
+#include "ShaderLoader.h"
 
 using namespace std;
 
-class Shader : Observer {
+class Shader : IObserver, ShaderLoader{
     private:
         GLuint ID;
         unordered_map<string, GLint> uniformLocations;  // Cache for uniform locations
@@ -18,7 +19,9 @@ class Shader : Observer {
         void checkCompileErrors(GLuint shader, string type);
 
     public:
-        Shader(const char* vertexSource, const char* fragmentSource);
+        //Shader(const char* vertexSource, const char* fragmentSource);
+        Shader(string vertexFile, string fragmentFile);
+
 	    GLuint compileShader(const char* source, GLenum type);
 
         void use() {

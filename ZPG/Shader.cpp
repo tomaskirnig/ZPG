@@ -1,18 +1,25 @@
 #include "Shader.h"
 
 
-Shader::Shader(const char* vertexSource, const char* fragmentSource) {
-    GLuint vertexShader = compileShader(vertexSource, GL_VERTEX_SHADER);
-    GLuint fragmentShader = compileShader(fragmentSource, GL_FRAGMENT_SHADER);
+//Shader::Shader(const char* vertexSource, const char* fragmentSource) {
+//    GLuint vertexShader = compileShader(vertexSource, GL_VERTEX_SHADER);
+//    GLuint fragmentShader = compileShader(fragmentSource, GL_FRAGMENT_SHADER);
+//
+//    ID = glCreateProgram();
+//    glAttachShader(ID, vertexShader);
+//    glAttachShader(ID, fragmentShader);
+//    glLinkProgram(ID);
+//    checkCompileErrors(ID, "PROGRAM");
+//
+//    glDeleteShader(vertexShader);
+//    glDeleteShader(fragmentShader);
+//}
 
-    ID = glCreateProgram();
-    glAttachShader(ID, vertexShader);
-    glAttachShader(ID, fragmentShader);
-    glLinkProgram(ID);
-    checkCompileErrors(ID, "PROGRAM");
+Shader::Shader(string vertexFile, string fragmentFile) {
+    vertexFile = "../Shaders/Vertex/" + vertexFile + ".glsl";
+	fragmentFile = "../Shaders/Fragment/" + fragmentFile + ".glsl";
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+	ID = loadShader(vertexFile.c_str(), fragmentFile.c_str());
 }
 
 // Compile a shader from source code
