@@ -259,17 +259,17 @@ void Scene::resetObjectScale(int currentObject) {
 
 void Scene::moveCamera(int camera, char direction, float aspectRatio)
 {
-	cameras[camera].ProcessKeyboardMovement(direction, aspectRatio, lights);
+	cameras[camera].processKeyboardMovement(direction, aspectRatio, lights);
 }
 
 void Scene::mouseMovementCamera(int camera, float xOffset, float yOffset, float aspectRatio)
 {
-	cameras[camera].ProcessMouseMovement(xOffset, yOffset, aspectRatio, lights);
+	cameras[camera].processMouseMovement(xOffset, yOffset, aspectRatio, lights);
 }
 
 void Scene::zoomCamera(int camera, double yOffset, float aspectRatio)
 {
-	cameras[camera].ProcessMouseScroll(yOffset, aspectRatio, lights);
+	cameras[camera].processMouseScroll(yOffset, aspectRatio, lights);
 }
 
 // Returns the shaders used by the objects in the scene

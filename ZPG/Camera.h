@@ -38,13 +38,11 @@ public:
 
     void notifyObservers(float aspectRatio, vector<Light>& lights) override;
 
-    glm::mat4 GetViewMatrix();
+    glm::mat4 getViewMatrix();
 
-    void ProcessKeyboardMovement(const char direction, float aspectRatio, vector<Light> lights);
+    void processKeyboardMovement(const char direction, float aspectRatio, vector<Light> lights);
 
-    void ProcessMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light> lights);
+    void processMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light> lights);
 
-    void ProcessMouseScroll(float yOffset, float aspectRatio, vector<Light> lights);
-
-
+    void processMouseScroll(float yOffset, float aspectRatio, vector<Light> lights);
 };

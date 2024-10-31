@@ -82,7 +82,14 @@ const char* fragmentShaderSource4 =
 "}";
 
 vector<string> vertexShaderSources = {"vertexShaderSource1", "vertexShaderSource2", "vertexShaderSource3"};
-vector<string> fragmentShaderSources = {"fragmentShaderSource1", "fragmentShaderSource2", "fragmentShaderSource3", "fragmentShaderSource4"};
+vector<string> fragmentShaderSources = {
+    "fragmentShaderSource1", 
+    "fragmentShaderSource2", 
+    "fragmentShaderSource3", 
+    "LambertFragmentShaderSource", 
+    "PhongFragmentShaderSource",
+    "PhongBlinnFragmentShaderSource"
+};
 
 Application::Application() {
     if (!glfwInit()) {
@@ -178,10 +185,6 @@ void Application::run() {
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         processInput();
-
-        /*if (currentScene == 2) {
-            calculateLight();
-        }*/
 
 		scenes[currentScene].render();
 
@@ -441,7 +444,7 @@ void Application::addBalls(int sceneIndex) {
 
 	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[3]));
+        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[5]));
     }
 
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
