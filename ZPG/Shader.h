@@ -15,12 +15,12 @@ class Shader : IObserver, ShaderLoader{
     private:
         GLuint ID;
         unordered_map<string, GLint> uniformLocations;  // Cache for uniform locations
+        float shininess;
 
         void checkCompileErrors(GLuint shader, string type);
 
     public:
-        //Shader(const char* vertexSource, const char* fragmentSource);
-        Shader(string vertexFile, string fragmentFile);
+        Shader(string vertexFile, string fragmentFile, float shininess = 50.0f);
 
 	    GLuint compileShader(const char* source, GLenum type);
 
@@ -29,7 +29,7 @@ class Shader : IObserver, ShaderLoader{
         }
 
         // Observer's update method implementation
-        void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, glm::vec3 lightPosition, glm::vec3 lightColor) override;
+        void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, glm::vec3 lightPosition, glm::vec3 lightColor, glm::vec3 viewPosition) override;
 
         void deleteShader() {
             glDeleteProgram(ID);

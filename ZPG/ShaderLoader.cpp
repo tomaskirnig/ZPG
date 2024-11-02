@@ -8,16 +8,10 @@ string ShaderLoader::loadFile(const char *fname)
 		cout << "Unable to open file " << fname << endl;
 		//exit(1);
 	}
-	/*std::stringstream fileData;
-	fileData << file.rdbuf();
-	file.close();
-	return fileData.str();*/
 	std::stringstream fileData;
 	fileData << file.rdbuf();
 	file.close();
-	std::string content = fileData.str();
-	cout << "File content for " << fname << ":\n" << content << endl; // Debugging line
-	return content;
+	return fileData.str();
 }
 
 GLuint ShaderLoader::loadShader(const char *vertexFile, const char *fragmentFile){

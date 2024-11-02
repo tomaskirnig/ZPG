@@ -13,6 +13,7 @@ class DrawableObject {
 
     public:
         DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile);
+        DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile, float shininess);
 
         void draw();
 

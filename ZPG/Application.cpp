@@ -1,86 +1,5 @@
 #include "Application.h"
 
-// Vertex shader source code
-const char* vertexShaderSource2 =
-"#version 330\n"
-"layout(location=0) in vec3 vp;"  // Position attribute
-"layout(location=1) in vec3 vn;"  // Color attribute
-"out vec3 color;"                 // Passing color to the fragment shader
-"void main () {"
-"   gl_Position = vec4 (vp, 1.0);"
-"   color = vn;"                // Assigning input color to the output
-"}";
-
-const char* vertexShaderSource3 =
-"#version 330\n"
-"layout(location=0) in vec3 vp;"  // Vertex position
-"layout(location=1) in vec3 vn;"  // Vertex normal or color
-"uniform mat4 transformationMatrix;"  // Transformation matrix
-"uniform mat4 viewMatrix;"            // View matrix (from the camera)
-"uniform mat4 projectionMatrix;"      // Projection matrix (perspective or orthographic)
-"out vec3 color;"                     // Passing color to the fragment shader
-"void main() {"
-"   gl_Position = projectionMatrix * viewMatrix * transformationMatrix * vec4(vp, 1.0);"  // Combine matrices
-"   color = vn;"  // Pass color to the fragment shader
-"}";
-
-const char* vertexShaderSource4 =
-"#version 330\n"        // 400
-"layout(location = 0) in vec3 vp;" // position
-"layout(location = 1) in vec3 vn;" // normal
-"out vec3 worldNorm;"
-"out vec4 worldPos;"
-"uniform mat4 transformationMatrix;"
-"uniform mat4 viewMatrix;"
-"uniform mat4 projectionMatrix;"
-"void main() {"
-"   worldPos = transformationMatrix * vec4(vp, 1.0);"
-"   mat3 normalMatrix = transpose(inverse(mat3(transformationMatrix / transformationMatrix[3][3])));"
-"   worldNorm = normalize(normalMatrix * vn);"
-"   gl_Position = projectionMatrix * viewMatrix * worldPos;"
-"}";
-
-
-// Fragment shader source code
-const char* fragmentShaderSource =
-"#version 330\n"
-"out vec4 frag_colour;"
-"void main () {"
-"     frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
-//"     frag_colour = vec4 (0.5, 0.0, hello, 1.0);" // Shader compilation error test
-"}";
-
-const char* fragmentShaderSource2 =
-"#version 330\n"
-"in vec3 color;"
-"out vec4 frag_colour;"
-"void main () {"
-"     frag_colour = vec4(color, 0.5);"  // Use the color passed from the vertex shader
-"}";
-
-const char* fragmentShaderSource3 =
-"#version 330\n"
-"in vec3 color;"     // Receive the interpolated color from the vertex shader
-"out vec4 frag_colour;"  // Declare the output color variable
-"void main() {"
-"    frag_colour = vec4(color, 1.0);"  // Set the fragment color using the input color and alpha = 1.0
-"}";
-
-const char* fragmentShaderSource4 =
-"#version 330 core\n"
-"in vec3 worldNorm;"
-"in vec4 worldPos;"
-"out vec4 out_Color;"
-"uniform vec3 lightPosition;"
-"uniform vec3 lightColor;"
-"void main() {"
-    "vec3 lightVector = normalize(lightPosition - vec3(worldPos));" // Calculate the light direction
-    "float diff = max(dot(normalize(worldNorm), lightVector), 0.0);"   // Calculate the diffuse lighting component
-    "vec4 diffuse = vec4(diff * lightColor, 1.0);"
-    "vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0);"  // Add ambient lighting
-    "out_Color = ambient + diffuse;"
-"}";
-
 vector<string> vertexShaderSources = {"vertexShaderSource1", "vertexShaderSource2", "vertexShaderSource3"};
 vector<string> fragmentShaderSources = {
     "fragmentShaderSource1", 
@@ -157,7 +76,7 @@ void Application::run() {
 
 	//vertexShaderSources[1], fragmentShaderSources[0]     // One color
 	//vertexShaderSources[1], fragmentShaderSources[2]    // Normals as colors
-	//vertexShaderSources[2], fragmentShaderSources[3]    // With lighting
+	//vertexShaderSources[2], fragmentShaderSources[3]    // With lighting (Lambert)
 
     glEnable(GL_DEPTH_TEST);
 
@@ -174,6 +93,8 @@ void Application::run() {
 	addForest(1, 50);
 
 	addBalls(2);
+
+    addBallsDiffShaders(3);
     
     registerAllObservers();
 
@@ -445,6 +366,22 @@ void Application::addBalls(int sceneIndex) {
 	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
     for (int i = 0; i < 4; i++) {
         scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[5]));
+    }
+
+    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
+    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'd', 1.0);
+    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'l', 1.0);
+    scenes[sceneIndex].moveObject(numOfObjectInScene, 'r', 1.0);
+}
+
+void Application::addBallsDiffShaders(int sceneIndex) {
+    //scenes[sceneIndex].addLight();
+
+    int numOfObjectInScene = scenes[sceneIndex].objectsCount();
+    scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[1], fragmentShaderSources[2], 130.0f));
+
+    for (int i = 3; i < 6; i++) {
+        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[i], 130.0f));
     }
 
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);

@@ -1,21 +1,11 @@
 #include "Shader.h"
 
 
-//Shader::Shader(const char* vertexSource, const char* fragmentSource) {
-//    GLuint vertexShader = compileShader(vertexSource, GL_VERTEX_SHADER);
-//    GLuint fragmentShader = compileShader(fragmentSource, GL_FRAGMENT_SHADER);
-//
-//    ID = glCreateProgram();
-//    glAttachShader(ID, vertexShader);
-//    glAttachShader(ID, fragmentShader);
-//    glLinkProgram(ID);
-//    checkCompileErrors(ID, "PROGRAM");
-//
-//    glDeleteShader(vertexShader);
-//    glDeleteShader(fragmentShader);
-//}
+Shader::Shader(string vertexFile, string fragmentFile, float shininess) {
+	this->shininess = shininess;
 
-Shader::Shader(string vertexFile, string fragmentFile) {
+	cout << "Shininess" << this->shininess << endl;
+
     vertexFile = "../Shaders/Vertex/" + vertexFile + ".glsl";
 	fragmentFile = "../Shaders/Fragment/" + fragmentFile + ".glsl";
 
@@ -54,7 +44,7 @@ void Shader::checkCompileErrors(GLuint shader, string type) {
 }
 
 // Updates the shader with the view and projection matrices + light properties
-void Shader::update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, glm::vec3 lightPosition, glm::vec3 lightColor) {
+void Shader::update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, glm::vec3 lightPosition, glm::vec3 lightColor, glm::vec3 viewPosition) {
     use();  // Activate the shader
 
     glUniformMatrix4fv(getUniformLocation("viewMatrix"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
@@ -67,6 +57,18 @@ void Shader::update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatr
         glUniform3fv(tmpLoc, 1, glm::value_ptr(lightPosition));
         glUniform3fv(tmpColorLoc, 1, glm::value_ptr(lightColor));
     }
+
+	GLuint shininesLoc = getUniformLocation("shininess");
+
+	if (shininesLoc != -1) {
+        glUniform1f(shininesLoc, shininess);
+	}
+
+	GLuint viewPosLoc = getUniformLocation("viewPosition");
+
+	if (viewPosLoc != -1) {
+		glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPosition));
+	}
 }
 
 // Retrieve the location of a uniform, caching it after the first retrieval

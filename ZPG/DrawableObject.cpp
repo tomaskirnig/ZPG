@@ -6,6 +6,12 @@ DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, string 
     shader = new Shader(vertexShaderFile, fragmentShaderFile);
 }
 
+DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile, float shininess)
+    : transformation(new Transformation()) {
+    model = new Model(points, sizeOfPoints);
+    shader = new Shader(vertexShaderFile, fragmentShaderFile, shininess);
+}
+
 // Draw the object
 void DrawableObject::draw() {
     shader->use(); // Set the shader to be used

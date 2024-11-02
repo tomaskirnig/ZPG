@@ -74,6 +74,7 @@ class Application
 		// Object generation
 		void addForest(int sceneIndex, int numTrees);
         void addBalls(int sceneIndex);
+        void addBallsDiffShaders(int sceneIndex);
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);
