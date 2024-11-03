@@ -365,7 +365,7 @@ void Application::addBalls(int sceneIndex) {
 
 	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[5]));
+        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[4], 100.0f)); //(i + 1) * 40.0f
     }
 
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
@@ -378,7 +378,7 @@ void Application::addBallsDiffShaders(int sceneIndex) {
     //scenes[sceneIndex].addLight();
 
     int numOfObjectInScene = scenes[sceneIndex].objectsCount();
-    scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[1], fragmentShaderSources[2], 130.0f));
+    scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[1], fragmentShaderSources[2]));
 
     for (int i = 3; i < 6; i++) {
         scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[i], 130.0f));

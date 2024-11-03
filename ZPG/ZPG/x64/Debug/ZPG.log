@@ -28,17 +28,5 @@ F:\VS\ZPG\ZPG\Application.cpp(439,22): warning C4244: =: double se převádí na
 F:\VS\ZPG\ZPG\Application.cpp(440,22): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
 F:\VS\ZPG\ZPG\Application.cpp(443,117): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
 F:\VS\ZPG\ZPG\Application.cpp(443,108): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
-  Camera.cpp
-  DrawableObject.cpp
-  Main.cpp
-  Scene.cpp
-F:\VS\ZPG\ZPG\Scene.cpp(67,21): warning C4267: return: Převod z: size_t na: int, může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Scene.cpp(98,34): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Scene.cpp(272,37): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
-  Shader.cpp
-  ShaderLoader.cpp
-F:\VS\ZPG\ZPG\ShaderLoader.cpp(21,11): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\ShaderLoader.cpp(22,11): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
-  Generování kódu...
 LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
   ZPG.vcxproj -> F:\VS\ZPG\ZPG\x64\Debug\ZPG.exe
