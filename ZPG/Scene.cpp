@@ -2,7 +2,7 @@
 
 Scene::Scene() : currentObject(0), currentCamera(0) {
 	addCamera();
-	addLight();
+	addLight(); //glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 0.0)
 }
 
 // Adds a new object to the scene

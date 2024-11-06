@@ -30,6 +30,8 @@
 #include "tree.h"
 #include "bushes.h"
 #include "plain.h"
+#include "suzi_flat.h"
+#include "suzi_smooth.h"
 
 using namespace std;
 
@@ -75,6 +77,7 @@ class Application
 		void addForest(int sceneIndex, int numTrees);
         void addBalls(int sceneIndex);
         void addBallsDiffShaders(int sceneIndex);
+        void addMonkeys(int sceneIndex);
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);

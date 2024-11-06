@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿  Application.cpp
 F:\VS\ZPG\ZPG\Application.cpp(162,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
 F:\VS\ZPG\ZPG\Application.cpp(317,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
@@ -30,3 +31,7 @@ F:\VS\ZPG\ZPG\Application.cpp(443,117): warning C4244: argument: double se přev
 F:\VS\ZPG\ZPG\Application.cpp(443,108): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
 LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
   ZPG.vcxproj -> F:\VS\ZPG\ZPG\x64\Debug\ZPG.exe
+=======
+﻿  Camera.cpp
+  ZPG.vcxproj -> C:\Users\tomki\VS\ZPG\ZPG\x64\Debug\ZPG.exe
+>>>>>>> c42bb412f57cdc69c5f442aaaddc4867b0131cd7
