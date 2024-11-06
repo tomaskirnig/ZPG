@@ -2,7 +2,7 @@
 
 Scene::Scene() : currentObject(0), currentCamera(0) {
 	addCamera();
-	addLight(); //glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 0.0)
+	addLight(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 1.0f)); //glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 0.0)
 }
 
 // Adds a new object to the scene
@@ -25,9 +25,12 @@ void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
 	cameras.push_back(Camera(position, up, yaw, pitch));
 }
 
+
 void Scene::addLight(glm::vec3 position, glm::vec3 color)
 {
-	lights.push_back(Light(position, color));
+	lights.push_back(Light());
+	lights[lights.size() - 1].setPosition(position);
+	lights[lights.size() - 1].setColor(color);
 }
 
 // Renders all objects in the scene
@@ -39,15 +42,21 @@ void Scene::render() {
     for (DrawableObject* object : objects) {
         object->draw();
     }
+    for (Light light : lights) {
+		light.draw();
+    }
 }
 
 void Scene::registerAllObservers(float aspectRatio)
 {
-	for (Camera& camera : cameras) {
-		for (DrawableObject* object : objects) {
-			camera.registerObserver((IObserver*)object->getShader());
-		}
-	}
+    for (Camera& camera : cameras) {
+        for (DrawableObject* object : objects) {
+            camera.registerObserver((IObserver*)object->getShader());
+        }
+        for (Light light : lights) {
+			camera.registerObserver((IObserver*)light.getShader());
+        }
+    }
 
     for (Camera& camera : cameras) {
 		camera.notifyObservers(aspectRatio, lights);
@@ -56,9 +65,6 @@ void Scene::registerAllObservers(float aspectRatio)
 
 void Scene::notifyCurrObservers(float aspectRatio)
 {
-	/*for (Camera camera : cameras) {
-		camera.notifyObservers(aspectRatio);
-	}*/
 	cameras[currentCamera].notifyObservers(aspectRatio, lights);
 }
 
@@ -113,135 +119,113 @@ void Scene::currentCameraPlus(float aspectRatio)
 
 // Moves the current object in the scene
 void Scene::moveObject(int object, char direction) {
-    Transformation* transform = objects[object]->getTransformation();
-    glm::vec3 currentPosition = transform->getPosition();  // Get the current position
-
-    glm::vec3 movement(0.0f);
     float movementSpeed = 0.01f;
 
     switch (direction)
     {
-        case 'u':
-            movement = glm::vec3(0.0f, movementSpeed, 0.0f); // Move along Y-axis +
-            break;
+    case 'u':
+        objects[object]->moveObject(glm::vec3(0.0f, movementSpeed, 0.0f)); // Move + Y-axis
+        break;
 
-        case 'd':
-            movement = glm::vec3(0.0f, -movementSpeed, 0.0f);// Move along Y-axis - 
-            break;
+    case 'd':
+        objects[object]->moveObject(glm::vec3(0.0f, -movementSpeed, 0.0f)); // Move - Y-axis
+        break;
 
-        case 'l':
-            movement = glm::vec3(-movementSpeed, 0.0f, 0.0f); // Move along X-axis + 
-            break;
+    case 'l':
+        objects[object]->moveObject(glm::vec3(-movementSpeed, 0.0f, 0.0f)); // Move + X-axis
+        break;
 
-        case 'r':
-			movement = glm::vec3(movementSpeed, 0.0f, 0.0f); // Move along X-axis - 
-            break;
+    case 'r':
+        objects[object]->moveObject(glm::vec3(movementSpeed, 0.0f, 0.0f)); // Move - X-axis
+        break;
 
-        case 'f':
-            movement = glm::vec3(0.0f, 0.0f, movementSpeed); // Move along Z-axis +
-			break;
+    case 'f':
+        objects[object]->moveObject(glm::vec3(0.0f, 0.0f, movementSpeed)); // Move + Z-axis
+        break;
 
-        case 'b':
-			movement = glm::vec3(0.0f, 0.0f, -movementSpeed); // Move along Z-axis -
-			break;
-
-        default:
-            break;
+    case 'b':
+        objects[object]->moveObject(glm::vec3(0.0f, 0.0f, -movementSpeed)); // Move - Z-axis
+        break;
+    default:
+        break;
     }
-
-    // Move in global coordinatese
-    transform->setPosition(currentPosition + movement);
-
 }
 
 void Scene::moveObject(int object, char direction, float amount) {
-    Transformation* transform = objects[object]->getTransformation();
-    glm::vec3 currentPosition = transform->getPosition();  // Get the current position
-
     glm::vec3 movement(0.0f);
 
     switch (direction)
     {
     case 'u':
-        movement = glm::vec3(0.0f, amount, 0.0f); // Move along Y-axis +
+		objects[object]->moveObject(glm::vec3(0.0f, amount, 0.0f)); // Move + Y-axis
         break;
 
     case 'd':
-        movement = glm::vec3(0.0f, -amount, 0.0f);// Move along Y-axis - 
+		objects[object]->moveObject(glm::vec3(0.0f, -amount, 0.0f)); // Move - Y-axis
         break;
 
     case 'l':
-        movement = glm::vec3(-amount, 0.0f, 0.0f); // Move along X-axis + 
+		objects[object]->moveObject(glm::vec3(-amount, 0.0f, 0.0f)); // Move + X-axis
         break;
 
     case 'r':
-        movement = glm::vec3(amount, 0.0f, 0.0f); // Move along X-axis - 
+		objects[object]->moveObject(glm::vec3(amount, 0.0f, 0.0f)); // Move - X-axis
         break;
 
     case 'f':
-        movement = glm::vec3(0.0f, 0.0f, amount); // Move along Z-axis +
+		objects[object]->moveObject(glm::vec3(0.0f, 0.0f, amount)); // Move + Z-axis
         break;
 
     case 'b':
-        movement = glm::vec3(0.0f, 0.0f, -amount); // Move along Z-axis -
+		objects[object]->moveObject(glm::vec3(0.0f, 0.0f, -amount)); // Move - Z-axis
         break;
 
     default:
         break;
     }
-
-    // Move in global coordinatese
-    transform->setPosition(currentPosition + movement);
 }
 
 // Rotates the current object in the scene
-void Scene::rotateObject(int currentObject, int direction) {
-    Transformation* transform = objects[currentObject]->getTransformation();
-
-    glm::mat4 rotationMatrix(1.0f);  // Identity matrix for rotation
-
+void Scene::rotateObject(int object, int direction) {
     switch (direction) {
     case 1:
-        rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate +1 degree on X-axis
+		objects[object]->rotateObject(glm::vec3(1.0f, 0.0f, 0.0f), 1.0f); // Rotate +1 degree on X-axis
         break;
 
     case 2:
-        rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-1.0f), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate -1 degree on X-axis
+		objects[object]->rotateObject(glm::vec3(1.0f, 0.0f, 0.0f), -1.0f); // Rotate -1 degree on X-axis
         break;
 
     case 3:
-        rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(1.0f), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate +1 degree on Y-axis
+		objects[object]->rotateObject(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f); // Rotate +1 degree on Y-axis
         break;
 
     case 4:
-        rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-1.0f), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate -1 degree on Y-axis
+		objects[object]->rotateObject(glm::vec3(0.0f, 1.0f, 0.0f), -1.0f); // Rotate -1 degree on Y-axis
         break;
 
     case 5:
-        rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(1.0f), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate +1 degree on Z-axis
+		objects[object]->rotateObject(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f); // Rotate +1 degree on Z-axis
         break;
 
     case 6:
-        rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-1.0f), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate -1 degree on Z-axis
+		objects[object]->rotateObject(glm::vec3(0.0f, 0.0f, 1.0f), -1.0f); // Rotate -1 degree on Z-axis
         break;
 
     default:
         break;
     }
-
-    // Apply the new rotation matrix to the current object's transformation
-	transform->setRotationMatrix(transform->getRotationMatrix() *  rotationMatrix);
 }
 
 // Scales the current object in the scene
-void Scene::scaleObject(int currentObject, char direction) {
+void Scene::scaleObject(int object, char direction) {
     Transformation* transform = objects[currentObject]->getTransformation();
 
 	if (direction == 'u') { 
-		transform->setScale(transform->getScale() + 0.01f); // Scale up
+        objects[object]->scaleObject(0.01f);
 	}
 	else if (direction == 'd') { 
-        transform->setScale(transform->getScale() - 0.01f); // Scale down
+		objects[object]->scaleObject(-0.01f);
     }
 }
 

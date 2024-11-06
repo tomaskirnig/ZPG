@@ -26,13 +26,6 @@ void Transformation::setRotationMatrix(const glm::mat4& newRotationMatrix) {
 	rotationMatrix = newRotationMatrix;
 	updateMatrix();
 }
-
-// Applies a new rotation matrix
-//void Transformation::applyRotationMatrix(const glm::mat4& newRotationMatrix) {
-//    rotationMatrix = rotationMatrix * newRotationMatrix;
-//    updateMatrix();  // Recalculate the final transformation matrix
-//}
-
 // Returns the rotation matrix
 glm::mat4 Transformation::getRotationMatrix() {
     return rotationMatrix;

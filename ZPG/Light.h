@@ -1,21 +1,28 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <GL/glew.h>
-#include "Shader.h"
 #include "DrawableObject.h"
 
-class Light {
+class Light : public DrawableObject {
 private:
-    glm::vec3 lightPosition;
     glm::vec3 lightColor;
+    float intensity;
 
 public:
-    Light(glm::vec3 position, glm::vec3 color): lightPosition(position), lightColor(color) {}
+    Light(const float* points = sphere, 
+        size_t sizeOfPoints = sizeof(sphere), 
+        const std::string& vertexShaderFile = "vertexShaderSource3", 
+        const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
+        const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f), 
+        float intensity = 1.0f)
+        : DrawableObject(points, sizeOfPoints, vertexShaderFile, fragmentShaderFile),
+        lightColor(color), intensity(intensity) {
+		this->scaleObject(0.1f);
+    }
 
     // Set/Get light properties
-    void setPosition(const glm::vec3& position) { lightPosition = position; }
     void setColor(const glm::vec3& color) { lightColor = color; }
+    glm::vec3 getColor() const { return lightColor; }
 
-	glm::vec3 getPosition() { return lightPosition; }
-    glm::vec3 getColor() { return lightColor; }
+    void setIntensity(float intensity) { this->intensity = intensity; }
+    float getIntensity() const { return intensity; }
 };

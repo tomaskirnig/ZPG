@@ -25,13 +25,6 @@
 #include "Light.h"
 #include "Shader.h"
 
-//Include objects
-#include "sphere.h"
-#include "tree.h"
-#include "bushes.h"
-#include "plain.h"
-#include "suzi_flat.h"
-#include "suzi_smooth.h"
 
 using namespace std;
 

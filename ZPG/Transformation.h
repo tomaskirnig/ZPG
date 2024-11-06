@@ -5,9 +5,13 @@
 #include <glm/gtc/type_ptr.hpp>  // for glm::value_ptr
 #include <vector>
 
+#include "ITranslation.h"
+#include "IScale.h"
+#include "IRotation.h"
+
 using namespace std;
 
-class Transformation
+class Transformation : ITranslation, IScale, IRotation
 {
     private:
         glm::vec3 position;
@@ -36,7 +40,6 @@ class Transformation
 
 		// Rotation
 		void setRotationMatrix(const glm::mat4& newRotationMatrix);
-        //void applyRotationMatrix(const glm::mat4& newRotationMatrix);
 		glm::mat4 getRotationMatrix();
         void resetRotation();
 
