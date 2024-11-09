@@ -1,24 +1,37 @@
 #version 330 core
+#define MAX_LIGHTS 4
+
+struct Light {
+    vec3 position;
+    vec3 color;
+    vec3 intensity;
+};
+
 in vec3 worldNorm;
 in vec4 worldPos;
 out vec4 out_Color;
-uniform vec3 lightPosition;
-uniform vec3 lightColor;
+
+uniform Light lights[MAX_LIGHTS];
+uniform int numberOfLights;
 uniform vec3 viewPosition;
-uniform float shininess;
+
 void main() {
+    vec3 result = vec3(0.1, 0.1, 0.1); // Ambient component
     vec3 norm = normalize(worldNorm);
-    vec3 lightVector = normalize(lightPosition - vec3(worldPos));
-    // Ambient
-    vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0);
-    // Diffuse
-    float diff = max(dot(norm, lightVector), 0.0);
-    vec4 diffuse = vec4(diff * lightColor, 1.0);
-    // Specular (Blinn-Phong)
     vec3 viewDir = normalize(viewPosition - vec3(worldPos));
-    vec3 halfwayDir = normalize(lightVector + viewDir);
-    float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);
-    vec4 specular = vec4(spec * lightColor, 1.0);
-    // Combine
-    out_Color = ambient + diffuse + specular;
+
+    for(int i = 0; i < numberOfLights; i++) {
+        vec3 lightDir = normalize(lights[i].position - vec3(worldPos));
+        float diff = max(dot(norm, lightDir), 0.0); // Diffuse component
+        vec3 diffuse = diff * lights[i].color;
+        
+        // Specular component (Phong-Blinn)
+        vec3 halfwayDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(norm, halfwayDir), 0.0), 128.0);
+        vec3 specular = spec * lights[i].color;
+
+        result += diffuse + specular;
+    }
+
+    out_Color = vec4(result, 1.0);
 }

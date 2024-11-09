@@ -3,11 +3,13 @@
 #include <iostream>
 #include <unordered_map>
 
-#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "IObserver.h"
 #include "ShaderLoader.h"
+#include "LightData.h"
+
+#define MAX_LIGHTS 4
 
 using namespace std;
 
@@ -29,7 +31,7 @@ class Shader : IObserver, ShaderLoader{
         }
 
         // Observer's update method implementation
-        void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, glm::vec3 lightPosition, glm::vec3 lightColor, glm::vec3 viewPosition) override;
+        void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) override;
 
         void deleteShader() {
             glDeleteProgram(ID);

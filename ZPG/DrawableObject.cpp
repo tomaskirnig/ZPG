@@ -1,12 +1,12 @@
 #include "DrawableObject.h"
 
-DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile)
+DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile)
     : transformation(new Transformation()) {
     model = new Model(points, sizeOfPoints);
     shader = new Shader(vertexShaderFile, fragmentShaderFile);
 }
 
-DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile, float shininess)
+DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess)
     : transformation(new Transformation()) {
     model = new Model(points, sizeOfPoints);
     shader = new Shader(vertexShaderFile, fragmentShaderFile, shininess);

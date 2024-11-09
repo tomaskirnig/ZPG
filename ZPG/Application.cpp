@@ -441,7 +441,7 @@ void Application::addBalls(int sceneIndex) {
 
     int numOfObjectInScene = scenes[sceneIndex].objectsCount();
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[4], 1.0));
+        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[5]));
     }
     
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
@@ -455,7 +455,7 @@ void Application::addMonkeys(int sceneIndex) {
 
 	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
 	for (int i = 0; i < 4; i++) {
-		scenes[sceneIndex].addObject(new DrawableObject(suziFlat, sizeof(suziFlat), vertexShaderSources[2], fragmentShaderSources[4]));
+		scenes[sceneIndex].addObject(new DrawableObject(suziFlat, sizeof(suziFlat), vertexShaderSources[2], fragmentShaderSources[5]));
 	}
 
 	scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);

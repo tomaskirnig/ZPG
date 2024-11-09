@@ -44,32 +44,37 @@ void Shader::checkCompileErrors(GLuint shader, string type) {
 }
 
 // Updates the shader with the view and projection matrices + light properties
-void Shader::update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, glm::vec3 lightPosition, glm::vec3 lightColor, glm::vec3 viewPosition) {
-    use();  // Activate the shader
+// Shader.cpp
+#include "Shader.h"
 
+void Shader::update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) {
+    // Set the shader program
+    use();
+
+    // Send the view and projection matrices to the shader
     glUniformMatrix4fv(getUniformLocation("viewMatrix"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(getUniformLocation("projectionMatrix"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
-    GLint tmpLoc = getUniformLocation("lightPosition");
-    GLint tmpColorLoc = getUniformLocation("lightColor");
+    // Send the view position
+    glUniform3fv(getUniformLocation("viewPosition"), 1, glm::value_ptr(viewPosition));
 
-    if (tmpLoc != -1 && tmpColorLoc != -1) {
-        glUniform3fv(tmpLoc, 1, glm::value_ptr(lightPosition));
-        glUniform3fv(tmpColorLoc, 1, glm::value_ptr(lightColor));
+    // Send the number of lights
+    glUniform1i(getUniformLocation("numberOfLights"), std::min(MAX_LIGHTS, (int)lights.size()));
+
+    // Send the light data
+    for (size_t i = 0; i < std::min(MAX_LIGHTS, (int)lights.size()); ++i) {
+        std::string index = std::to_string(i);
+        glUniform3fv(getUniformLocation("lights[" + index + "].position"), 1, glm::value_ptr(lights[i].position));
+        glUniform3fv(getUniformLocation("lights[" + index + "].color"), 1, glm::value_ptr(lights[i].color));
+        glUniform1f(getUniformLocation("lights[" + index + "].intensity"), lights[i].intensity);
     }
 
-	GLuint shininesLoc = getUniformLocation("shininess");
-
-	if (shininesLoc != -1) {
-        glUniform1f(shininesLoc, shininess);
-	}
-
-	GLuint viewPosLoc = getUniformLocation("viewPosition");
-
-	if (viewPosLoc != -1) {
-		glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPosition));
-	}
+    // Set the shininess
+    glUniform1f(getUniformLocation("shininess"), shininess);
 }
+
+
+
 
 // Retrieve the location of a uniform, caching it after the first retrieval
 GLint Shader::getUniformLocation(const string& name) {

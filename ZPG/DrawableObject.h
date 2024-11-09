@@ -20,8 +20,8 @@ class DrawableObject {
         Transformation* transformation;
 
     public:
-        DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile);
-        DrawableObject(const float* points, size_t sizeOfPoints, string vertexShaderFile, string fragmentShaderFile, float shininess);
+        DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile);
+        DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess);
 
         void draw();
         
@@ -44,6 +44,10 @@ class DrawableObject {
         void scaleObject(const float scale) {
 			transformation->setScale(transformation->getScale() + scale);
 		}
+
+        void setScaleObject(const float scale) {
+            transformation->setScale(transformation->getScale() * scale);
+        }
 
 		glm::vec3 getPosition() {
 			return transformation->getPosition();

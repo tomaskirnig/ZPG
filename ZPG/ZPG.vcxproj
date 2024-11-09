@@ -147,6 +147,7 @@
     <ClInclude Include="IScale.h" />
     <ClInclude Include="ITranslation.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="LightData.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="IObserver.h" />
     <ClInclude Include="IRotation.h" />

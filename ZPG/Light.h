@@ -13,10 +13,11 @@ public:
         const std::string& vertexShaderFile = "vertexShaderSource3", 
         const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
         const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f), 
-        float intensity = 1.0f)
-        : DrawableObject(points, sizeOfPoints, vertexShaderFile, fragmentShaderFile),
+        float intensity = 1.0f,
+        float shininess = 1.0f)
+        : DrawableObject(points, sizeOfPoints, vertexShaderFile, fragmentShaderFile, shininess),
         lightColor(color), intensity(intensity) {
-		this->scaleObject(0.1f);
+		this->setScaleObject(0.1f);
     }
 
     // Set/Get light properties
