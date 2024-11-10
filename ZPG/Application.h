@@ -65,6 +65,8 @@ class Application
         void registerAllObservers();
 
 		void addScene();
+
+        void moveLightsRandom();
          
 		// Object generation
 		void addForest(int sceneIndex, int numTrees);

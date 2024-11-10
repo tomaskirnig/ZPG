@@ -23,6 +23,7 @@ class Scene {
 		void addCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f);
 		
 		void addLight(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f));
+		void addLight(glm::vec3 position, glm::vec3 color, float intensity);
 		
         void render();
 		void registerAllObservers(float aspectRatio);
@@ -31,6 +32,7 @@ class Scene {
 		int objectsCount();
 		int getCurrCamera();
 		int getCurrObject();
+		int getNumOfLights();
 
 		void setAspectRatio(float aspectRatio);
 
@@ -45,10 +47,15 @@ class Scene {
 		// Object controls
 		void moveObject(int object, char direction);
 		void moveObject(int object, char direction, float amount);
+		void moveLight(int light, char direction);
+		void moveLight(int light, char direction, float amount);
 		void rotateObject(int currentObject, int direction);
 		void resetObjectRotation(int currentObject);
 		void scaleObject(int currentObject, char direction);
 		void resetObjectScale(int currentObject);
+
+		glm::vec3 getPositionLight(int light);
+		glm::vec3 getPositionObject(int object);
 
 		// Camera controls
 		void moveCamera(int camera, char direction, float aspectRatio);

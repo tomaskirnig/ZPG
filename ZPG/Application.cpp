@@ -9,6 +9,7 @@ vector<string> fragmentShaderSources = {
     "PhongFragmentShaderSource",
     "PhongBlinnFragmentShaderSource"
 };
+int cntr = 0;
 
 Application::Application() {
     if (!glfwInit()) {
@@ -90,7 +91,7 @@ void Application::run() {
     scenes[0].addObject(new DrawableObject(triangle, sizeof(triangle), vertexShaderSources[1], fragmentShaderSources[2]));
 
 	// Add a forest to the second scene
-	addForest(1, 10);
+	addForest(1, 50);
 
 	addBalls(2);
 
@@ -111,6 +112,7 @@ void Application::run() {
             scenes[currentScene].rotateObject(0, 3);
             scenes[currentScene].rotateObject(1, 3);
             scenes[currentScene].rotateObject(2, 3);
+			moveLightsRandom();
         }
 
 		scenes[currentScene].render();
@@ -378,11 +380,11 @@ void Application::addForest(int sceneIndex, int numTrees) {
 
     // Trees
     // Range for random positions
-    uniform_real_distribution<> disXTree(-10.0, 10.0);  // X-axis range 
-    uniform_real_distribution<> disZTree(-20.0, 20.0);  // Z-axis range 
+    uniform_real_distribution<> disX(-10.0, 10.0);  // X-axis range 
+    uniform_real_distribution<> disZ(-20.0, 20.0);  // Z-axis range 
 
     // Random scaling
-    uniform_real_distribution<> disScaleTree(0.4, 1.0);
+    uniform_real_distribution<> disScale(0.4, 1.0);
 
     // Random Y-axis rotation (0 to 360 degrees in radians)
     uniform_real_distribution<> disRotationY(0.0, 360.0);
@@ -390,16 +392,16 @@ void Application::addForest(int sceneIndex, int numTrees) {
     // Place Trees
     for (int i = 0; i < numTrees; ++i) {
         // Generate random x, z positions 
-        float randomX = disXTree(gen);
-        float randomZ = disZTree(gen);
+        float randomX = disX(gen);
+        float randomZ = disZ(gen);
         float randomRotationY = glm::radians(disRotationY(gen));  // Random rotation in radians
 
-        DrawableObject* treeObject = new DrawableObject(tree, sizeof(tree), vertexShaderSources[2], fragmentShaderSources[4]);
+        DrawableObject* treeObject = new DrawableObject(tree, sizeof(tree), vertexShaderSources[2], fragmentShaderSources[3]);
 
         // Set the transformation matrix (position and scale) 
         Transformation* transform = treeObject->getTransformation();
         transform->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
-        transform->setScale(glm::vec3(disScaleTree(gen)));  // Apply random scaling
+        transform->setScale(glm::vec3(disScale(gen)));  // Apply random scaling
         glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), randomRotationY, glm::vec3(0.0f, 1.0f, 0.0f));  // Rotation matrix around Y-axis
         transform->setRotationMatrix(transform->getRotationMatrix() * rotationMatrix);  // Rotate around Y-axis
 
@@ -408,40 +410,41 @@ void Application::addForest(int sceneIndex, int numTrees) {
     }
 
     // Bushes
-    uniform_real_distribution<> disXBush(-10.0, 10.0);
-    uniform_real_distribution<> disZBush(-20.0, 20.0);
-    uniform_real_distribution<> disScaleBush(0.4, 1.0);
-
     for (int i = 0; i < numTrees; ++i) {
-        float randomX = disXBush(gen);
-        float randomZ = disZBush(gen);
+        float randomX = disX(gen);
+        float randomZ = disZ(gen);
         float randomRotationY = glm::radians(disRotationY(gen));
 
         DrawableObject* bushObject = new DrawableObject(bushes, sizeof(bushes), vertexShaderSources[2], fragmentShaderSources[4]);
 
         Transformation* transform = bushObject->getTransformation();
         transform->setPosition(glm::vec3(randomX, -0.5, randomZ));
-        transform->setScale(glm::vec3(disScaleBush(gen)));
+        transform->setScale(glm::vec3(disScale(gen)));
         glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), randomRotationY, glm::vec3(0.0f, 1.0f, 0.0f));
         transform->setRotationMatrix(transform->getRotationMatrix() * rotationMatrix);
 
         scenes[sceneIndex].addObject(bushObject);
     }
 
-    DrawableObject* plainObj = new DrawableObject(plain, sizeof(plain), vertexShaderSources[2], fragmentShaderSources[4]);
+    DrawableObject* plainObj = new DrawableObject(plain, sizeof(plain), vertexShaderSources[2], fragmentShaderSources[5]);
     Transformation* transform = plainObj->getTransformation();
     transform->setPosition(glm::vec3(0.0, -0.5, 0.0));
     transform->setScale(glm::vec3(20.0));
 
     scenes[sceneIndex].addObject(plainObj);
+
+    for (int i = 0; i < 3; i++) {
+        float randomX = disX(gen);
+        float randomZ = disZ(gen);
+        scenes[sceneIndex].addLight(glm::vec3(randomX, 0.0, randomZ), glm::vec3((i % 2) * 1.0, (i % 3) * 1.0, (i / 3) * 1.0), 1.8f);
+    }
 }
 
 void Application::addBalls(int sceneIndex) {
-    scenes[sceneIndex].addLight();
-
     int numOfObjectInScene = scenes[sceneIndex].objectsCount();
+	scenes[sceneIndex].moveLight(0, 'd', 2.0f);
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[5]));
+        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[4]));
     }
     
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
@@ -455,7 +458,7 @@ void Application::addMonkeys(int sceneIndex) {
 
 	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
 	for (int i = 0; i < 4; i++) {
-		scenes[sceneIndex].addObject(new DrawableObject(suziFlat, sizeof(suziFlat), vertexShaderSources[2], fragmentShaderSources[5]));
+		scenes[sceneIndex].addObject(new DrawableObject(suziFlat, sizeof(suziFlat), vertexShaderSources[2], fragmentShaderSources[i]));
 	}
 
 	scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
@@ -465,7 +468,7 @@ void Application::addMonkeys(int sceneIndex) {
 }
 
 void Application::addBallsDiffShaders(int sceneIndex) {
-    //scenes[sceneIndex].addLight();
+    scenes[sceneIndex].addLight(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.0f), 0.1f);
 
     int numOfObjectInScene = scenes[sceneIndex].objectsCount();
     scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[1], fragmentShaderSources[2]));
@@ -479,3 +482,69 @@ void Application::addBallsDiffShaders(int sceneIndex) {
     scenes[sceneIndex].moveObject(numOfObjectInScene++, 'l', 1.0);
     scenes[sceneIndex].moveObject(numOfObjectInScene, 'r', 1.0);
 }
+
+void Application::moveLightsRandom() {
+    static std::vector<char> directions = { 'u', 'd', 'l', 'r', 'f', 'b' };
+    static std::mt19937 gen(std::random_device{}());
+    static std::vector<int> randomDirections(scenes[currentScene].getNumOfLights()); // Direction for each light
+    static std::uniform_int_distribution<> dis(0, 5);  // Random direction generator
+
+    if (cntr == 0) {
+        // Assign a new random direction for each light when counter is 0
+        for (int i = 0; i < randomDirections.size(); ++i) {
+            randomDirections[i] = dis(gen);
+        }
+        cntr++;
+    }
+    else {
+        // Move each light independently within bounds
+        for (int i = 0; i < scenes[currentScene].getNumOfLights(); i++) {
+            glm::vec3 currentPosition = scenes[currentScene].getPositionLight(i);
+            char direction = directions[randomDirections[i]];
+
+            // Check bounds for the selected direction
+            switch (direction) {
+            case 'u':  // Move up (Y)
+                if (currentPosition.y < 0.8f) {
+                    scenes[currentScene].moveLight(i, 'u', 0.01f);
+                }
+                break;
+            case 'd':  // Move down (Y)
+                if (currentPosition.y > -0.4f) {
+                    scenes[currentScene].moveLight(i, 'd', 0.01f);
+                }
+                break;
+            case 'l':  // Move left (X)
+                if (currentPosition.x > -10.0f) {
+                    scenes[currentScene].moveLight(i, 'l', 0.01f);
+                }
+                break;
+            case 'r':  // Move right (X)
+                if (currentPosition.x < 10.0f) {
+                    scenes[currentScene].moveLight(i, 'r', 0.01f);
+                }
+                break;
+            case 'f':  // Move forward (Z)
+                if (currentPosition.z < 20.0f) {
+                    scenes[currentScene].moveLight(i, 'f', 0.01f);
+                }
+                break;
+            case 'b':  // Move backward (Z)
+                if (currentPosition.z > -20.0f) {
+                    scenes[currentScene].moveLight(i, 'b', 0.01f);
+                }
+                break;
+            }
+        }
+
+        // Increment and reset counter after 100 moves
+        cntr++;
+        if (cntr == 100) {
+            cntr = 0;
+        }
+		scenes[currentScene].notifyCurrObservers(aspectRatio);
+    }
+}
+
+
+
