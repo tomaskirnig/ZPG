@@ -4,12 +4,19 @@ DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, std::st
     : transformation(new Transformation()) {
     model = new Model(points, sizeOfPoints);
     shader = new Shader(vertexShaderFile, fragmentShaderFile);
+    //transformation = new Transformation();
 }
 
 DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess)
     : transformation(new Transformation()) {
     model = new Model(points, sizeOfPoints);
     shader = new Shader(vertexShaderFile, fragmentShaderFile, shininess);
+}
+
+DrawableObject::~DrawableObject() {
+    delete model;
+    delete shader;
+    delete transformation;
 }
 
 // Draw the object
@@ -26,15 +33,7 @@ void DrawableObject::draw() {
     model->draw();
 }
 
-// Apply a transformation to the object
-void DrawableObject::applyTransformation(Transformation* transform) {
-    // Update the existing transformation
-    transformation->setPosition(transform->getPosition());
-    transformation->setRotationMatrix(transform->getRotationMatrix());
-    transformation->setScale(transform->getScale());
-}
-
 // Get the transformation of the object
-Transformation* DrawableObject::getTransformation() {
-    return transformation;
+glm::mat4 DrawableObject::getTransformationMatrix() {
+    return transformation->getMatrix();
 }

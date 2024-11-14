@@ -2,49 +2,47 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>  // for glm::value_ptr
+#include <glm/gtc/type_ptr.hpp> 
 #include <vector>
 
-#include "ITranslation.h"
-#include "IScale.h"
-#include "IRotation.h"
+#include "BaseTransformation.h"
+#include "Translation.h"
+#include "Rotation.h"
+#include "Scale.h"
 
 using namespace std;
 
-class Transformation : ITranslation, IScale, IRotation
+class Transformation : public BaseTransformation
 {
     private:
-        glm::vec3 position;
-        glm::vec3 scale;
-        glm::mat4 rotationMatrix;
-        glm::mat4 matrix;
-
         // (Composite pattern)
-        vector<Transformation*> children;
-
-        void updateMatrix();
+        std::vector<BaseTransformation*> transformations;
 
     public:
         Transformation();
+        ~Transformation();
 
-        glm::mat4 getMatrix() const;
+        glm::mat4 getMatrix() const override;
+
+        void addTransformation(BaseTransformation* child) {
+            transformations.push_back(child);
+        }
+
+        void removeTransformation(BaseTransformation* child) {
+            transformations.erase(std::remove(transformations.begin(), transformations.end(), child), transformations.end());
+        }
 
 		// Position
-        void setPosition(const glm::vec3& pos);
+        void moveObject(const glm::vec3& offset);
+        void setPosition(const glm::vec3& position);
 		glm::vec3 getPosition();
 
 		// Scale
+		void scaleObject(const glm::vec3& scale);
         void setScale(const glm::vec3& scale);
-        glm::vec3 getScale();
-		void resetScale();
 
 		// Rotation
-		void setRotationMatrix(const glm::mat4& newRotationMatrix);
-		glm::mat4 getRotationMatrix();
-        void resetRotation();
-
-        // Composite methods
-        void addChild(Transformation* child);
-        void removeChild(Transformation* child);
+		void rotateObject(float angleDegrees, const glm::vec3& axis);
+		void setRotation(float angleDegrees, const glm::vec3& axis);
 };
 

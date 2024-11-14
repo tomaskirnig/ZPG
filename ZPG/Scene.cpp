@@ -2,7 +2,15 @@
 
 Scene::Scene() : currentObject(0), currentCamera(0) {
 	addCamera();
-	addLight(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)); //glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 0.0)
+	addLight(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+}
+
+Scene::~Scene()
+{
+	for (DrawableObject* object : objects) {
+		delete object;
+	}
+	objects.clear();
 }
 
 // Adds a new object to the scene
@@ -22,23 +30,23 @@ void Scene::deleteObject(DrawableObject* delObject) {
 
 void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
 {
-	cameras.push_back(Camera(position, up, yaw, pitch));
+	cameras.push_back(new Camera(position, up, yaw, pitch));
 }
 
 
 void Scene::addLight(glm::vec3 position, glm::vec3 color)
 {
-	lights.push_back(Light());
-	lights[lights.size() - 1].setPosition(position);
-	lights[lights.size() - 1].setColor(color);
+	lights.push_back(new Light());
+	lights[lights.size() - 1]->setPosition(position);
+	lights[lights.size() - 1]->setColor(color);
 }
 
 void Scene::addLight(glm::vec3 position, glm::vec3 color, float intensity)
 {
-    lights.push_back(Light());
-    lights[lights.size() - 1].setPosition(position);
-    lights[lights.size() - 1].setColor(color);
-	lights[lights.size() - 1].setIntensity(intensity);
+    lights.push_back(new Light());
+    lights[lights.size() - 1]->setPosition(position);
+    lights[lights.size() - 1]->setColor(color);
+	lights[lights.size() - 1]->setIntensity(intensity);
 }
 
 // Renders all objects in the scene
@@ -50,30 +58,30 @@ void Scene::render() {
     for (DrawableObject* object : objects) {
         object->draw();
     }
-    for (Light light : lights) {
-		light.draw();
+    for (Light* light : lights) {
+		light->draw();
     }
 }
 
 void Scene::registerAllObservers(float aspectRatio)
 {
-    for (Camera& camera : cameras) {
+    for (Camera* camera : cameras) {
         for (DrawableObject* object : objects) {
-            camera.registerObserver((IObserver*)object->getShader());
+            camera->registerObserver((IObserver*)object->getShader());
         }
-        for (Light light : lights) {
-			camera.registerObserver((IObserver*)light.getShader());
+        for (Light* light : lights) {
+			camera->registerObserver((IObserver*)light->getShader());
         }
     }
 
-    for (Camera& camera : cameras) {
-		camera.notifyObservers(aspectRatio, lights);
+    for (Camera* camera : cameras) {
+		camera->notifyObservers(aspectRatio, lights);
     }
 }
 
 void Scene::notifyCurrObservers(float aspectRatio)
 {
-	cameras[currentCamera].notifyObservers(aspectRatio, lights);
+	cameras[currentCamera]->notifyObservers(aspectRatio, lights);
 }
 
 // Returns the number of objects in the scene
@@ -202,27 +210,27 @@ void Scene::moveLight(int light, char direction) {
     switch (direction)
     {
     case 'u':
-        lights[light].moveObject(glm::vec3(0.0f, movementSpeed, 0.0f)); // Move + Y-axis
+        lights[light]->moveObject(glm::vec3(0.0f, movementSpeed, 0.0f)); // Move + Y-axis
         break;
 
     case 'd':
-        lights[light].moveObject(glm::vec3(0.0f, -movementSpeed, 0.0f)); // Move - Y-axis
+        lights[light]->moveObject(glm::vec3(0.0f, -movementSpeed, 0.0f)); // Move - Y-axis
         break;
 
     case 'l':
-        lights[light].moveObject(glm::vec3(-movementSpeed, 0.0f, 0.0f)); // Move + X-axis
+        lights[light]->moveObject(glm::vec3(-movementSpeed, 0.0f, 0.0f)); // Move + X-axis
         break;
 
     case 'r':
-        lights[light].moveObject(glm::vec3(movementSpeed, 0.0f, 0.0f)); // Move - X-axis
+        lights[light]->moveObject(glm::vec3(movementSpeed, 0.0f, 0.0f)); // Move - X-axis
         break;
 
     case 'f':
-        lights[light].moveObject(glm::vec3(0.0f, 0.0f, movementSpeed)); // Move + Z-axis
+        lights[light]->moveObject(glm::vec3(0.0f, 0.0f, movementSpeed)); // Move + Z-axis
         break;
 
     case 'b':
-        lights[light].moveObject(glm::vec3(0.0f, 0.0f, -movementSpeed)); // Move - Z-axis
+        lights[light]->moveObject(glm::vec3(0.0f, 0.0f, -movementSpeed)); // Move - Z-axis
         break;
 
     default:
@@ -234,27 +242,27 @@ void Scene::moveLight(int light, char direction, float amount) {
     switch (direction)
     {
     case 'u':
-        lights[light].moveObject(glm::vec3(0.0f, amount, 0.0f)); // Move + Y-axis
+        lights[light]->moveObject(glm::vec3(0.0f, amount, 0.0f)); // Move + Y-axis
         break;
 
     case 'd':
-        lights[light].moveObject(glm::vec3(0.0f, -amount, 0.0f)); // Move - Y-axis
+        lights[light]->moveObject(glm::vec3(0.0f, -amount, 0.0f)); // Move - Y-axis
         break;
 
     case 'l':
-        lights[light].moveObject(glm::vec3(-amount, 0.0f, 0.0f)); // Move + X-axis
+        lights[light]->moveObject(glm::vec3(-amount, 0.0f, 0.0f)); // Move + X-axis
         break;
 
     case 'r':
-        lights[light].moveObject(glm::vec3(amount, 0.0f, 0.0f)); // Move - X-axis
+        lights[light]->moveObject(glm::vec3(amount, 0.0f, 0.0f)); // Move - X-axis
         break;
 
     case 'f':
-        lights[light].moveObject(glm::vec3(0.0f, 0.0f, amount)); // Move + Z-axis
+        lights[light]->moveObject(glm::vec3(0.0f, 0.0f, amount)); // Move + Z-axis
         break;
 
     case 'b':
-        lights[light].moveObject(glm::vec3(0.0f, 0.0f, -amount)); // Move - Z-axis
+        lights[light]->moveObject(glm::vec3(0.0f, 0.0f, -amount)); // Move - Z-axis
         break;
 
     default:
@@ -296,8 +304,6 @@ void Scene::rotateObject(int object, int direction) {
 
 // Scales the current object in the scene
 void Scene::scaleObject(int object, char direction) {
-    Transformation* transform = objects[currentObject]->getTransformation();
-
 	if (direction == 'u') { 
         objects[object]->scaleObject(0.01f);
 	}
@@ -308,19 +314,19 @@ void Scene::scaleObject(int object, char direction) {
 
 // Resets the rotation of the current object in the scene
 void Scene::resetObjectRotation(int currentObject) {
-    Transformation* transform = objects[currentObject]->getTransformation();
-    transform->resetRotation();
+    objects[currentObject]->setScale(1.0f);
 }
 
 // Resets the scale of the current object in the scene
 void Scene::resetObjectScale(int currentObject) {
-	Transformation* transform = objects[currentObject]->getTransformation();
-	transform->resetScale();
+    objects[currentObject]->setRotation(glm::vec3(1.0f, 0.0f, 0.0f), 0.0f);
+    objects[currentObject]->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), 0.0f);
+    objects[currentObject]->setRotation(glm::vec3(0.0f, 0.0f, 1.0f), 0.0f);
 }
 
 glm::vec3 Scene::getPositionLight(int light)
 {
-    return lights[light].getPosition();
+    return lights[light]->getPosition();
 }
 
 glm::vec3 Scene::getPositionObject(int object)
@@ -330,17 +336,17 @@ glm::vec3 Scene::getPositionObject(int object)
 
 void Scene::moveCamera(int camera, char direction, float aspectRatio)
 {
-	cameras[camera].processKeyboardMovement(direction, aspectRatio, lights);
+	cameras[camera]->processKeyboardMovement(direction, aspectRatio, lights);
 }
 
 void Scene::mouseMovementCamera(int camera, float xOffset, float yOffset, float aspectRatio)
 {
-	cameras[camera].processMouseMovement(xOffset, yOffset, aspectRatio, lights);
+	cameras[camera]->processMouseMovement(xOffset, yOffset, aspectRatio, lights);
 }
 
 void Scene::zoomCamera(int camera, double yOffset, float aspectRatio)
 {
-	cameras[camera].processMouseScroll(yOffset, aspectRatio, lights);
+	cameras[camera]->processMouseScroll(yOffset, aspectRatio, lights);
 }
 
 // Returns the shaders used by the objects in the scene

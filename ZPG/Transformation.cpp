@@ -1,72 +1,146 @@
 #include "Transformation.h"
 
+Transformation::Transformation() {
+    addTransformation(new Translation(glm::vec3(0.0f)));
+    addTransformation(new Rotation(0.0f, glm::vec3(1.0f, 0.0f, 0.0f)));
+    addTransformation(new Rotation(0.0f, glm::vec3(0.0f, 1.0f, 0.0f)));
+    addTransformation(new Rotation(0.0f, glm::vec3(0.0f, 0.0f, 1.0f)));
+    addTransformation(new Scale(glm::vec3(1.0f)));
+}
 
-Transformation::Transformation() : position(0.0f), rotationMatrix(1.0f), scale(glm::vec3(0.5f)) {
-	updateMatrix();
+Transformation::~Transformation() {
+    for (auto* child : transformations) {
+        delete child;
+    }
 }
 
 // Returns the transformation matrix
 glm::mat4 Transformation::getMatrix() const {
-    return matrix;
+    glm::mat4 result = glm::mat4(1.0f);
+    for (const auto& child : transformations) {
+        result *= child->getMatrix();
+    }
+    return result;
 }
 
-// Sets new position
-void Transformation::setPosition(const glm::vec3& pos) {
-    position = pos;
-    updateMatrix();
+// Position
+void Transformation::moveObject(const glm::vec3& offset) {
+    Translation* translation = nullptr;
+
+    // Search for an existing Translation transformation
+    for (auto* trans : transformations) {
+        translation = dynamic_cast<Translation*>(trans);
+        if (translation) {
+            break;
+        }
+    }
+
+    // Modify the existing Translation or add a new one
+    if (translation) {
+        translation->offset += offset; 
+    }
+    else {
+        translation = new Translation(offset);
+        addTransformation(translation);
+    }
+}
+
+void Transformation::setPosition(const glm::vec3& position) {
+    Translation* translation = nullptr;
+
+    for (auto* trans : transformations) {
+        translation = dynamic_cast<Translation*>(trans);
+        if (translation) {
+            break;
+        }
+    }
+
+    if (translation) {
+        translation->offset = position; 
+    }
+    else {
+        translation = new Translation(position);
+        addTransformation(translation);
+    }
 }
 
 // Returns the position
 glm::vec3 Transformation::getPosition(){
-    return position;
+    for (const auto* trans : transformations) {
+        const Translation* translation = dynamic_cast<const Translation*>(trans);
+        if (translation) {
+            return translation->offset;
+        }
+    }
+    return glm::vec3(0.0f);  // Default position if no Translation found
+}
+
+void Transformation::rotateObject(float angleDegrees, const glm::vec3& axis) {
+    // Check if there's already a Rotation with the same axis
+    for (auto* trans : transformations) {
+        Rotation* rotation = dynamic_cast<Rotation*>(trans);
+        if (rotation && rotation->axis == axis) {
+            rotation->angle += angleDegrees;
+            return;
+        }
+    }
+
+    // If no matching axis found, create a new Rotation
+    Rotation* newRotation = new Rotation(angleDegrees, axis);
+    addTransformation(newRotation);
 }
 
 // Sets new rotation matrix
-void Transformation::setRotationMatrix(const glm::mat4& newRotationMatrix) {
-	rotationMatrix = newRotationMatrix;
-	updateMatrix();
+void Transformation::setRotation(float angleDegrees, const glm::vec3& axis) {
+    for (auto* trans : transformations) {
+        Rotation* rotation = dynamic_cast<Rotation*>(trans);
+        if (rotation && rotation->axis == axis) {
+            rotation->angle = angleDegrees;
+            return;
+        }
+    }
+
+    Rotation* newRotation = new Rotation(angleDegrees, axis);
+    addTransformation(newRotation);
 }
-// Returns the rotation matrix
-glm::mat4 Transformation::getRotationMatrix() {
-    return rotationMatrix;
+
+// Scale object by modifying or adding a Scale transformation
+void Transformation::scaleObject(const glm::vec3& scaleFactor) {
+    Scale* scaling = nullptr;
+
+    for (auto* trans : transformations) {
+        scaling = dynamic_cast<Scale*>(trans);
+        if (scaling) {
+            break;
+        }
+    }
+
+    if (scaling) {
+        scaling->scaleFactor *= scaleFactor;
+    }
+    else {
+        scaling = new Scale(scaleFactor);
+        addTransformation(scaling);
+    }
 }
 
 // Sets new scale
 void Transformation::setScale(const glm::vec3& scale) {
-    this->scale = scale;
-    updateMatrix();
+    Scale* scaling = nullptr;
+
+    for (auto* trans : transformations) {
+        scaling = dynamic_cast<Scale*>(trans);
+        if (scaling) {
+            break;
+        }
+    }
+
+    if (scaling) {
+        scaling->scaleFactor = scale;
+    }
+    else {
+        scaling = new Scale(scale);
+        addTransformation(scaling);
+    }
 }
 
-// Returns the scale
-glm::vec3 Transformation::getScale(){
-    return scale;
-}
-
-// Updates the transformation matrix
-void Transformation::updateMatrix() {
-    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
-    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
-    matrix = translationMatrix * rotationMatrix * scaleMatrix;
-}
-
-// Resets the rotation matrix
-void Transformation::resetRotation() {
-    rotationMatrix = glm::mat4(1.0f); // Reset rotation to identity matrix
-    updateMatrix();
-}
-
-// Resets the scale
-void Transformation::resetScale() {
-	scale = glm::vec3(0.5f); // Reset scale to 0.5
-	updateMatrix();
-}
-
-// Adds a child to the transformation
-void Transformation::addChild(Transformation* child) {
-    children.push_back(child);
-}
-
-// Removes a child from the transformation
-void Transformation::removeChild(Transformation* child) {
-    children.erase(std::remove(children.begin(), children.end(), child), children.end());
-}

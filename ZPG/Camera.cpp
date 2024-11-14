@@ -12,17 +12,17 @@ glm::mat4 Camera::getViewMatrix() {
 }
 
 // Notify all observers of a change
-void Camera::notifyObservers(float aspectRatio, vector<Light>& lights) {
+void Camera::notifyObservers(float aspectRatio, vector<Light*> lights) {
     glm::mat4 viewMatrix = getViewMatrix();
     glm::mat4 projectionMatrix = glm::perspective(glm::radians(Fov), aspectRatio, 0.1f, 100.0f);
     
     // Convert to LightData
     std::vector<LightData> lightDataList;
-    for (auto& light : lights) {
+    for (auto* light : lights) {
         LightData data;
-        data.position = light.getPosition();
-        data.color = light.getColor();
-        data.intensity = light.getIntensity();
+        data.position = light->getPosition();
+        data.color = light->getColor();
+        data.intensity = light->getIntensity();
         lightDataList.push_back(data);
     }
 
@@ -32,7 +32,7 @@ void Camera::notifyObservers(float aspectRatio, vector<Light>& lights) {
 }
 
 // Move camera in a direction
-void Camera::processKeyboardMovement(const char direction, float aspectRatio, vector<Light> lights) {
+void Camera::processKeyboardMovement(const char direction, float aspectRatio, vector<Light*> lights) {
     float velocity = MovementSpeed;
     if (direction == 'u')
         Position += Target * velocity;  // Move forward
@@ -47,7 +47,7 @@ void Camera::processKeyboardMovement(const char direction, float aspectRatio, ve
 }
 
 // Change the looking direction of the camera
-void Camera::processMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light> lights) {
+void Camera::processMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light*> lights) {
     xOffset *= MouseSensitivity;
     yOffset *= MouseSensitivity;
 
@@ -65,7 +65,7 @@ void Camera::processMouseMovement(float xOffset, float yOffset, float aspectRati
 }
 
 // Processes input from the mouse scroll wheel
-void Camera::processMouseScroll(float yOffset, float aspectRatio, vector<Light> lights) {
+void Camera::processMouseScroll(float yOffset, float aspectRatio, vector<Light*> lights) {
     if (Fov >= 1.0f && Fov <= 175.0f)
         Fov -= yOffset;
     if (Fov <= 1.0f)

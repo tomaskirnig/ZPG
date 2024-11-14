@@ -36,13 +36,15 @@ class Application
 		int lastX, lastY;
 		float aspectRatio;
 
-        vector<Scene> scenes;
+        vector<Scene*> scenes;
 
         int currentScene;
 
 
     public:
 	    Application();
+		~Application();
+
 	    void run();
 		float getAspectRatio();
 

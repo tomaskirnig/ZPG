@@ -7,8 +7,8 @@
 class Scene {
     private:
         vector<DrawableObject*> objects;
-		vector<Camera> cameras;
-		vector<Light> lights;
+		vector<Camera*> cameras;
+		vector<Light*> lights;
 
 		int currentObject;
 		int currentCamera;
@@ -17,6 +17,8 @@ class Scene {
 
     public:
 		Scene();
+		~Scene();
+
         void addObject(DrawableObject* object);
 	    void deleteObject(DrawableObject* object);
 			

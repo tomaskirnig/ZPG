@@ -17,7 +17,7 @@ public:
         float shininess = 1.0f)
         : DrawableObject(points, sizeOfPoints, vertexShaderFile, fragmentShaderFile, shininess),
         lightColor(color), intensity(intensity) {
-		this->setScaleObject(0.1f);
+		this->setScale(0.1f);
     }
 
     // Set/Get light properties

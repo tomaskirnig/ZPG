@@ -35,13 +35,13 @@ public:
         observers.push_back(observer);
     }
 
-    void notifyObservers(float aspectRatio, vector<Light>& lights) override;
+    void notifyObservers(float aspectRatio, vector<Light*> lights) override;
 
     glm::mat4 getViewMatrix();
 
-    void processKeyboardMovement(const char direction, float aspectRatio, vector<Light> lights);
+    void processKeyboardMovement(const char direction, float aspectRatio, vector<Light*> lights);
 
-    void processMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light> lights);
+    void processMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light*> lights);
 
-    void processMouseScroll(float yOffset, float aspectRatio, vector<Light> lights);
+    void processMouseScroll(float yOffset, float aspectRatio, vector<Light*> lights);
 };

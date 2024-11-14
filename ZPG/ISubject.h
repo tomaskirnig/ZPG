@@ -5,5 +5,5 @@
 
 class ISubject {
 	virtual void registerObserver(IObserver* observer) = 0;
-	virtual void notifyObservers(float aspectRatio, vector<Light>& lights) = 0;
+	virtual void notifyObservers(float aspectRatio, vector<Light*> lights) = 0;
 };

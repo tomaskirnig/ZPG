@@ -22,15 +22,14 @@ class DrawableObject {
     public:
         DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile);
         DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess);
+        ~DrawableObject();
 
         void draw();
         
-        void applyTransformation(Transformation* transform);
-
-        Transformation* getTransformation();
+        glm::mat4 getTransformationMatrix();
 
 		void moveObject(const glm::vec3& direction) {
-			transformation->setPosition(transformation->getPosition() + direction);
+			transformation->moveObject(direction);
 		}
 
 		void setPosition(const glm::vec3& pos) {
@@ -38,15 +37,19 @@ class DrawableObject {
 		}
 
         void rotateObject(const glm::vec3& axis, float angle) {
-			transformation->setRotationMatrix(glm::rotate(transformation->getRotationMatrix(), glm::radians(angle), axis));
+			transformation->rotateObject(glm::radians(angle), axis);
 		}
+
+        void setRotation(const glm::vec3& axis, float angle) {
+			transformation->setRotation(glm::radians(angle), axis);
+        }
 
         void scaleObject(const float scale) {
-			transformation->setScale(transformation->getScale() + scale);
+			transformation->scaleObject(glm::vec3 (1.0f) * scale);
 		}
 
-        void setScaleObject(const float scale) {
-            transformation->setScale(transformation->getScale() * scale);
+        void setScale(const float scale) {
+            transformation->setScale(glm::vec3(1.0f) * scale);
         }
 
 		glm::vec3 getPosition() {

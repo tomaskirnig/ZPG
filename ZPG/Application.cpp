@@ -60,12 +60,19 @@ Application::Application() {
     glViewport(0, 0, width, height);	
 
     addScene();
-    scenes[0].addCamera();
+    scenes[0]->addCamera();
 
     currentScene = 0;
     
 	lastX = width / 2;
 	lastY = height / 2;
+}
+
+Application::~Application()
+{
+	for (Scene* scene : scenes) {
+		delete scene;
+	}
 }
 
 void Application::run() {
@@ -86,9 +93,7 @@ void Application::run() {
     addScene();
 
     // Adding objects to first scene
-	//scenes[0].addObject(new DrawableObject(tree, sizeof(tree), vertexShaderSources[1], fragmentShaderSources[2]));
-	//scenes[0].addObject(new DrawableObject(bushes, sizeof(bushes), vertexShaderSources[1], fragmentShaderSources[2]));
-    scenes[0].addObject(new DrawableObject(triangle, sizeof(triangle), vertexShaderSources[1], fragmentShaderSources[2]));
+    scenes[0]->addObject(new DrawableObject(triangle, sizeof(triangle), vertexShaderSources[1], fragmentShaderSources[2]));
 
 	// Add a forest to the second scene
 	addForest(1, 50);
@@ -109,13 +114,13 @@ void Application::run() {
         processInput();
 
         if (currentScene == 1) {
-            scenes[currentScene].rotateObject(0, 3);
-            scenes[currentScene].rotateObject(1, 3);
-            scenes[currentScene].rotateObject(2, 3);
+            scenes[currentScene]->rotateObject(0, 3);
+            scenes[currentScene]->rotateObject(1, 3);
+            scenes[currentScene]->rotateObject(2, 3);
 			moveLightsRandom();
         }
 
-		scenes[currentScene].render();
+		scenes[currentScene]->render();
 
         glfwPollEvents();
         glfwSwapBuffers(window);
@@ -158,7 +163,7 @@ void Application::currentScenePlus() {
         currentScene = 0; 
     }
     
-	scenes[currentScene].notifyCurrObservers(aspectRatio);
+	scenes[currentScene]->notifyCurrObservers(aspectRatio);
 
 	cout << "Current scene: " << currentScene << endl;
 }
@@ -170,88 +175,88 @@ void Application::currentSceneMinus() {
         currentScene = scenes.size() - 1;
     }
 
-	scenes[currentScene].notifyCurrObservers(aspectRatio);
+	scenes[currentScene]->notifyCurrObservers(aspectRatio);
     
 	cout << "Current scene: " << currentScene << endl;
 }
 
 // Change the current object to the next one
 void Application::currentObjectPlus() {
-	scenes[currentScene].currentObjectPlus();
+	scenes[currentScene]->currentObjectPlus();
 }
 
 void Application::currentObjectMinus() {
-	scenes[currentScene].currentObjectMinus();
+	scenes[currentScene]->currentObjectMinus();
 }
 
 void Application::currentCameraPlus() {
-	scenes[currentScene].currentCameraPlus(aspectRatio);
+	scenes[currentScene]->currentCameraPlus(aspectRatio);
 }
 
 void Application::processInput() {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        scenes[currentScene].moveCamera(scenes[currentScene].getCurrCamera(), 'u', aspectRatio); // Move camera up
+        scenes[currentScene]->moveCamera(scenes[currentScene]->getCurrCamera(), 'u', aspectRatio); // Move camera up
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        scenes[currentScene].moveCamera(scenes[currentScene].getCurrCamera(), 'd', aspectRatio); // Move camera down
+        scenes[currentScene]->moveCamera(scenes[currentScene]->getCurrCamera(), 'd', aspectRatio); // Move camera down
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        scenes[currentScene].moveCamera(scenes[currentScene].getCurrCamera(), 'l', aspectRatio); // Move camera left
+        scenes[currentScene]->moveCamera(scenes[currentScene]->getCurrCamera(), 'l', aspectRatio); // Move camera left
     }
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        scenes[currentScene].moveCamera(scenes[currentScene].getCurrCamera(), 'r', aspectRatio); // Move camera right
+        scenes[currentScene]->moveCamera(scenes[currentScene]->getCurrCamera(), 'r', aspectRatio); // Move camera right
     }
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'u'); // Move object up
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'u'); // Move object up
     }
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'd'); // Move object down
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'd'); // Move object down
     }
     if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'l'); // Move object left
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'l'); // Move object left
     }
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'r'); // Move object right
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'r'); // Move object right
     }
     if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'b');  // Move object back
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'b');  // Move object back
     }
     else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
-        scenes[currentScene].moveObject(scenes[currentScene].getCurrObject(), 'f');  // Move object front
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'f');  // Move object front
     }
 	else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 1);  // Rotate around x-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 1);  // Rotate around x-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 2);  // Rotate around x-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 2);  // Rotate around x-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 3);  // Rotate around y-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 3);  // Rotate around y-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
-        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 4);  // Rotate around y-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 4);  // Rotate around y-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
-        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 5);  // Rotate around z-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 5);  // Rotate around z-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
-        scenes[currentScene].rotateObject(scenes[currentScene].getCurrObject(), 6);  // Rotate around z-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 6);  // Rotate around z-axis
 	}
     else if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
-        scenes[currentScene].scaleObject(scenes[currentScene].getCurrObject(), 'u'); // Scale up
+        scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'u'); // Scale up
     }
     else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
-        scenes[currentScene].scaleObject(scenes[currentScene].getCurrObject(), 'd');  // Scale down
+        scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'd');  // Scale down
     }
 }
 
 void Application::addScene() {
-	scenes.push_back(Scene());
+	scenes.push_back(new Scene());
 }
 
 void Application::registerAllObservers() {
-    for (Scene& scene : scenes) {
-        scene.registerAllObservers(aspectRatio);
+    for (Scene* scene : scenes) {
+        scene->registerAllObservers(aspectRatio);
     }
 }
 
@@ -290,11 +295,11 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 					break;
 
 				case GLFW_KEY_R:
-					app->scenes[app->currentScene].resetObjectRotation(app->scenes[app->currentScene].getCurrObject()); // Reset object rotation
+					app->scenes[app->currentScene]->resetObjectRotation(app->scenes[app->currentScene]->getCurrObject()); // Reset object rotation
 					break;
 
 				case GLFW_KEY_T:
-                    app->scenes[app->currentScene].resetObjectScale(app->scenes[app->currentScene].getCurrObject()); // Reset object scale
+                    app->scenes[app->currentScene]->resetObjectScale(app->scenes[app->currentScene]->getCurrObject()); // Reset object scale
 
 			    default:
 				    break;
@@ -327,12 +332,12 @@ void Application::window_size_callback(GLFWwindow* window, int width, int height
 		app->height = height;
 		app->aspectRatio = width / (float)height;
 
-        for (Scene& scene : app->scenes) {
-            scene.setAspectRatio(app->aspectRatio);
+        for (Scene* scene : app->scenes) {
+            scene->setAspectRatio(app->aspectRatio);
         }
 
         // Notify camera of the aspect ratio change
-        app->scenes[app->currentScene].notifyCurrObservers(app->aspectRatio);
+        app->scenes[app->currentScene]->notifyCurrObservers(app->aspectRatio);
     }
 }
 
@@ -353,7 +358,7 @@ void Application::cursor_callback(GLFWwindow* window, double x, double y) {
         app->lastY = y;
 
 		// Process the mouse movement
-        app->scenes[app->currentScene].mouseMovementCamera(app->scenes[app->currentScene].getCurrCamera(), xOffset, yOffset, app->aspectRatio);
+        app->scenes[app->currentScene]->mouseMovementCamera(app->scenes[app->currentScene]->getCurrCamera(), xOffset, yOffset, app->aspectRatio);
     }
 }
 
@@ -368,7 +373,7 @@ void Application::scroll_callback(GLFWwindow* window, double xOffset, double yOf
 
     // Process the scroll input
     if (app != nullptr) {
-        app->scenes[app->currentScene].zoomCamera(app->scenes[app->currentScene].getCurrCamera(), yOffset, app->aspectRatio);  // Pass the scroll input to your Application class
+        app->scenes[app->currentScene]->zoomCamera(app->scenes[app->currentScene]->getCurrCamera(), yOffset, app->aspectRatio);  // Pass the scroll input to your Application class
     }
 }
 
@@ -394,99 +399,96 @@ void Application::addForest(int sceneIndex, int numTrees) {
         // Generate random x, z positions 
         float randomX = disX(gen);
         float randomZ = disZ(gen);
-        float randomRotationY = glm::radians(disRotationY(gen));  // Random rotation in radians
+        float randomRotationY = disRotationY(gen);  // Random rotation in radians
 
         DrawableObject* treeObject = new DrawableObject(tree, sizeof(tree), vertexShaderSources[2], fragmentShaderSources[3]);
 
         // Set the transformation matrix (position and scale) 
-        Transformation* transform = treeObject->getTransformation();
-        transform->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
-        transform->setScale(glm::vec3(disScale(gen)));  // Apply random scaling
-        glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), randomRotationY, glm::vec3(0.0f, 1.0f, 0.0f));  // Rotation matrix around Y-axis
-        transform->setRotationMatrix(transform->getRotationMatrix() * rotationMatrix);  // Rotate around Y-axis
+        treeObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
+        treeObject->setScale(disScale(gen));  // Apply random scaling
+        treeObject->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), randomRotationY);  // Rotate around Y-axis
 
         // Add the tree to the specified scene
-        scenes[sceneIndex].addObject(treeObject);
+        scenes[sceneIndex]->addObject(treeObject);
     }
 
     // Bushes
     for (int i = 0; i < numTrees; ++i) {
         float randomX = disX(gen);
         float randomZ = disZ(gen);
-        float randomRotationY = glm::radians(disRotationY(gen));
+        float randomRotationY = disRotationY(gen);  // Random rotation in radians
 
-        DrawableObject* bushObject = new DrawableObject(bushes, sizeof(bushes), vertexShaderSources[2], fragmentShaderSources[4]);
+        DrawableObject* bushObject = new DrawableObject(bushes, sizeof(bushes), vertexShaderSources[2], fragmentShaderSources[3]);
 
-        Transformation* transform = bushObject->getTransformation();
-        transform->setPosition(glm::vec3(randomX, -0.5, randomZ));
-        transform->setScale(glm::vec3(disScale(gen)));
-        glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), randomRotationY, glm::vec3(0.0f, 1.0f, 0.0f));
-        transform->setRotationMatrix(transform->getRotationMatrix() * rotationMatrix);
+        // Set the transformation matrix (position and scale) 
+        bushObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
+        bushObject->setScale(disScale(gen));  // Apply random scaling
+        bushObject->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), randomRotationY);  // Rotate around Y-axis
 
-        scenes[sceneIndex].addObject(bushObject);
+        // Add the tree to the specified scene
+        scenes[sceneIndex]->addObject(bushObject);
     }
 
     DrawableObject* plainObj = new DrawableObject(plain, sizeof(plain), vertexShaderSources[2], fragmentShaderSources[5]);
-    Transformation* transform = plainObj->getTransformation();
-    transform->setPosition(glm::vec3(0.0, -0.5, 0.0));
-    transform->setScale(glm::vec3(20.0));
+    plainObj->setPosition(glm::vec3(0.0, -0.5, 0.0));
+    plainObj->setScale(20.0);
 
-    scenes[sceneIndex].addObject(plainObj);
+    scenes[sceneIndex]->addObject(plainObj);
 
     for (int i = 0; i < 3; i++) {
         float randomX = disX(gen);
         float randomZ = disZ(gen);
-        scenes[sceneIndex].addLight(glm::vec3(randomX, 0.0, randomZ), glm::vec3((i % 2) * 1.0, (i % 3) * 1.0, (i / 3) * 1.0), 1.8f);
+        scenes[sceneIndex]->addLight(glm::vec3(randomX, 0.0, randomZ), glm::vec3((i % 2) * 1.0, (i % 3) * 1.0, (i / 3) * 1.0), 1.8f);
     }
 }
 
 void Application::addBalls(int sceneIndex) {
-    int numOfObjectInScene = scenes[sceneIndex].objectsCount();
-	scenes[sceneIndex].moveLight(0, 'd', 2.0f);
+    int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
+	scenes[sceneIndex]->moveLight(0, 'd', 2.0f);
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[4]));
+        scenes[sceneIndex]->addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[4]));
     }
     
-    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
-    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'd', 1.0);
-    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'l', 1.0);
-    scenes[sceneIndex].moveObject(numOfObjectInScene, 'r', 1.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'd', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'l', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene, 'r', 2.0);
 }
 
 void Application::addMonkeys(int sceneIndex) {
-	scenes[sceneIndex].addLight();
+	scenes[sceneIndex]->addLight();
 
-	int numOfObjectInScene = scenes[sceneIndex].objectsCount();
+	int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
 	for (int i = 0; i < 4; i++) {
-		scenes[sceneIndex].addObject(new DrawableObject(suziFlat, sizeof(suziFlat), vertexShaderSources[2], fragmentShaderSources[i]));
+		scenes[sceneIndex]->addObject(new DrawableObject(suziFlat, sizeof(suziFlat), vertexShaderSources[2], fragmentShaderSources[i]));
 	}
 
-	scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
-	scenes[sceneIndex].moveObject(numOfObjectInScene++, 'd', 1.0);
-	scenes[sceneIndex].moveObject(numOfObjectInScene++, 'l', 1.0);
-	scenes[sceneIndex].moveObject(numOfObjectInScene, 'r', 1.0);
+	scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
+	scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'd', 2.0);
+	scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'l', 2.0);
+	scenes[sceneIndex]->moveObject(numOfObjectInScene, 'r', 2.0);
 }
 
 void Application::addBallsDiffShaders(int sceneIndex) {
-    scenes[sceneIndex].addLight(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.0f), 0.1f);
+    scenes[sceneIndex]->addLight(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f);
 
-    int numOfObjectInScene = scenes[sceneIndex].objectsCount();
-    scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[1], fragmentShaderSources[2]));
+    int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
+    scenes[sceneIndex]->addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[1], fragmentShaderSources[2]));
 
     for (int i = 3; i < 6; i++) {
-        scenes[sceneIndex].addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[i], 130.0f));
+        scenes[sceneIndex]->addObject(new DrawableObject(sphere, sizeof(sphere), vertexShaderSources[2], fragmentShaderSources[i], 130.0f));
     }
 
-    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'u', 1.0);
-    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'd', 1.0);
-    scenes[sceneIndex].moveObject(numOfObjectInScene++, 'l', 1.0);
-    scenes[sceneIndex].moveObject(numOfObjectInScene, 'r', 1.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'd', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'l', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene, 'r', 2.0);
 }
 
 void Application::moveLightsRandom() {
     static std::vector<char> directions = { 'u', 'd', 'l', 'r', 'f', 'b' };
     static std::mt19937 gen(std::random_device{}());
-    static std::vector<int> randomDirections(scenes[currentScene].getNumOfLights()); // Direction for each light
+    static std::vector<int> randomDirections(scenes[currentScene]->getNumOfLights()); // Direction for each light
     static std::uniform_int_distribution<> dis(0, 5);  // Random direction generator
 
     if (cntr == 0) {
@@ -498,40 +500,40 @@ void Application::moveLightsRandom() {
     }
     else {
         // Move each light independently within bounds
-        for (int i = 0; i < scenes[currentScene].getNumOfLights(); i++) {
-            glm::vec3 currentPosition = scenes[currentScene].getPositionLight(i);
+        for (int i = 0; i < scenes[currentScene]->getNumOfLights(); i++) {
+            glm::vec3 currentPosition = scenes[currentScene]->getPositionLight(i);
             char direction = directions[randomDirections[i]];
 
             // Check bounds for the selected direction
             switch (direction) {
             case 'u':  // Move up (Y)
                 if (currentPosition.y < 0.8f) {
-                    scenes[currentScene].moveLight(i, 'u', 0.01f);
+                    scenes[currentScene]->moveLight(i, 'u', 0.01f);
                 }
                 break;
             case 'd':  // Move down (Y)
                 if (currentPosition.y > -0.4f) {
-                    scenes[currentScene].moveLight(i, 'd', 0.01f);
+                    scenes[currentScene]->moveLight(i, 'd', 0.01f);
                 }
                 break;
             case 'l':  // Move left (X)
                 if (currentPosition.x > -10.0f) {
-                    scenes[currentScene].moveLight(i, 'l', 0.01f);
+                    scenes[currentScene]->moveLight(i, 'l', 0.01f);
                 }
                 break;
             case 'r':  // Move right (X)
                 if (currentPosition.x < 10.0f) {
-                    scenes[currentScene].moveLight(i, 'r', 0.01f);
+                    scenes[currentScene]->moveLight(i, 'r', 0.01f);
                 }
                 break;
             case 'f':  // Move forward (Z)
                 if (currentPosition.z < 20.0f) {
-                    scenes[currentScene].moveLight(i, 'f', 0.01f);
+                    scenes[currentScene]->moveLight(i, 'f', 0.01f);
                 }
                 break;
             case 'b':  // Move backward (Z)
                 if (currentPosition.z > -20.0f) {
-                    scenes[currentScene].moveLight(i, 'b', 0.01f);
+                    scenes[currentScene]->moveLight(i, 'b', 0.01f);
                 }
                 break;
             }
@@ -542,7 +544,7 @@ void Application::moveLightsRandom() {
         if (cntr == 100) {
             cntr = 0;
         }
-		scenes[currentScene].notifyCurrObservers(aspectRatio);
+		scenes[currentScene]->notifyCurrObservers(aspectRatio);
     }
 }
 
