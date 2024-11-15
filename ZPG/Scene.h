@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <map>
 #include "DrawableObject.h"
 #include "Camera.h"
 #include "Light.h"
@@ -7,6 +8,7 @@
 class Scene {
     private:
         vector<DrawableObject*> objects;
+		std::map<std::tuple<Shader*, Model*>, std::vector<DrawableObject*>> groupedObjects;
 		vector<Camera*> cameras;
 		vector<Light*> lights;
 
@@ -15,17 +17,19 @@ class Scene {
 
 		float aspectRatio;
 
+		void groupObjectsForInstancing();
+
     public:
 		Scene();
 		~Scene();
 
         void addObject(DrawableObject* object);
 	    void deleteObject(DrawableObject* object);
-			
+
 		void addCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f);
 		
-		void addLight(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f));
-		void addLight(glm::vec3 position, glm::vec3 color, float intensity);
+		void addLight(std::shared_ptr<Model> model);
+		void addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity);
 		
         void render();
 		void registerAllObservers(float aspectRatio);

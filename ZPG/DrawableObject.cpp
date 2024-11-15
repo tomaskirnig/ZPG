@@ -1,20 +1,16 @@
 #include "DrawableObject.h"
 
-DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile)
-    : transformation(new Transformation()) {
-    model = new Model(points, sizeOfPoints);
+DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile)
+    : model(model), transformation(new Transformation()) {
     shader = new Shader(vertexShaderFile, fragmentShaderFile);
-    //transformation = new Transformation();
 }
 
-DrawableObject::DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess)
-    : transformation(new Transformation()) {
-    model = new Model(points, sizeOfPoints);
+DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess)
+    : model(model), transformation(new Transformation()) {
     shader = new Shader(vertexShaderFile, fragmentShaderFile, shininess);
 }
 
 DrawableObject::~DrawableObject() {
-    delete model;
     delete shader;
     delete transformation;
 }
@@ -31,6 +27,19 @@ void DrawableObject::draw() {
     // Send the transformation matrix to the shader
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformationMatrix));
     model->draw();
+}
+
+void DrawableObject::drawInstanced(GLuint instanceCount) {
+    shader->use();
+    model->drawInstanced(instanceCount);
+}
+
+void DrawableObject::setupInstancedRendering(const std::vector<glm::mat4>& transformations) {
+    if (transformations.empty()) return; // No transformations to set up
+
+    isInstanced = true;
+    instanceCount = transformations.size();
+    model->setupInstanceBuffer(transformations);
 }
 
 // Get the transformation of the object

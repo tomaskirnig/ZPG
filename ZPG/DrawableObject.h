@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "Model.h"
 #include "Shader.h"
 #include "Transformation.h"
@@ -14,17 +15,22 @@
 
 class DrawableObject {
     private:
-        Model* model;
+        std::shared_ptr<Model> model;
         Shader* shader;
 
         Transformation* transformation;
 
+        bool isInstanced = false;         // Flag to indicate instanced rendering
+        size_t instanceCount = 0;         // Number of instances
+
     public:
-        DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile);
-        DrawableObject(const float* points, size_t sizeOfPoints, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess);
+        DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile);
+        DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess);
         ~DrawableObject();
 
         void draw();
+        void drawInstanced(GLuint instanceCount);
+        void setupInstancedRendering(const std::vector<glm::mat4>& transformations);
         
         glm::mat4 getTransformationMatrix();
 
@@ -59,5 +65,21 @@ class DrawableObject {
 		// Get the shader of the object
         Shader* getShader() {
             return this->shader;
+        }
+
+		std::shared_ptr<Model> getModel() {
+			return this->model;
+		}
+
+        bool usesInstancedRendering() const { 
+            return isInstanced; 
+        }
+
+        size_t getInstanceCount() const {
+            return instanceCount; 
+        }
+        
+        void setInstanceCount(size_t count) { 
+            instanceCount = count; 
         }
 };

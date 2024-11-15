@@ -8,14 +8,13 @@ private:
     float intensity;
 
 public:
-    Light(const float* points = sphere, 
-        size_t sizeOfPoints = sizeof(sphere), 
+    Light(std::shared_ptr<Model> model, 
         const std::string& vertexShaderFile = "vertexShaderSource3", 
         const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
         const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f), 
         float intensity = 1.0f,
         float shininess = 1.0f)
-        : DrawableObject(points, sizeOfPoints, vertexShaderFile, fragmentShaderFile, shininess),
+        : DrawableObject(model, vertexShaderFile, fragmentShaderFile, shininess),
         lightColor(color), intensity(intensity) {
 		this->setScale(0.1f);
     }

@@ -7,10 +7,10 @@
 #include <GLFW/glfw3.h>  
 
 //Include GLM  
-#include <glm/vec3.hpp> // glm::vec3
-#include <glm/vec4.hpp> // glm::vec4
-#include <glm/mat4x4.hpp> // glm::mat4
-#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
+#include <glm/vec3.hpp> 
+#include <glm/vec4.hpp> 
+#include <glm/mat4x4.hpp> 
+#include <glm/gtc/type_ptr.hpp> 
 
 //Standard libraries
 #include <stdlib.h>
@@ -20,10 +20,11 @@
 #include <random>  
 
 //Include custom classes
+#include "ModelManager.h"
 #include "Scene.h"
-#include "Camera.h"
-#include "Light.h"
-#include "Shader.h"
+//#include "Camera.h"
+//#include "Light.h"
+//#include "Shader.h"
 
 
 using namespace std;
@@ -37,6 +38,7 @@ class Application
 		float aspectRatio;
 
         vector<Scene*> scenes;
+		ModelManager modelManager;
 
         int currentScene;
 
@@ -47,6 +49,8 @@ class Application
 
 	    void run();
 		float getAspectRatio();
+
+        void loadModels();
 
 		// Cursor controls
         void centerCursor();

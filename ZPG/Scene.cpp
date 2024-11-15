@@ -2,21 +2,30 @@
 
 Scene::Scene() : currentObject(0), currentCamera(0) {
 	addCamera();
-	addLight(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
-Scene::~Scene()
-{
-	for (DrawableObject* object : objects) {
-		delete object;
-	}
-	objects.clear();
+Scene::~Scene() {
+    for (auto* obj : objects) delete obj;
+    for (auto* cam : cameras) delete cam;
+    for (auto* light : lights) delete light;
 }
 
 // Adds a new object to the scene
 void Scene::addObject(DrawableObject* object) {
     objects.push_back(object);
+    //groupObjectsForInstancing();
 }
+
+void Scene::groupObjectsForInstancing() {
+    groupedObjects.clear();
+    for (auto* obj : objects) {
+        Shader* shader = obj->getShader();
+        Model* model = obj->getModel().get();
+        auto key = std::make_tuple(shader, model);
+        groupedObjects[key].push_back(obj);
+    }
+}
+
 
 // Deletes an object from the scene
 void Scene::deleteObject(DrawableObject* delObject) {
@@ -33,17 +42,17 @@ void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
 	cameras.push_back(new Camera(position, up, yaw, pitch));
 }
 
-
-void Scene::addLight(glm::vec3 position, glm::vec3 color)
+void Scene::addLight(std::shared_ptr<Model> model)
 {
-	lights.push_back(new Light());
-	lights[lights.size() - 1]->setPosition(position);
-	lights[lights.size() - 1]->setColor(color);
+	lights.push_back(new Light(model));
+	lights[lights.size() - 1]->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+	lights[lights.size() - 1]->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	lights[lights.size() - 1]->setIntensity(1.0f);
 }
 
-void Scene::addLight(glm::vec3 position, glm::vec3 color, float intensity)
+void Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity)
 {
-    lights.push_back(new Light());
+    lights.push_back(new Light(model));
     lights[lights.size() - 1]->setPosition(position);
     lights[lights.size() - 1]->setColor(color);
 	lights[lights.size() - 1]->setIntensity(intensity);
@@ -54,14 +63,41 @@ void Scene::render() {
     // Apply camera's view and projection matrices
     //cameras[currentCamera].notifyObservers(aspectRatio, lights);
 
-	// Render all objects in the scene
+    // Render all objects in the scene
     for (DrawableObject* object : objects) {
         object->draw();
     }
     for (Light* light : lights) {
-		light->draw();
+        light->draw();
     }
 }
+
+// Render for instanced rendering
+//void Scene::render() {
+//    for (auto& group : groupedObjects) {
+//        Shader* shader = std::get<0>(group.first);
+//        Model* model = std::get<1>(group.first);
+//        shader->use();
+//
+//        // Use instanced rendering if applicable
+//        if (group.second.front()->usesInstancedRendering()) {
+//            model->drawInstanced(group.second.front()->getInstanceCount());
+//        }
+//        else {
+//            for (auto* obj : group.second) {
+//                GLint transformLoc = shader->getUniformLocation("transformationMatrix");
+//                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(obj->getTransformationMatrix()));
+//                obj->draw();
+//            }
+//        }
+//    }
+//
+//    // Optionally render lights separately
+//    for (auto* light : lights) {
+//        light->draw();
+//    }
+//}
+
 
 void Scene::registerAllObservers(float aspectRatio)
 {
@@ -141,35 +177,37 @@ void Scene::currentCameraPlus(float aspectRatio)
 // Moves the current object in the scene
 void Scene::moveObject(int object, char direction) {
     float movementSpeed = 0.01f;
+    if (object >= 0 && object < objects.size()) {
+        switch (direction) {
+        case 'u':
+            objects[object]->moveObject(glm::vec3(0.0f, movementSpeed, 0.0f)); // Move + Y-axis
+            break;
 
-    switch (direction)
-    {
-    case 'u':
-        objects[object]->moveObject(glm::vec3(0.0f, movementSpeed, 0.0f)); // Move + Y-axis
-        break;
+        case 'd':
+            objects[object]->moveObject(glm::vec3(0.0f, -movementSpeed, 0.0f)); // Move - Y-axis
+            break;
 
-    case 'd':
-        objects[object]->moveObject(glm::vec3(0.0f, -movementSpeed, 0.0f)); // Move - Y-axis
-        break;
+        case 'l':
+            objects[object]->moveObject(glm::vec3(-movementSpeed, 0.0f, 0.0f)); // Move + X-axis
+            break;
 
-    case 'l':
-        objects[object]->moveObject(glm::vec3(-movementSpeed, 0.0f, 0.0f)); // Move + X-axis
-        break;
+        case 'r':
+            objects[object]->moveObject(glm::vec3(movementSpeed, 0.0f, 0.0f)); // Move - X-axis
+            break;
 
-    case 'r':
-        objects[object]->moveObject(glm::vec3(movementSpeed, 0.0f, 0.0f)); // Move - X-axis
-        break;
+        case 'f':
+            objects[object]->moveObject(glm::vec3(0.0f, 0.0f, movementSpeed)); // Move + Z-axis
+            break;
 
-    case 'f':
-        objects[object]->moveObject(glm::vec3(0.0f, 0.0f, movementSpeed)); // Move + Z-axis
-        break;
-
-    case 'b':
-        objects[object]->moveObject(glm::vec3(0.0f, 0.0f, -movementSpeed)); // Move - Z-axis
-        break;
-    default:
-        break;
-    }
+        case 'b':
+            objects[object]->moveObject(glm::vec3(0.0f, 0.0f, -movementSpeed)); // Move - Z-axis
+            break;
+        default:
+            break;
+        }
+	}
+	else printf("Object index out of bounds\n");
+    
 }
 
 void Scene::moveObject(int object, char direction, float amount) {

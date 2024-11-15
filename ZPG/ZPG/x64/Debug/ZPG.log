@@ -1,18 +1,23 @@
 ﻿  Application.cpp
-F:\VS\ZPG\ZPG\Application.cpp(177,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(359,22): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(360,22): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(363,119): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(363,110): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(402,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(403,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(404,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(410,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(419,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(420,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(421,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(427,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(441,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(442,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
+F:\VS\ZPG\ZPG\Application.cpp(184,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(366,22): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(367,22): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(370,119): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(370,110): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(416,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(417,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(418,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(424,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(433,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(434,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(435,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(441,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(455,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(456,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+  Model.cpp
+F:\VS\ZPG\ZPG\Model.cpp(5,21): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Model.cpp(35,32): warning C4267: argument: Převod z: size_t na: GLsizei, může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Model.cpp(41,44): warning C4267: argument: Převod z: size_t na: GLsizei, může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Model.cpp(59,80): warning C4312: přetypování: Převod z: int na: void * větší velikosti
+  Generování kódu...
   ZPG.vcxproj -> F:\VS\ZPG\ZPG\x64\Debug\ZPG.exe
