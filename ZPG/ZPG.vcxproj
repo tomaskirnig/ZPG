@@ -145,18 +145,22 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="BaseTransformation.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="DrawableObject.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightData.h" />
+    <ClInclude Include="LightType.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="IObserver.h" />
     <ClInclude Include="ModelManager.h" />
+    <ClInclude Include="PointLight.h" />
     <ClInclude Include="Rotation.h" />
     <ClInclude Include="Scale.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="ISubject.h" />
+    <ClInclude Include="SpotLight.h" />
     <ClInclude Include="Transformation.h" />
     <ClInclude Include="Translation.h" />
   </ItemGroup>

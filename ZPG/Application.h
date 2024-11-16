@@ -1,12 +1,7 @@
 #pragma once
 
-//Include GLEW
 #include <GL/glew.h>
-
-//Include GLFW  
 #include <GLFW/glfw3.h>  
-
-//Include GLM  
 #include <glm/vec3.hpp> 
 #include <glm/vec4.hpp> 
 #include <glm/mat4x4.hpp> 
@@ -22,12 +17,6 @@
 //Include custom classes
 #include "ModelManager.h"
 #include "Scene.h"
-//#include "Camera.h"
-//#include "Light.h"
-//#include "Shader.h"
-
-
-using namespace std;
 
 class Application
 {
@@ -41,6 +30,7 @@ class Application
 		ModelManager modelManager;
 
         int currentScene;
+        bool looking;
 
 
     public:

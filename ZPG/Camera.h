@@ -4,6 +4,7 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ISubject.h"
+#include "Light.h"
 
 using namespace std;
 
@@ -20,6 +21,8 @@ private:
     float MovementSpeed;
     float MouseSensitivity;
     float Fov;
+
+    Light* followingSpotlight = nullptr;
 
     // Updates the camera vectors
     void updateCameraVectors();
@@ -44,4 +47,15 @@ public:
     void processMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light*> lights);
 
     void processMouseScroll(float yOffset, float aspectRatio, vector<Light*> lights);
+
+    glm::vec3 getPosition() const {
+        return Position;
+    }
+
+	glm::vec3 getTarget() const {
+		return Target;
+	}
+
+    void setFollowingSpotlight(Light* spotlight);
+	Light* getFollowingSpotlight() const { return followingSpotlight; }
 };

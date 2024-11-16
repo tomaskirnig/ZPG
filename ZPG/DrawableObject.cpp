@@ -17,16 +17,18 @@ DrawableObject::~DrawableObject() {
 
 // Draw the object
 void DrawableObject::draw() {
-    shader->use(); // Set the shader to be used
+    if (model != nullptr) {
+        shader->use(); // Set the shader to be used
 
-    glm::mat4 transformationMatrix = transformation->getMatrix();
+        glm::mat4 transformationMatrix = transformation->getMatrix();
 
-    // Get the uniform location
-    GLint transformLoc = shader->getUniformLocation("transformationMatrix"); 
+        // Get the uniform location
+        GLint transformLoc = shader->getUniformLocation("transformationMatrix");
 
-    // Send the transformation matrix to the shader
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformationMatrix));
-    model->draw();
+        // Send the transformation matrix to the shader
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformationMatrix));
+        model->draw();
+    }
 }
 
 void DrawableObject::drawInstanced(GLuint instanceCount) {

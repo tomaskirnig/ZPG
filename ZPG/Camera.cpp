@@ -1,4 +1,7 @@
 #include "Camera.h"
+#include "SpotLight.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
 
 // Constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
@@ -18,16 +21,43 @@ void Camera::notifyObservers(float aspectRatio, vector<Light*> lights) {
     
     // Convert to LightData
     std::vector<LightData> lightDataList;
+
     for (auto* light : lights) {
+        if (!light) {
+            std::cerr << "Warning: Null light pointer found!" << std::endl;
+            continue;
+        }
         LightData data;
-        data.position = light->getPosition();
+
+		//cout << "Light Type: " << static_cast<int>(light->getType()) << endl;
+
+		if (light->getType() == LightType::DIRECTIONAL) {
+			data.direction = ((DirectionalLight*)light)->getDirection();
+		}
+		else if (light->getType() == LightType::POINT) {
+			data.position = light->getPosition();
+		}
+		else if (light->getType() == LightType::SPOTLIGHT) {
+			data.position = light->getPosition();
+			data.direction = ((SpotLight*)light)->getDirection();
+			data.cutOff = ((SpotLight*)light)->getCutOff();
+			data.outerCutOff = ((SpotLight*)light)->getOuterCutOff();
+		}
+        
+		data.type = light->getType();
         data.color = light->getColor();
         data.intensity = light->getIntensity();
+
         lightDataList.push_back(data);
     }
 
     for (IObserver* observer : observers) {
-        observer->update(viewMatrix, projectionMatrix, lightDataList, Position);
+        if (observer) { 
+            observer->update(viewMatrix, projectionMatrix, lightDataList, Position);
+        }
+        else {
+            std::cerr << "Warning: Null observer found!" << std::endl;
+        }
     }
 }
 
@@ -42,6 +72,10 @@ void Camera::processKeyboardMovement(const char direction, float aspectRatio, ve
         Position -= Right * velocity;   // Move left
     if (direction == 'r')
         Position += Right * velocity;   // Move right
+
+    if (followingSpotlight) {
+        followingSpotlight->setPosition(Position);
+    }
 
 	notifyObservers(aspectRatio, lights);
 }
@@ -58,6 +92,9 @@ void Camera::processMouseMovement(float xOffset, float yOffset, float aspectRati
     if (Pitch > 89.0f) Pitch = 89.0f; 
     if (Pitch < -89.0f) Pitch = -89.0f;
         
+    if (followingSpotlight) {
+        followingSpotlight->setDirection(Target);
+    }
 
     // Update Target, Right, and Up Vectors
     updateCameraVectors();
@@ -76,6 +113,10 @@ void Camera::processMouseScroll(float yOffset, float aspectRatio, vector<Light*>
 	std::cout << "Fov: " << Fov << endl;
 
     notifyObservers(aspectRatio, lights);
+}
+
+void Camera::setFollowingSpotlight(Light* spotlight) {
+    followingSpotlight = spotlight;
 }
 
 // Updates the Target, Right, and Up vectors using the current Euler angles

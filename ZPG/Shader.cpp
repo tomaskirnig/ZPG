@@ -1,5 +1,7 @@
 #include "Shader.h"
-
+#include "SpotLight.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
 
 Shader::Shader(string vertexFile, string fragmentFile, float shininess) {
 	this->shininess = shininess;
@@ -43,37 +45,60 @@ void Shader::checkCompileErrors(GLuint shader, string type) {
     }
 }
 
-// Updates the shader with the view and projection matrices + light properties
-// Shader.cpp
-#include "Shader.h"
-
 void Shader::update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) {
-    // Set the shader program
     use();
 
-    // Send the view and projection matrices to the shader
     glUniformMatrix4fv(getUniformLocation("viewMatrix"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(getUniformLocation("projectionMatrix"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
-    // Send the view position
     glUniform3fv(getUniformLocation("viewPosition"), 1, glm::value_ptr(viewPosition));
 
-    // Send the number of lights
-    glUniform1i(getUniformLocation("numberOfLights"), std::min(MAX_LIGHTS, (int)lights.size()));
+    // Separate lights by type
+    std::vector<LightData> pointLights;
+    std::vector<LightData> dirLights;
+    std::vector<LightData> spotLights;
 
-    // Send the light data
-    for (size_t i = 0; i < std::min(MAX_LIGHTS, (int)lights.size()); ++i) {
-        std::string index = std::to_string(i);
-        glUniform3fv(getUniformLocation("lights[" + index + "].position"), 1, glm::value_ptr(lights[i].position));
-        glUniform3fv(getUniformLocation("lights[" + index + "].color"), 1, glm::value_ptr(lights[i].color));
-        glUniform1f(getUniformLocation("lights[" + index + "].intensity"), lights[i].intensity);
+    for (const auto& light : lights) {
+        switch (light.type) {
+        case LightType::POINT:
+            pointLights.push_back(light);
+            break;
+        case LightType::DIRECTIONAL:
+            dirLights.push_back(light);
+            break;
+        case LightType::SPOTLIGHT:
+            spotLights.push_back(light);
+            break;
+        default:
+            std::cerr << "Unknown light type detected!" << std::endl;
+        }
     }
 
-    // Set the shininess
+    setPointLights(pointLights);
+
+    setDirLights(dirLights);
+
+    setSpotLights(spotLights);
+
     glUniform1f(getUniformLocation("shininess"), shininess);
+
+    // Debug information
+    /*std::cout << "Number of Point Lights: " << pointLights.size() << std::endl;
+    std::cout << "Number of Dir Lights: " << dirLights.size() << std::endl;
+    std::cout << "Number of Spot Lights: " << spotLights.size() << std::endl;
+
+    for (size_t i = 0; i < pointLights.size(); ++i) {
+        std::cout << "Point Light [" << i << "] Position: "
+            << pointLights[i].position.x << ", "
+            << pointLights[i].position.y << ", "
+            << pointLights[i].position.z << std::endl;
+        std::cout << "Point Light [" << i << "] Color: "
+            << pointLights[i].color.r << ", "
+            << pointLights[i].color.g << ", "
+            << pointLights[i].color.b << std::endl;
+        std::cout << "Point Light [" << i << "] Intensity: " << pointLights[i].intensity << std::endl;
+    }*/
 }
-
-
 
 
 // Retrieve the location of a uniform, caching it after the first retrieval
@@ -85,3 +110,48 @@ GLint Shader::getUniformLocation(const string& name) {
     // Return the cached location
     return uniformLocations[name];
 }
+
+
+void Shader::setSpotLights(const std::vector<LightData>& spotLights) {
+    int spotLightCount = static_cast<int>(spotLights.size());
+    glUniform1i(getUniformLocation("numberOfSpotLights"), spotLightCount);
+
+    for (int i = 0; i < spotLightCount && i < MAX_SPOT_LIGHTS; ++i) {
+        std::string index = std::to_string(i);
+
+        glUniform3fv(getUniformLocation("spotLights[" + index + "].position"), 1, glm::value_ptr(spotLights[i].position));
+        glUniform3fv(getUniformLocation("spotLights[" + index + "].direction"), 1, glm::value_ptr(spotLights[i].direction));
+        glUniform3fv(getUniformLocation("spotLights[" + index + "].color"), 1, glm::value_ptr(spotLights[i].color));
+        glUniform1f(getUniformLocation("spotLights[" + index + "].intensity"), spotLights[i].intensity);
+        glUniform1f(getUniformLocation("spotLights[" + index + "].cutOff"), glm::cos(glm::radians(spotLights[i].cutOff)));
+        glUniform1f(getUniformLocation("spotLights[" + index + "].outerCutOff"), glm::cos(glm::radians(spotLights[i].outerCutOff)));
+    }
+}
+
+void Shader::setPointLights(const std::vector<LightData>& pointLights) {
+    int pointLightCount = static_cast<int>(pointLights.size());
+    glUniform1i(getUniformLocation("numberOfPointLights"), pointLightCount);
+
+    for (int i = 0; i < pointLightCount && i < MAX_POINT_LIGHTS; ++i) {
+        std::string index = std::to_string(i);
+
+        glUniform3fv(getUniformLocation("pointLights[" + index + "].position"), 1, glm::value_ptr(pointLights[i].position));
+        glUniform3fv(getUniformLocation("pointLights[" + index + "].color"), 1, glm::value_ptr(pointLights[i].color));
+        glUniform1f(getUniformLocation("pointLights[" + index + "].intensity"), pointLights[i].intensity);
+    }
+}
+
+void Shader::setDirLights(const std::vector<LightData>& dirLights) {
+    int dirLightCount = static_cast<int>(dirLights.size());
+    glUniform1i(getUniformLocation("numberOfDirLights"), dirLightCount);
+
+    for (int i = 0; i < dirLightCount && i < MAX_DIR_LIGHTS; ++i) {
+        std::string index = std::to_string(i);
+
+        glUniform3fv(getUniformLocation("dirLights[" + index + "].direction"), 1, glm::value_ptr(dirLights[i].direction));
+        glUniform3fv(getUniformLocation("dirLights[" + index + "].color"), 1, glm::value_ptr(dirLights[i].color));
+        glUniform1f(getUniformLocation("dirLights[" + index + "].intensity"), dirLights[i].intensity);
+    }
+}
+
+

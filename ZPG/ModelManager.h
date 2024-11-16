@@ -10,6 +10,6 @@ private:
     std::unordered_map<std::string, std::shared_ptr<Model>> models;
 
 public:
-    std::shared_ptr<Model> getModel(const std::string& modelName, const float* points, size_t size);       void clear();
+    std::shared_ptr<Model> getModel(const std::string& modelName, const float* points, size_t size);
     void clearModels() { models.clear(); };
 };

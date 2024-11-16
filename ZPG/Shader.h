@@ -9,7 +9,10 @@
 #include "ShaderLoader.h"
 #include "LightData.h"
 
-#define MAX_LIGHTS 4
+
+#define MAX_SPOT_LIGHTS 4
+#define MAX_DIR_LIGHTS 4
+#define MAX_POINT_LIGHTS 4
 
 using namespace std;
 
@@ -28,7 +31,7 @@ class Shader : IObserver, ShaderLoader{
 
         void use() {
             glUseProgram(ID);
-        }
+                }
 
         // Observer's update method implementation
         void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) override;
@@ -42,4 +45,9 @@ class Shader : IObserver, ShaderLoader{
 	    }
 
         GLint getUniformLocation(const string& name);
+        
+        void setSpotLights(const std::vector<LightData>& spotLights);
+        void setPointLights(const std::vector<LightData>& pointLights);
+        void setDirLights(const std::vector<LightData>& dirLights);
+
 };

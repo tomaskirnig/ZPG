@@ -42,20 +42,98 @@ void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
 	cameras.push_back(new Camera(position, up, yaw, pitch));
 }
 
-void Scene::addLight(std::shared_ptr<Model> model)
+void Scene::addLight(std::shared_ptr<Model> model, LightType type)
 {
-	lights.push_back(new Light(model));
+    switch(type){
+	    case LightType::POINT:
+		    lights.push_back(new PointLight(model, 
+                glm::vec3(0.0f, 0.0f, 0.0f),
+			    glm::vec3(1.0f, 1.0f, 1.0f),
+			    1.0f));
+		    break;
+	    case LightType::DIRECTIONAL:
+			lights.push_back(new DirectionalLight(glm::vec3(0.0f, 0.0f, 0.0f),
+		        glm::vec3(1.0f, 1.0f, 1.0f),
+		        1.0f));
+		    break;
+	    case LightType::SPOTLIGHT:
+			lights.push_back(new SpotLight(model,
+				cameras[currentCamera]->getPosition(),
+				cameras[currentCamera]->getTarget(),
+				glm::vec3(1.0f, 1.0f, 1.0f),
+				1.0f,
+                12.5f,
+                17.5f));
+		    break;
+    }
+	/*lights.push_back(new Light(model));
 	lights[lights.size() - 1]->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 	lights[lights.size() - 1]->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
-	lights[lights.size() - 1]->setIntensity(1.0f);
+	lights[lights.size() - 1]->setIntensity(1.0f);*/
 }
 
-void Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity)
+void Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type)
 {
-    lights.push_back(new Light(model));
-    lights[lights.size() - 1]->setPosition(position);
-    lights[lights.size() - 1]->setColor(color);
-	lights[lights.size() - 1]->setIntensity(intensity);
+    switch (type) {
+    case LightType::POINT:
+        lights.push_back(new PointLight(model,
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            color,
+            1.0f));
+        break;
+    case LightType::DIRECTIONAL:
+        lights.push_back(new DirectionalLight(glm::vec3(1.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            1.0f));
+        break;
+    case LightType::SPOTLIGHT:
+        lights.push_back(new SpotLight(model,
+            cameras[currentCamera]->getPosition(),
+            cameras[currentCamera]->getTarget(),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            1.0f,
+            12.5f,
+            17.5f));
+        break;
+    }
+}
+
+Light* Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type, bool follow) {
+    Light* newLight = nullptr;
+    switch (type) {
+    case LightType::POINT:
+        newLight = new PointLight(model, position, color, intensity);
+        break;
+    case LightType::DIRECTIONAL:
+        newLight = new DirectionalLight(position, color, intensity);  // 'position' used as direction
+        break;
+    case LightType::SPOTLIGHT:
+        newLight = new SpotLight(model,
+            cameras[currentCamera]->getPosition(),
+            cameras[currentCamera]->getTarget(),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            1.0f,
+            12.5f,
+            17.5f);
+        break;
+    }
+    if (newLight) {
+        lights.push_back(newLight);
+    }
+    return newLight;
+}
+
+void Scene::setFollowingSpotLight(std::shared_ptr<Model> model)
+{
+    cameras[currentCamera]->setFollowingSpotlight(new SpotLight(
+        model,  //should be nullptr 
+		cameras[currentCamera]->getPosition(),
+		cameras[currentCamera]->getTarget(),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		1.0f,
+		12.5f,
+		17.5f));
+	lights.push_back(cameras[currentCamera]->getFollowingSpotlight());
 }
 
 // Renders all objects in the scene
@@ -370,6 +448,11 @@ glm::vec3 Scene::getPositionLight(int light)
 glm::vec3 Scene::getPositionObject(int object)
 {
     return objects[object]->getPosition();
+}
+
+LightType Scene::getLightType(int light)
+{
+	return lights[light]->getType();
 }
 
 void Scene::moveCamera(int camera, char direction, float aspectRatio)

@@ -105,17 +105,13 @@ void Application::run() {
     scenes[0]->addObject(new DrawableObject(triangleModel, vertexShaderSources[1], fragmentShaderSources[2]));
 
 	// Add a forest to the second scene
-	addForest(1, 50);
+	addForest(1, 20);
 
 	addBalls(2);
 
     addBallsDiffShaders(3);
     
     registerAllObservers();
-
-    // Hide and lock cursor in app window
-	centerCursor();
-	disableAndLockCursor();
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -257,6 +253,16 @@ void Application::processInput() {
     else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
         scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'd');  // Scale down
     }
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        // Hide and lock cursor in app window
+        //centerCursor();
+        disableAndLockCursor();
+		looking = true;
+    }
+    else {
+		enableCursor();
+		looking = false;
+    }
 }
 
 void Application::addScene() {
@@ -352,22 +358,24 @@ void Application::window_size_callback(GLFWwindow* window, int width, int height
 
 void Application::cursor_callback(GLFWwindow* window, double x, double y) { 
     //cout << "cursor_callback" << "x: " << x << " y: " << y << endl;
-	Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
 
-    if (app == NULL) {
-        cerr << "Cursor_callback -> app = NULL" << endl;
-    }
-	if (app) {
-		// Calculate the offset of the cursor position
-        double xOffset = x - app->lastX;
-        double yOffset =  app->lastY - y;
+    if (app->looking) {
+        if (app == NULL) {
+            cerr << "Cursor_callback -> app = NULL" << endl;
+        }
+        if (app) {
+            // Calculate the offset of the cursor position
+            double xOffset = x - app->lastX;
+            double yOffset = app->lastY - y;
 
-		// Update the last cursor position
-        app->lastX = x;
-        app->lastY = y;
+            // Update the last cursor position
+            app->lastX = x;
+            app->lastY = y;
 
-		// Process the mouse movement
-        app->scenes[app->currentScene]->mouseMovementCamera(app->scenes[app->currentScene]->getCurrCamera(), xOffset, yOffset, app->aspectRatio);
+            // Process the mouse movement
+            app->scenes[app->currentScene]->mouseMovementCamera(app->scenes[app->currentScene]->getCurrCamera(), xOffset, yOffset, app->aspectRatio);
+        }
     }
 }
 
@@ -445,17 +453,18 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex]->addObject(bushObject);
     }
 
-    DrawableObject* plainObj = new DrawableObject(plainModel, vertexShaderSources[2], fragmentShaderSources[5]);
+    DrawableObject* plainObj = new DrawableObject(plainModel, vertexShaderSources[2], fragmentShaderSources[3]);
     plainObj->setPosition(glm::vec3(0.0, -0.5, 0.0));
     plainObj->setScale(20.0);
 
     scenes[sceneIndex]->addObject(plainObj);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
         float randomX = disX(gen);
         float randomZ = disZ(gen);
-        scenes[sceneIndex]->addLight(sphereModel, glm::vec3(randomX, 0.0, randomZ), glm::vec3(1.0f, 0.5f, 0.1f), 1.0f);
+        scenes[sceneIndex]->addLight(sphereModel, glm::vec3(randomX, 0.0, randomZ), glm::vec3(1.0f, 0.5f, 0.1f), 1.0f, LightType::POINT);
     }
+    scenes[sceneIndex]->setFollowingSpotLight(sphereModel);
 }
 
 //void Application::addForest(int sceneIndex, int numTrees) {
@@ -510,7 +519,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
 
 void Application::addBalls(int sceneIndex) {
 	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
-	scenes[sceneIndex]->addLight(sphereModel);
+	scenes[sceneIndex]->addLight(sphereModel, LightType::POINT);
 
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
 
@@ -529,7 +538,7 @@ void Application::addMonkeys(int sceneIndex) {
 	std::shared_ptr<Model> suziFlatModel = modelManager.getModel("suziFlat", suziFlat, sizeof(suziFlat));
 	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
     
-    scenes[sceneIndex]->addLight(sphereModel);
+    scenes[sceneIndex]->addLight(sphereModel, LightType::POINT);
 
 	int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
 	for (int i = 0; i < 4; i++) {
@@ -544,7 +553,7 @@ void Application::addMonkeys(int sceneIndex) {
 
 void Application::addBallsDiffShaders(int sceneIndex) {
 	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
-    scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f);
+    scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f, LightType::POINT);
 
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
     scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[1], fragmentShaderSources[2]));
@@ -575,41 +584,43 @@ void Application::moveLightsRandom() {
     else {
         // Move each light independently within bounds
         for (int i = 0; i < scenes[currentScene]->getNumOfLights(); i++) {
-            glm::vec3 currentPosition = scenes[currentScene]->getPositionLight(i);
-            char direction = directions[randomDirections[i]];
+            if (scenes[currentScene]->getLightType(i) != LightType::SPOTLIGHT) {
+                glm::vec3 currentPosition = scenes[currentScene]->getPositionLight(i);
+                char direction = directions[randomDirections[i]];
 
-            // Check bounds for the selected direction
-            switch (direction) {
-            case 'u':  // Move up (Y)
-                if (currentPosition.y < 0.8f) {
-                    scenes[currentScene]->moveLight(i, 'u', 0.01f);
+                // Check bounds for the selected direction
+                switch (direction) {
+                case 'u':  // Move up (Y)
+                    if (currentPosition.y < 0.8f) {
+                        scenes[currentScene]->moveLight(i, 'u', 0.01f);
+                    }
+                    break;
+                case 'd':  // Move down (Y)
+                    if (currentPosition.y > -0.4f) {
+                        scenes[currentScene]->moveLight(i, 'd', 0.01f);
+                    }
+                    break;
+                case 'l':  // Move left (X)
+                    if (currentPosition.x > -10.0f) {
+                        scenes[currentScene]->moveLight(i, 'l', 0.01f);
+                    }
+                    break;
+                case 'r':  // Move right (X)
+                    if (currentPosition.x < 10.0f) {
+                        scenes[currentScene]->moveLight(i, 'r', 0.01f);
+                    }
+                    break;
+                case 'f':  // Move forward (Z)
+                    if (currentPosition.z < 20.0f) {
+                        scenes[currentScene]->moveLight(i, 'f', 0.01f);
+                    }
+                    break;
+                case 'b':  // Move backward (Z)
+                    if (currentPosition.z > -20.0f) {
+                        scenes[currentScene]->moveLight(i, 'b', 0.01f);
+                    }
+                    break;
                 }
-                break;
-            case 'd':  // Move down (Y)
-                if (currentPosition.y > -0.4f) {
-                    scenes[currentScene]->moveLight(i, 'd', 0.01f);
-                }
-                break;
-            case 'l':  // Move left (X)
-                if (currentPosition.x > -10.0f) {
-                    scenes[currentScene]->moveLight(i, 'l', 0.01f);
-                }
-                break;
-            case 'r':  // Move right (X)
-                if (currentPosition.x < 10.0f) {
-                    scenes[currentScene]->moveLight(i, 'r', 0.01f);
-                }
-                break;
-            case 'f':  // Move forward (Z)
-                if (currentPosition.z < 20.0f) {
-                    scenes[currentScene]->moveLight(i, 'f', 0.01f);
-                }
-                break;
-            case 'b':  // Move backward (Z)
-                if (currentPosition.z > -20.0f) {
-                    scenes[currentScene]->moveLight(i, 'b', 0.01f);
-                }
-                break;
             }
         }
 
