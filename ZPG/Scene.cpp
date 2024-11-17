@@ -52,8 +52,8 @@ void Scene::addLight(std::shared_ptr<Model> model, LightType type)
 			    1.0f));
 		    break;
 	    case LightType::DIRECTIONAL:
-			lights.push_back(new DirectionalLight(glm::vec3(0.0f, 0.0f, 0.0f),
-		        glm::vec3(1.0f, 1.0f, 1.0f),
+			lights.push_back(new DirectionalLight(glm::vec3(-1.0f, 0.0f, 0.0f),
+		        glm::vec3(0.0f, 1.0f, 0.0f),
 		        1.0f));
 		    break;
 	    case LightType::SPOTLIGHT:

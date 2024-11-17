@@ -425,7 +425,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         float randomZ = disZ(gen);
         float randomRotationY = disRotationY(gen);  // Random rotation in radians
 
-        DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[2], fragmentShaderSources[3]);
+        DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[2], fragmentShaderSources[4]);
 
         // Set the transformation matrix (position and scale) 
         treeObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
@@ -442,7 +442,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         float randomZ = disZ(gen);
         float randomRotationY = disRotationY(gen);  // Random rotation in radians
 
-        DrawableObject* bushObject = new DrawableObject(bushesModel, vertexShaderSources[2], fragmentShaderSources[3]);
+        DrawableObject* bushObject = new DrawableObject(bushesModel, vertexShaderSources[2], fragmentShaderSources[4]);
 
         // Set the transformation matrix (position and scale) 
         bushObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
@@ -453,7 +453,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex]->addObject(bushObject);
     }
 
-    DrawableObject* plainObj = new DrawableObject(plainModel, vertexShaderSources[2], fragmentShaderSources[3]);
+    DrawableObject* plainObj = new DrawableObject(plainModel, vertexShaderSources[2], fragmentShaderSources[4]);
     plainObj->setPosition(glm::vec3(0.0, -0.5, 0.0));
     plainObj->setScale(20.0);
 
@@ -465,6 +465,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex]->addLight(sphereModel, glm::vec3(randomX, 0.0, randomZ), glm::vec3(1.0f, 0.5f, 0.1f), 1.0f, LightType::POINT);
     }
     scenes[sceneIndex]->setFollowingSpotLight(sphereModel);
+    scenes[sceneIndex]->addLight(sphereModel, LightType::DIRECTIONAL); // Working only for another lights
 }
 
 //void Application::addForest(int sceneIndex, int numTrees) {
@@ -523,7 +524,6 @@ void Application::addBalls(int sceneIndex) {
 
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
 
-	scenes[sceneIndex]->moveLight(0, 'd', 2.0f);
     for (int i = 0; i < 4; i++) {
         scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[4]));
     }

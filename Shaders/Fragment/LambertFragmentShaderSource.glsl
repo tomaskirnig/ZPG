@@ -49,16 +49,10 @@ void main() {
 
     // Directional lights
     for (int i = 0; i < numberOfDirLights; ++i) {
-        vec3 lightDir = normalize(-dirLights[i].direction);
+        vec3 lightDir = normalize(-dirLights[i].direction); // Light direction is from light to fragment
         float diff = max(dot(norm, lightDir), 0.0);
         vec3 diffuse = diff * dirLights[i].color * dirLights[i].intensity;
-
-        // Specular component (optional)
-        vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-        vec3 specular = spec * dirLights[i].color * dirLights[i].intensity;
-
-        result += diffuse + specular;
+        result += diffuse;
     }
 
     // Point lights

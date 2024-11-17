@@ -31,7 +31,7 @@ class Shader : IObserver, ShaderLoader{
 
         void use() {
             glUseProgram(ID);
-                }
+        }
 
         // Observer's update method implementation
         void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) override;
