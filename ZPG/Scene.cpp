@@ -49,12 +49,12 @@ void Scene::addLight(std::shared_ptr<Model> model, LightType type)
 		    lights.push_back(new PointLight(model, 
                 glm::vec3(0.0f, 0.0f, 0.0f),
 			    glm::vec3(1.0f, 1.0f, 1.0f),
-			    1.0f));
+                1.0f));
 		    break;
 	    case LightType::DIRECTIONAL:
 			lights.push_back(new DirectionalLight(glm::vec3(-1.0f, 0.0f, 0.0f),
 		        glm::vec3(0.0f, 1.0f, 0.0f),
-		        1.0f));
+                1.0f));
 		    break;
 	    case LightType::SPOTLIGHT:
 			lights.push_back(new SpotLight(model,
@@ -66,10 +66,6 @@ void Scene::addLight(std::shared_ptr<Model> model, LightType type)
                 17.5f));
 		    break;
     }
-	/*lights.push_back(new Light(model));
-	lights[lights.size() - 1]->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-	lights[lights.size() - 1]->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
-	lights[lights.size() - 1]->setIntensity(1.0f);*/
 }
 
 void Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type)

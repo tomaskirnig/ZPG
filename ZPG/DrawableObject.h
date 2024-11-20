@@ -4,6 +4,7 @@
 #include "Model.h"
 #include "Shader.h"
 #include "Transformation.h"
+#include "Material.h"
 
 //Include objects
 #include "sphere.h"
@@ -17,7 +18,7 @@ class DrawableObject {
     private:
         std::shared_ptr<Model> model;
         Shader* shader;
-
+        Material* material;
         Transformation* transformation;
 
         bool isInstanced = false;         // Flag to indicate instanced rendering
@@ -25,7 +26,7 @@ class DrawableObject {
 
     public:
         DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile);
-        DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess);
+        DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material);
         ~DrawableObject();
 
         void draw();

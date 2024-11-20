@@ -6,8 +6,8 @@ public:
     PointLight(std::shared_ptr<Model> model, const glm::vec3& position, const glm::vec3& color, float intensity,
         const std::string& vertexShaderFile = "vertexShaderSource3",
         const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
-        float shininess = 1.0f)
-        : Light(model, vertexShaderFile, fragmentShaderFile, color, intensity, shininess, LightType::POINT) {
+        Material* material = new Material())
+        : Light(model, vertexShaderFile, fragmentShaderFile, color, intensity, material, LightType::POINT) {
         setPosition(position);
     }
 

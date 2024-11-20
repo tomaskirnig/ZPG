@@ -3,16 +3,21 @@
 DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile)
     : model(model), transformation(new Transformation()) {
     shader = new Shader(vertexShaderFile, fragmentShaderFile);
+	material = new Material();
 }
 
-DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, float shininess)
-    : model(model), transformation(new Transformation()) {
-    shader = new Shader(vertexShaderFile, fragmentShaderFile, shininess);
+DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material)
+	: model(model), transformation(new Transformation()){
+	shader = new Shader(vertexShaderFile, fragmentShaderFile, material->getShininess());
+	
+    if (!material) this->material = new Material();
+	else this->material = material;
 }
 
 DrawableObject::~DrawableObject() {
     delete shader;
     delete transformation;
+	delete material;
 }
 
 // Draw the object
@@ -24,6 +29,9 @@ void DrawableObject::draw() {
 
         // Get the uniform location
         GLint transformLoc = shader->getUniformLocation("transformationMatrix");
+
+        // Set material uniforms
+        shader->setMaterial(material);
 
         // Send the transformation matrix to the shader
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformationMatrix));

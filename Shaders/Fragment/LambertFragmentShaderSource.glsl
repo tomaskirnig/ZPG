@@ -1,5 +1,12 @@
 #version 330 core
 
+struct Material {
+    vec3 ambient;   // Ambient reflectivity coefficient (ra)
+    vec3 diffuse;   // Diffuse reflectivity coefficient (rd)
+    vec3 specular;  // Specular reflectivity coefficient (rs)
+    float shininess;
+};
+
 #define MAX_POINT_LIGHTS 4
 #define MAX_DIR_LIGHTS 4
 #define MAX_SPOT_LIGHTS 4
@@ -29,47 +36,56 @@ in vec3 worldNorm;
 in vec4 worldPos;
 out vec4 out_Color;
 
-uniform PointLight pointLights[MAX_POINT_LIGHTS];
-uniform int numberOfPointLights;
-
+uniform Material material; 
 uniform DirectionalLight dirLights[MAX_DIR_LIGHTS];
 uniform int numberOfDirLights;
+
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform int numberOfPointLights;
 
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform int numberOfSpotLights;
 
 uniform vec3 viewPosition;
-uniform float shininess;
-
 
 void main() {
     vec3 norm = normalize(worldNorm);
     vec3 viewDir = normalize(viewPosition - vec3(worldPos));
-    vec3 result = vec3(0.1, 0.1, 0.1);
+
+    vec3 result = material.ambient;
 
     // Directional lights
     for (int i = 0; i < numberOfDirLights; ++i) {
-        vec3 lightDir = normalize(-dirLights[i].direction); // Light direction is from light to fragment
+        vec3 lightDir = normalize(-dirLights[i].direction);
+
+        // Diffuse component
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * dirLights[i].color * dirLights[i].intensity;
-        result += diffuse;
+        vec3 diffuse = diff * material.diffuse * dirLights[i].color * dirLights[i].intensity;
+
+        // Specular component
+        vec3 reflectDir = reflect(-lightDir, norm);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+        vec3 specular = spec * material.specular * dirLights[i].color * dirLights[i].intensity;
+
+        result += diffuse + specular;
     }
 
     // Point lights
     for (int i = 0; i < numberOfPointLights; ++i) {
         vec3 lightDir = normalize(pointLights[i].position - vec3(worldPos));
-        float diff = max(dot(norm, lightDir), 0.0);
+        float distance = length(pointLights[i].position - vec3(worldPos));
 
         // Attenuation
-        float distance = length(pointLights[i].position - vec3(worldPos));
         float attenuation = pointLights[i].intensity / (distance * distance);
 
-        vec3 diffuse = diff * pointLights[i].color * attenuation;
+        // Diffuse component
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = diff * material.diffuse * pointLights[i].color * attenuation;
 
-        // Specular component (optional)
+        // Specular component
         vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-        vec3 specular = spec * pointLights[i].color * attenuation;
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+        vec3 specular = spec * material.specular * pointLights[i].color * attenuation;
 
         result += diffuse + specular;
     }
@@ -77,27 +93,23 @@ void main() {
     // Spotlights
     for (int i = 0; i < numberOfSpotLights; ++i) {
         vec3 lightDir = normalize(spotLights[i].position - vec3(worldPos));
-        float diff = max(dot(norm, lightDir), 0.0);
 
         // Spotlight intensity based on angle
         float theta = dot(lightDir, normalize(-spotLights[i].direction));
         float epsilon = spotLights[i].cutOff - spotLights[i].outerCutOff;
-        float intensity = clamp((theta - spotLights[i].outerCutOff) / epsilon, 0.0, 1.0);
+        float spotlightIntensity = clamp((theta - spotLights[i].outerCutOff) / epsilon, 0.0, 1.0);
 
-        // Attenuation
-        //float distance = length(spotLights[i].position - vec3(worldPos));
-        //float attenuation = spotLights[i].intensity / (distance * distance);
+        // Diffuse component
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = diff * material.diffuse * spotLights[i].color * spotlightIntensity;
 
-        vec3 diffuse = diff * spotLights[i].color * intensity;//* attenuation 
-
-        // Specular component (optional)
+        // Specular component
         vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-        vec3 specular = spec * spotLights[i].color * intensity; //* attenuation 
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+        vec3 specular = spec * material.specular * spotLights[i].color * spotlightIntensity;
 
         result += diffuse + specular;
     }
 
     out_Color = vec4(result, 1.0);
 }
-

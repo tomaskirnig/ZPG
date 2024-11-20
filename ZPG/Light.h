@@ -15,9 +15,9 @@ public:
         const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
         const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f), 
         float intensity = 1.0f,
-        float shininess = 1.0f,
+        Material* material = new Material(),
         LightType type = LightType::POINT)
-        : DrawableObject(model, vertexShaderFile, fragmentShaderFile, shininess),
+        : DrawableObject(model, vertexShaderFile, fragmentShaderFile, material),
         lightColor(color), intensity(intensity), type(type) {
 		this->setScale(0.1f);
     }

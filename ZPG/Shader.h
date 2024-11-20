@@ -8,6 +8,7 @@
 #include "IObserver.h"
 #include "ShaderLoader.h"
 #include "LightData.h"
+#include "Material.h"
 
 
 #define MAX_SPOT_LIGHTS 4
@@ -50,4 +51,5 @@ class Shader : IObserver, ShaderLoader{
         void setPointLights(const std::vector<LightData>& pointLights);
         void setDirLights(const std::vector<LightData>& dirLights);
 
+        void setMaterial(const Material* material);
 };

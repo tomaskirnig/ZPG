@@ -7,7 +7,7 @@ private:
 
 public:
     DirectionalLight(const glm::vec3& direction, const glm::vec3& color, float intensity)
-        : Light(nullptr,"", "", color, intensity, 0.0f, LightType::DIRECTIONAL), direction(glm::normalize(direction)) {
+        : Light(nullptr,"", "", color, intensity, new Material(), LightType::DIRECTIONAL), direction(glm::normalize(direction)) {
         // Directional lights do not have a position or model 
     }
 

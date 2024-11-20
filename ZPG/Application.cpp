@@ -105,7 +105,7 @@ void Application::run() {
     scenes[0]->addObject(new DrawableObject(triangleModel, vertexShaderSources[1], fragmentShaderSources[2]));
 
 	// Add a forest to the second scene
-	addForest(1, 20);
+	addForest(1, 50);
 
 	addBalls(2);
 
@@ -425,7 +425,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         float randomZ = disZ(gen);
         float randomRotationY = disRotationY(gen);  // Random rotation in radians
 
-        DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[2], fragmentShaderSources[4]);
+        DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[2], fragmentShaderSources[5]);
 
         // Set the transformation matrix (position and scale) 
         treeObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
@@ -442,7 +442,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         float randomZ = disZ(gen);
         float randomRotationY = disRotationY(gen);  // Random rotation in radians
 
-        DrawableObject* bushObject = new DrawableObject(bushesModel, vertexShaderSources[2], fragmentShaderSources[4]);
+        DrawableObject* bushObject = new DrawableObject(bushesModel, vertexShaderSources[2], fragmentShaderSources[5]);
 
         // Set the transformation matrix (position and scale) 
         bushObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
@@ -453,7 +453,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex]->addObject(bushObject);
     }
 
-    DrawableObject* plainObj = new DrawableObject(plainModel, vertexShaderSources[2], fragmentShaderSources[4]);
+    DrawableObject* plainObj = new DrawableObject(plainModel, vertexShaderSources[2], fragmentShaderSources[5]);
     plainObj->setPosition(glm::vec3(0.0, -0.5, 0.0));
     plainObj->setScale(20.0);
 
@@ -553,13 +553,15 @@ void Application::addMonkeys(int sceneIndex) {
 
 void Application::addBallsDiffShaders(int sceneIndex) {
 	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
-    scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f, LightType::POINT);
+    scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.0f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f, LightType::POINT);
 
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
     scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[1], fragmentShaderSources[2]));
 
+	Material* material = new Material(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), 130.0f);
+
     for (int i = 3; i < 6; i++) {
-        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[i], 130.0f));
+        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[i], material));
     }
 
     scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);

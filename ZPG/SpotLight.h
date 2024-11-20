@@ -12,8 +12,8 @@ public:
         const glm::vec3& color, float intensity, float cutOffAngle, float outerCutOffAngle,
         const std::string& vertexShaderFile = "vertexShaderSource3",
         const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
-        float shininess = 1.0f)
-        : Light(model, vertexShaderFile, fragmentShaderFile, color, intensity, shininess, LightType::SPOTLIGHT),
+        Material* material = new Material())
+        : Light(model, vertexShaderFile, fragmentShaderFile, color, intensity, material, LightType::SPOTLIGHT),
         direction(glm::normalize(direction)), cutOff(cutOffAngle), outerCutOff(outerCutOffAngle) {
         setPosition(position);
     }

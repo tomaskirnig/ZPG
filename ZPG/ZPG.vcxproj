@@ -104,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include;..\Libraries\glm-master\glm-master;..\Libraries\glew-2.1.0-win32\glew-2.1.0\include;..\Libraries\AntTweakBar\include;..\Models\Models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include;..\Libraries\glm-master\glm-master;..\Libraries\glew-2.1.0-win32\glew-2.1.0\include;..\Libraries\AntTweakBar\include;..\Models\Models;F:\VS\ZPG\Libraries\soil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\lib-vc2022;..\Libraries\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;..\Libraries\AntTweakBar\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glfw3.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\lib-vc2022;..\Libraries\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;..\Libraries\AntTweakBar\lib;F:\VS\ZPG\Libraries\soil\lib-vc2012\Platform_x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;glfw3.lib;glew32.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -134,6 +134,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DrawableObject.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelManager.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightData.h" />
     <ClInclude Include="LightType.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="IObserver.h" />
     <ClInclude Include="ModelManager.h" />

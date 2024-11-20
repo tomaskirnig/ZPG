@@ -98,7 +98,7 @@ void Camera::processMouseMovement(float xOffset, float yOffset, float aspectRati
 
     // Update Target, Right, and Up Vectors
     updateCameraVectors();
-    notifyObservers(aspectRatio, lights);
+    //notifyObservers(aspectRatio, lights);
 }
 
 // Processes input from the mouse scroll wheel
