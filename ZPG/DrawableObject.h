@@ -5,33 +5,29 @@
 #include "Shader.h"
 #include "Transformation.h"
 #include "Material.h"
+#include "Texture.h"
 
-//Include objects
-#include "sphere.h"
-#include "tree.h"
-#include "bushes.h"
-#include "plain.h"
-#include "suzi_flat.h"
-#include "suzi_smooth.h"
+
 
 class DrawableObject {
     private:
         std::shared_ptr<Model> model;
+		std::shared_ptr<Shader> texture;
         Shader* shader;
         Material* material;
         Transformation* transformation;
 
-        bool isInstanced = false;         // Flag to indicate instanced rendering
-        size_t instanceCount = 0;         // Number of instances
+        //bool isInstanced = false;         // Flag to indicate instanced rendering
+        //size_t instanceCount = 0;         // Number of instances
 
     public:
         DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile);
-        DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material);
+		DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material);
         ~DrawableObject();
 
         void draw();
-        void drawInstanced(GLuint instanceCount);
-        void setupInstancedRendering(const std::vector<glm::mat4>& transformations);
+        /*void drawInstanced(GLuint instanceCount);
+        void setupInstancedRendering(const std::vector<glm::mat4>& transformations);*/
         
         glm::mat4 getTransformationMatrix();
 
@@ -72,7 +68,11 @@ class DrawableObject {
 			return this->model;
 		}
 
-        bool usesInstancedRendering() const { 
+		std::shared_ptr<Shader> getTexture() {
+			return this->texture;
+		}
+
+       /* bool usesInstancedRendering() const { 
             return isInstanced; 
         }
 
@@ -82,5 +82,5 @@ class DrawableObject {
         
         void setInstanceCount(size_t count) { 
             instanceCount = count; 
-        }
+        }*/
 };

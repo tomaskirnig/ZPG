@@ -1,6 +1,7 @@
-// Material.h
 #pragma once
 #include <glm/glm.hpp>
+#include <memory>
+#include "Texture.h"
 
 class Material {
 private:
@@ -8,13 +9,19 @@ private:
     glm::vec3 diffuse;   // rd
     glm::vec3 specular;  // rs
     float shininess;
+	std::shared_ptr<Texture> texture;
 
 public:
 	Material(const glm::vec3& ambient = glm::vec3(0.1f),
         const glm::vec3& diffuse = glm::vec3(1.0f),
         const glm::vec3& specular = glm::vec3(1.0f),
-        float shininess = 32.0f)
-        : ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess) {}
+        float shininess = 32.0f,
+		std::shared_ptr<Texture> texture = nullptr)
+        : ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess) {
+		if (texture) {
+			this->texture = texture;
+		}
+	}
 
 	void setAmbient(const glm::vec3& ambient) {
 		this->ambient = ambient;
@@ -46,5 +53,19 @@ public:
 
 	float getShininess() const {
 		return shininess;
+	}
+
+	std::shared_ptr<Texture> getTexture() const {
+		return texture;
+	}
+
+	void setTexture(std::shared_ptr<Texture> texture) {
+		this->texture = texture;
+	}
+
+	void bindTexture(GLuint unit) const {
+		if (texture) {
+			texture->bind(unit);
+		}
 	}
 };

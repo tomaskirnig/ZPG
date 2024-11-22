@@ -1,18 +1,26 @@
 ﻿  Application.cpp
-F:\VS\ZPG\ZPG\Application.cpp(180,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(373,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(374,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(377,123): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(377,114): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(424,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(425,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(426,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(432,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(441,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(442,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(443,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(449,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(463,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(464,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(183,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(370,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(371,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(374,123): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(374,114): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(421,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(422,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(423,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(429,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(438,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(439,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(440,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(446,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(460,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(461,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+  SOIL.lib(SOIL.obj) : Našel se modul .net MSIL nebo modul zkompilovaný pomocí /GL. Propojení se restartuje s parametrem /LTCG. Výkon linkeru můžete zlepšit přidáním parametru /LTCG na příkazový řádek propojení.
+LINK : warning LNK4075: /INCREMENTAL se ignoruje kvůli specifikaci /LTCG.
 LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
+  Vytváří se kód.
+  Vytváření kódu se dokončilo.
+SOIL.lib(SOIL.obj) : warning LNK4099: Soubor .pdb  se nenašel s SOIL.lib(SOIL.obj) nebo na . Objekt se propojí, jako by nebyly dostupné žádné ladicí informace.
+SOIL.lib(stb_image_aug.obj) : warning LNK4099: Soubor .pdb  se nenašel s SOIL.lib(stb_image_aug.obj) nebo na . Objekt se propojí, jako by nebyly dostupné žádné ladicí informace.
+SOIL.lib(image_helper.obj) : warning LNK4099: Soubor .pdb  se nenašel s SOIL.lib(image_helper.obj) nebo na . Objekt se propojí, jako by nebyly dostupné žádné ladicí informace.
+SOIL.lib(image_DXT.obj) : warning LNK4099: Soubor .pdb  se nenašel s SOIL.lib(image_DXT.obj) nebo na . Objekt se propojí, jako by nebyly dostupné žádné ladicí informace.
   ZPG.vcxproj -> F:\VS\ZPG\ZPG\x64\Debug\ZPG.exe

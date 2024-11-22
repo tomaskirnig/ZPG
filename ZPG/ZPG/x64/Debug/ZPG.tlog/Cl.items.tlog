@@ -8,4 +8,6 @@ F:\VS\ZPG\ZPG\ModelManager.cpp;F:\VS\ZPG\ZPG\ZPG\x64\Debug\ModelManager.obj
 F:\VS\ZPG\ZPG\Scene.cpp;F:\VS\ZPG\ZPG\ZPG\x64\Debug\Scene.obj
 F:\VS\ZPG\ZPG\Shader.cpp;F:\VS\ZPG\ZPG\ZPG\x64\Debug\Shader.obj
 F:\VS\ZPG\ZPG\ShaderLoader.cpp;F:\VS\ZPG\ZPG\ZPG\x64\Debug\ShaderLoader.obj
+F:\VS\ZPG\ZPG\Texture.cpp;F:\VS\ZPG\ZPG\ZPG\x64\Debug\Texture.obj
+F:\VS\ZPG\ZPG\TextureManager.cpp;F:\VS\ZPG\ZPG\ZPG\x64\Debug\TextureManager.obj
 F:\VS\ZPG\ZPG\Transformation.cpp;F:\VS\ZPG\ZPG\ZPG\x64\Debug\Transformation.obj

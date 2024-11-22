@@ -86,7 +86,7 @@ void main() {
 
         // Diffuse component
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * material.diffues * pointLights[i].color * pointLights[i].intensity;
+        vec3 diffuse = diff * material.diffuse * pointLights[i].color * pointLights[i].intensity;
 
         // Specular component (Phong)
         vec3 reflectDir = reflect(-lightDir, norm);

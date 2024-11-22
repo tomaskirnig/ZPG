@@ -16,6 +16,7 @@
 
 //Include custom classes
 #include "ModelManager.h"
+#include "TextureManager.h"
 #include "Scene.h"
 
 class Application
@@ -28,10 +29,10 @@ class Application
 
         vector<Scene*> scenes;
 		ModelManager modelManager;
+        TextureManager textureManager;
 
         int currentScene;
         bool looking;
-
 
     public:
 	    Application();
@@ -40,7 +41,7 @@ class Application
 	    void run();
 		float getAspectRatio();
 
-        void loadModels();
+        //void loadModels();
 
 		// Cursor controls
         void centerCursor();
@@ -69,6 +70,7 @@ class Application
         void addBalls(int sceneIndex);
         void addBallsDiffShaders(int sceneIndex);
         void addMonkeys(int sceneIndex);
+		void addTextures(int sceneIndex);
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);

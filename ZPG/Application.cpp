@@ -65,8 +65,9 @@ Application::Application() {
     glViewport(0, 0, width, height);	
 
     modelManager = ModelManager();
+	textureManager = TextureManager();
 
-    addScene();
+	addScene(); // Triangle
     scenes[0]->addCamera();
 
     currentScene = 0;
@@ -97,9 +98,10 @@ void Application::run() {
 
     glEnable(GL_DEPTH_TEST);
 
-	addScene();
-    addScene();
-    addScene();
+	addScene(); // Forest
+	addScene(); // Balls
+	addScene(); // Balls with different shaders
+	addScene(); // Textures
 
     // Adding objects to first scene
     scenes[0]->addObject(new DrawableObject(triangleModel, vertexShaderSources[1], fragmentShaderSources[2]));
@@ -110,6 +112,8 @@ void Application::run() {
 	addBalls(2);
 
     addBallsDiffShaders(3);
+
+	addTextures(4);
     
     registerAllObservers();
 
@@ -124,6 +128,8 @@ void Application::run() {
             scenes[currentScene]->rotateObject(2, 3);
 			moveLightsRandom();
         }
+
+		scenes[currentScene]->notifyCurrObservers(aspectRatio);
 
 		scenes[currentScene]->render();
 
@@ -167,9 +173,6 @@ void Application::currentScenePlus() {
     if (currentScene >= scenes.size()) {
         currentScene = 0; 
     }
-    
-	scenes[currentScene]->notifyCurrObservers(aspectRatio);
-
 	cout << "Current scene: " << currentScene << endl;
 }
 
@@ -179,9 +182,6 @@ void Application::currentSceneMinus() {
     if (currentScene < 0) {
         currentScene = scenes.size() - 1;
     }
-
-	scenes[currentScene]->notifyCurrObservers(aspectRatio);
-    
 	cout << "Current scene: " << currentScene << endl;
 }
 
@@ -350,9 +350,6 @@ void Application::window_size_callback(GLFWwindow* window, int width, int height
         for (Scene* scene : app->scenes) {
             scene->setAspectRatio(app->aspectRatio);
         }
-
-        // Notify camera of the aspect ratio change
-        app->scenes[app->currentScene]->notifyCurrObservers(app->aspectRatio);
     }
 }
 
@@ -465,58 +462,8 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex]->addLight(sphereModel, glm::vec3(randomX, 0.0, randomZ), glm::vec3(1.0f, 0.5f, 0.1f), 1.0f, LightType::POINT);
     }
     scenes[sceneIndex]->setFollowingSpotLight(sphereModel);
-    scenes[sceneIndex]->addLight(sphereModel, LightType::DIRECTIONAL); // Working only for another lights
+    scenes[sceneIndex]->addLight(nullptr, LightType::DIRECTIONAL); 
 }
-
-//void Application::addForest(int sceneIndex, int numTrees) {
-//    std::shared_ptr<Model> treeModel = modelManager.getModel("tree", tree, sizeof(tree));
-//    std::shared_ptr<Model> bushModel = modelManager.getModel("bushes", bushes, sizeof(bushes));
-//	std::shared_ptr<Model> plainModel = modelManager.getModel("plain", plain, sizeof(plain));
-//	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
-//
-//    std::random_device rd;
-//    std::mt19937 gen(rd());
-//    std::uniform_real_distribution<> disX(-10.0, 10.0);
-//    std::uniform_real_distribution<> disZ(-20.0, 20.0);
-//    std::uniform_real_distribution<> disScale(0.4, 1.0);
-//    std::uniform_real_distribution<> disRotationY(0.0, 360.0);
-//
-//    // Collect transformations
-//    std::vector<glm::mat4> treeTransforms, bushTransforms;
-//
-//    for (int i = 0; i < numTrees; ++i) {
-//        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(disX(gen), -0.5f, disZ(gen))) *
-//            glm::rotate(glm::mat4(1.0f), glm::radians<float>(disRotationY(gen)), glm::vec3(0.0f, 1.0f, 0.0f)) *
-//            glm::scale(glm::mat4(1.0f), glm::vec3(disScale(gen)));
-//        treeTransforms.push_back(transform);
-//    }
-//
-//    for (int i = 0; i < numTrees; ++i) {
-//        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(disX(gen), -0.5f, disZ(gen))) *
-//            glm::rotate(glm::mat4(1.0f), glm::radians<float>(disRotationY(gen)), glm::vec3(0.0f, 1.0f, 0.0f)) *
-//            glm::scale(glm::mat4(1.0f), glm::vec3(disScale(gen)));
-//        bushTransforms.push_back(transform);
-//    }
-//
-//    // Add trees with instanced rendering
-//    DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[3], fragmentShaderSources[4]);
-//    treeObject->setupInstancedRendering(treeTransforms);
-//    scenes[sceneIndex]->addObject(treeObject);
-//
-//    // Add bushes with instanced rendering
-//    DrawableObject* bushObject = new DrawableObject(bushModel, vertexShaderSources[3], fragmentShaderSources[4]);
-//    bushObject->setupInstancedRendering(bushTransforms);
-//    scenes[sceneIndex]->addObject(bushObject);
-//
-//    for (int i = 0; i < 4; i++) {
-//        float randomX = disX(gen);
-//        float randomZ = disZ(gen);
-//        glm::vec3 position(randomX, 0.0f, randomZ);
-//        glm::vec3 color((i % 2) * 1.0f, (i % 3) * 1.0f, (i / 3) * 1.0f);
-//        scenes[sceneIndex]->addLight(sphereModel, position, color, 1.8f);
-//    }
-//}
-
 
 void Application::addBalls(int sceneIndex) {
 	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
@@ -525,7 +472,7 @@ void Application::addBalls(int sceneIndex) {
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
 
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[4]));
+        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[5]));
     }
     
     scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
@@ -551,17 +498,29 @@ void Application::addMonkeys(int sceneIndex) {
 	scenes[sceneIndex]->moveObject(numOfObjectInScene, 'r', 2.0);
 }
 
+void Application::addTextures(int sceneIndex)
+{
+	std::shared_ptr<Model> plainTextureModel = modelManager.getModel("plain_texture", plain_texture, sizeof(plain_texture), 1);
+    //std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
+
+    std::shared_ptr<Texture> grassTexture = textureManager.getTexture(GRASS_TEXTURE, "grass");
+	Material* material = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.0f), 1.0f, grassTexture);
+
+	scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material));
+	scenes[sceneIndex]->addLight(nullptr, glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(1.0f), 1.0f, LightType::DIRECTIONAL);
+}
+
 void Application::addBallsDiffShaders(int sceneIndex) {
 	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
-    scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.0f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f, LightType::POINT);
+    scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.1f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f, LightType::POINT);
 
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
     scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[1], fragmentShaderSources[2]));
 
-	Material* material = new Material(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), 130.0f);
+	Material* material = new Material(glm::vec3(0.1f), glm::vec3(1.0f), glm::vec3(1.0f), 130.0f);
 
     for (int i = 3; i < 6; i++) {
-        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[i], material));
+        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[i]));
     }
 
     scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
@@ -631,7 +590,6 @@ void Application::moveLightsRandom() {
         if (cntr == 100) {
             cntr = 0;
         }
-		scenes[currentScene]->notifyCurrObservers(aspectRatio);
     }
 }
 

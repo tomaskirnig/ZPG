@@ -1,9 +1,9 @@
 #include "DrawableObject.h"
 
 DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile)
-    : model(model), transformation(new Transformation()) {
+    : model(model), transformation(new Transformation()), material(new Material()) {
     shader = new Shader(vertexShaderFile, fragmentShaderFile);
-	material = new Material();
+	texture = nullptr;
 }
 
 DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material)
@@ -39,18 +39,18 @@ void DrawableObject::draw() {
     }
 }
 
-void DrawableObject::drawInstanced(GLuint instanceCount) {
-    shader->use();
-    model->drawInstanced(instanceCount);
-}
-
-void DrawableObject::setupInstancedRendering(const std::vector<glm::mat4>& transformations) {
-    if (transformations.empty()) return; // No transformations to set up
-
-    isInstanced = true;
-    instanceCount = transformations.size();
-    model->setupInstanceBuffer(transformations);
-}
+//void DrawableObject::drawInstanced(GLuint instanceCount) {
+//    shader->use();
+//    model->drawInstanced(instanceCount);
+//}
+//
+//void DrawableObject::setupInstancedRendering(const std::vector<glm::mat4>& transformations) {
+//    if (transformations.empty()) return; // No transformations to set up
+//
+//    isInstanced = true;
+//    instanceCount = transformations.size();
+//    model->setupInstanceBuffer(transformations);
+//}
 
 // Get the transformation of the object
 glm::mat4 DrawableObject::getTransformationMatrix() {

@@ -155,11 +155,23 @@ void Shader::setDirLights(const std::vector<LightData>& dirLights) {
 }
 
 void Shader::setMaterial(const Material* material) {
-    //use(); 
+    use(); 
     glUniform3fv(getUniformLocation("material.ambient"), 1, glm::value_ptr(material->getAmbient()));
     glUniform3fv(getUniformLocation("material.diffuse"), 1, glm::value_ptr(material->getDiffuse()));
     glUniform3fv(getUniformLocation("material.specular"), 1, glm::value_ptr(material->getSpecular()));
     glUniform1f(getUniformLocation("material.shininess"), material->getShininess());
+
+    if (material->getTexture() != nullptr){
+        //glActiveTexture(GL_TEXTURE0);
+        // Bind and set textures
+        material->bindTexture(0);
+        glUniform1i(getUniformLocation("material.diffuseTexture"), 0);
+        glUniform1i(getUniformLocation("material.hasTexture"), 1);
+	}
+	else {
+		glUniform1i(getUniformLocation("material.hasTexture"), 0);
+	}
+    
 }
 
 

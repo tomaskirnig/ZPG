@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include;..\Libraries\glm-master\glm-master;..\Libraries\glew-2.1.0-win32\glew-2.1.0\include;..\Libraries\AntTweakBar\include;..\Models\Models;F:\VS\ZPG\Libraries\soil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include;..\Libraries\glm-master\glm-master;..\Libraries\glew-2.1.0-win32\glew-2.1.0\include;..\Libraries\AntTweakBar\include;..\Libraries\soil\include;..\Models\Models;..\Textures;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,6 +140,8 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Transformation.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +165,8 @@
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="ISubject.h" />
     <ClInclude Include="SpotLight.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Transformation.h" />
     <ClInclude Include="Translation.h" />
   </ItemGroup>

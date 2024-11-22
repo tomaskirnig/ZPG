@@ -1,21 +1,21 @@
 #version 330 core
-layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 normal;
 
-// Matrices for instanced rendering
-layout(location = 2) in mat4 instanceMatrix;
+layout(location = 0) in vec3 vp; // Vertex position
+layout(location = 1) in vec3 vn; // Vertex normal
+layout(location = 2) in vec2 vt; // Texture coordinates
 
+out vec3 worldNorm;
+out vec4 worldPos;
+out vec2 TexCoords;
+
+uniform mat4 transformationMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-out vec3 FragPos;
-out vec3 Normal;
-
-void main()
-{
-    mat4 modelMatrix = instanceMatrix;
-    FragPos = vec3(modelMatrix * vec4(position, 1.0));
-    Normal = mat3(transpose(inverse(modelMatrix))) * normal;
-
-    gl_Position = projectionMatrix * viewMatrix * vec4(FragPos, 1.0);
+void main() {
+    worldPos = transformationMatrix * vec4(vp, 1.0);
+    mat3 normalMatrix = transpose(inverse(mat3(transformationMatrix)));
+    worldNorm = normalize(normalMatrix * vn);
+    TexCoords = vt;
+    gl_Position = projectionMatrix * viewMatrix * worldPos;
 }

@@ -1,10 +1,12 @@
 #version 330 core
 
 struct Material {
-    vec3 ambient;   // Ambient reflectivity coefficient (ra)
-    vec3 diffuse;   // Diffuse reflectivity coefficient (rd)
-    vec3 specular;  // Specular reflectivity coefficient (rs)
+    sampler2D diffuseTexture;
+    vec3 ambient;	
+    vec3 diffuse;
+    vec3 specular;	
     float shininess;
+    bool hasTexture;
 };
 
 #define MAX_POINT_LIGHTS 4
@@ -34,6 +36,7 @@ struct SpotLight {
 
 in vec3 worldNorm;
 in vec4 worldPos;
+in vec2 TexCoords;
 out vec4 out_Color;
 
 uniform Material material; 
@@ -49,10 +52,22 @@ uniform int numberOfSpotLights;
 uniform vec3 viewPosition;
 
 void main() {
+    //Ambient
+    vec3 ambientColor = material.ambient;
+
+    //Diffuse 
     vec3 norm = normalize(worldNorm);
     vec3 viewDir = normalize(viewPosition - vec3(worldPos));
+    
+    vec3 diffuseColor;
 
-    vec3 result = material.ambient;
+    if (material.hasTexture) {
+        diffuseColor = texture(material.diffuseTexture, TexCoords).rgb;
+    } else {
+        diffuseColor = material.diffuse;
+    }
+ 
+    vec3 result = material.ambient * diffuseColor;
 
     // Directional lights
     for (int i = 0; i < numberOfDirLights; ++i) {
@@ -60,7 +75,7 @@ void main() {
 
         // Diffuse component
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * material.diffuse * dirLights[i].color * dirLights[i].intensity;
+        vec3 diffuse = diff * diffuseColor * dirLights[i].color * dirLights[i].intensity;
 
         // Specular component
         vec3 reflectDir = reflect(-lightDir, norm);
@@ -80,7 +95,7 @@ void main() {
 
         // Diffuse component
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * material.diffuse * pointLights[i].color * attenuation;
+        vec3 diffuse = diff * diffuseColor * pointLights[i].color * attenuation;
 
         // Specular component
         vec3 reflectDir = reflect(-lightDir, norm);
@@ -101,7 +116,7 @@ void main() {
 
         // Diffuse component
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * material.diffuse * spotLights[i].color * spotlightIntensity;
+        vec3 diffuse = diff * diffuseColor * spotLights[i].color * spotlightIntensity;
 
         // Specular component
         vec3 reflectDir = reflect(-lightDir, norm);
@@ -111,5 +126,5 @@ void main() {
         result += diffuse + specular;
     }
 
-    out_Color = vec4(result, 1.0);
+    out_Color = texture(material.diffuseTexture, TexCoords);//result
 }
