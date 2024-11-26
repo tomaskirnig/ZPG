@@ -10,8 +10,8 @@ DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexS
 	: model(model), transformation(new Transformation()){
 	shader = new Shader(vertexShaderFile, fragmentShaderFile, material->getShininess());
 	
-    if (!material) this->material = new Material();
-	else this->material = material;
+	if (material != nullptr) this->material = material;
+	else this->material = new Material();
 }
 
 DrawableObject::~DrawableObject() {
@@ -39,18 +39,30 @@ void DrawableObject::draw() {
     }
 }
 
-//void DrawableObject::drawInstanced(GLuint instanceCount) {
-//    shader->use();
-//    model->drawInstanced(instanceCount);
-//}
-//
-//void DrawableObject::setupInstancedRendering(const std::vector<glm::mat4>& transformations) {
-//    if (transformations.empty()) return; // No transformations to set up
-//
-//    isInstanced = true;
-//    instanceCount = transformations.size();
-//    model->setupInstanceBuffer(transformations);
-//}
+void DrawableObject::draw(bool following, glm::mat4 viewMatrix, glm::mat4 projectionMatrix) {
+    if (model != nullptr) {
+        shader->use(); // Set the shader to be used
+        if (following) {
+            viewMatrix = glm::mat4(glm::mat3(viewMatrix));
+        }
+
+        // Get the uniform location
+        GLint viewLoc = shader->getUniformLocation("viewMatrix");
+        GLint projectionLoc = shader->getUniformLocation("projectionMatrix");
+
+		if (viewLoc == -1 || projectionLoc == -1) cout << "Error: view or projection matrix not found" << endl;
+        
+        // Set material uniforms
+        shader->setMaterial(material);
+
+        // Send the matrixes to the shader
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+        model->draw();
+	}
+	else cout << "Error: Model not found" << endl;
+}
 
 // Get the transformation of the object
 glm::mat4 DrawableObject::getTransformationMatrix() {

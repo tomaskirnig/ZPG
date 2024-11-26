@@ -41,7 +41,6 @@ class Application
 	    void run();
 		float getAspectRatio();
 
-        //void loadModels();
 
 		// Cursor controls
         void centerCursor();
@@ -69,7 +68,6 @@ class Application
 		void addForest(int sceneIndex, int numTrees);
         void addBalls(int sceneIndex);
         void addBallsDiffShaders(int sceneIndex);
-        void addMonkeys(int sceneIndex);
 		void addTextures(int sceneIndex);
 
         // Callback functions as static methods

@@ -80,7 +80,7 @@ void Transformation::rotateObject(float angleDegrees, const glm::vec3& axis) {
     for (auto* trans : transformations) {
         Rotation* rotation = dynamic_cast<Rotation*>(trans);
         if (rotation && rotation->axis == axis) {
-            rotation->angle += angleDegrees;
+            rotation->angle += angleDegrees * 20;
             return;
         }
     }

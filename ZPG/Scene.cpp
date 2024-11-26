@@ -16,17 +16,6 @@ void Scene::addObject(DrawableObject* object) {
     //groupObjectsForInstancing();
 }
 
-void Scene::groupObjectsForInstancing() {
-    groupedObjects.clear();
-    for (auto* obj : objects) {
-        Shader* shader = obj->getShader();
-        Model* model = obj->getModel().get();
-        auto key = std::make_tuple(shader, model);
-        groupedObjects[key].push_back(obj);
-    }
-}
-
-
 // Deletes an object from the scene
 void Scene::deleteObject(DrawableObject* delObject) {
     for (auto obj = objects.begin(); obj != objects.end(); obj++) {
@@ -134,44 +123,25 @@ void Scene::setFollowingSpotLight(std::shared_ptr<Model> model)
 
 // Renders all objects in the scene
 void Scene::render() {
-    // Apply camera's view and projection matrices
-    //cameras[currentCamera].notifyObservers(aspectRatio, lights);
-
     // Render all objects in the scene
+    if (skyBoxSet) {
+        glDepthMask(GL_FALSE);  // Disable writing to the depth buffer
+        glDisable(GL_DEPTH_TEST);  // Disable depth testing
+		
+        drawSkyBoxes(aspectRatio);
+        
+        glEnable(GL_DEPTH_TEST); 
+        glDepthMask(GL_TRUE);   
+    }
+
     for (DrawableObject* object : objects) {
         object->draw();
     }
     for (Light* light : lights) {
         light->draw();
     }
+
 }
-
-// Render for instanced rendering
-//void Scene::render() {
-//    for (auto& group : groupedObjects) {
-//        Shader* shader = std::get<0>(group.first);
-//        Model* model = std::get<1>(group.first);
-//        shader->use();
-//
-//        // Use instanced rendering if applicable
-//        if (group.second.front()->usesInstancedRendering()) {
-//            model->drawInstanced(group.second.front()->getInstanceCount());
-//        }
-//        else {
-//            for (auto* obj : group.second) {
-//                GLint transformLoc = shader->getUniformLocation("transformationMatrix");
-//                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(obj->getTransformationMatrix()));
-//                obj->draw();
-//            }
-//        }
-//    }
-//
-//    // Optionally render lights separately
-//    for (auto* light : lights) {
-//        light->draw();
-//    }
-//}
-
 
 void Scene::registerAllObservers(float aspectRatio)
 {
@@ -182,11 +152,15 @@ void Scene::registerAllObservers(float aspectRatio)
         for (Light* light : lights) {
 			camera->registerObserver((IObserver*)light->getShader());
         }
+		if (camera->isSetSkyBox()) {
+			camera->registerObserver((IObserver*)camera->getSkyBox()->getShader());
+		}
     }
 
     for (Camera* camera : cameras) {
 		camera->notifyObservers(aspectRatio, lights);
     }
+
 }
 
 void Scene::notifyCurrObservers(float aspectRatio)
@@ -475,4 +449,57 @@ vector<Shader*> Scene::getShaders() {
 	}
 
 	return shaders;
+}
+
+void Scene::setSkyBox(DrawableObject* skybox)
+{
+	skyBoxSet = true;
+	cameras[currentCamera]->setSkyBox(skybox);
+}
+
+void Scene::setSkyBox(DrawableObject* skybox, int camera)
+{
+	skyBoxSet = true;
+	cameras[camera]->setSkyBox(skybox);
+}
+
+void Scene::toggleSkyBox()
+{
+	cameras[currentCamera]->toggleSkyBox();
+	cout << "Skybox toggled for camera [" << currentCamera << "]: " << cameras[currentCamera]->isFollowingSkybox() << endl;
+}
+
+void Scene::toggleSkyBox(int camera)
+{
+	cameras[camera]->toggleSkyBox();
+}
+
+void Scene::setFollowingSkybox(bool follow)
+{
+    cameras[currentCamera]->setFollowingSkybox(follow);
+}
+
+void Scene::setFollowingSkybox(bool follow, int camera)
+{
+    cameras[camera]->setFollowingSkybox(follow);
+}
+
+void Scene::drawSkyBoxes(float aspectRatio)
+{
+	for (Camera* camera : cameras) {
+        if (camera->isSetSkyBox()) {
+            camera->drawSkyBox(aspectRatio);
+		}
+		else cout << "Skybox not set for camera [" << currentCamera << "]" << endl;
+	}
+}
+
+bool Scene::isFollowingSkybox()
+{
+	return cameras[currentCamera]->isFollowingSkybox();
+}
+
+bool Scene::isFollowingSkybox(int camera)
+{
+    return cameras[camera]->isFollowingSkybox();
 }

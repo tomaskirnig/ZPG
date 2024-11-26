@@ -167,6 +167,7 @@
     <ClInclude Include="SpotLight.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="TextureType.h" />
     <ClInclude Include="Transformation.h" />
     <ClInclude Include="Translation.h" />
   </ItemGroup>

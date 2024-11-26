@@ -10,4 +10,5 @@ private:
 
 public:
     std::shared_ptr<Texture> getTexture(const std::string& texturePath, const std::string& textureName);
+	std::shared_ptr<Texture> getCubeMap();
 };

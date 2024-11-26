@@ -4,7 +4,8 @@ vector<string> vertexShaderSources = {
     "vertexShaderSource1", 
     "vertexShaderSource2", 
     "vertexShaderSource3", 
-    "vertexShaderSource3" 
+    "vertexShaderSource4",
+    "vertexShaderCubemap"
 };
 vector<string> fragmentShaderSources = {
     "fragmentShaderSource1", 
@@ -12,7 +13,8 @@ vector<string> fragmentShaderSources = {
     "fragmentShaderSource3", 
     "LambertFragmentShaderSource", 
     "PhongFragmentShaderSource",
-    "PhongBlinnFragmentShaderSource"
+    "PhongBlinnFragmentShaderSource",
+    "CubemapFragmentShaderSource"
 };
 int cntr = 0;
 
@@ -90,14 +92,16 @@ void Application::run() {
         0.0f,  0.7f, 0.0f,  0.5f,  0.5f, 0.0f,
     };
 
-    std::shared_ptr<Model> triangleModel = modelManager.getModel("triangle", triangle, sizeof(triangle));
+    std::shared_ptr<Model> triangleModel = modelManager.getModel("triangle", triangle, sizeof(triangle), 1);
 	
 	//vertexShaderSources[1], fragmentShaderSources[0]     // One color
 	//vertexShaderSources[1], fragmentShaderSources[2]    // Normals as colors
 	//vertexShaderSources[2], fragmentShaderSources[3-5]    // With lighting
+	//vertexShaderSources[3], fragmentShaderSources[6]    // Skybox
 
     glEnable(GL_DEPTH_TEST);
-
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    
 	addScene(); // Forest
 	addScene(); // Balls
 	addScene(); // Balls with different shaders
@@ -117,6 +121,8 @@ void Application::run() {
     
     registerAllObservers();
 
+	window_size_callback(window, width, height);
+
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -127,7 +133,7 @@ void Application::run() {
             scenes[currentScene]->rotateObject(1, 3);
             scenes[currentScene]->rotateObject(2, 3);
 			moveLightsRandom();
-        }
+        }        
 
 		scenes[currentScene]->notifyCurrObservers(aspectRatio);
 
@@ -253,7 +259,7 @@ void Application::processInput() {
     else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
         scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'd');  // Scale down
     }
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+    if (glfwGetKey(window, 340) == GLFW_PRESS) {
         // Hide and lock cursor in app window
         //centerCursor();
         disableAndLockCursor();
@@ -315,6 +321,11 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 
 				case GLFW_KEY_T:
                     app->scenes[app->currentScene]->resetObjectScale(app->scenes[app->currentScene]->getCurrObject()); // Reset object scale
+                    break;
+
+                case GLFW_KEY_LEFT_ALT:
+					app->scenes[app->currentScene]->toggleSkyBox(); 
+					break;
 
 			    default:
 				    break;
@@ -394,11 +405,14 @@ void Application::scroll_callback(GLFWwindow* window, double xOffset, double yOf
 // Functions for generating objects in scenes
 
 void Application::addForest(int sceneIndex, int numTrees) {
-    std::shared_ptr<Model> treeModel = modelManager.getModel("tree", tree, sizeof(tree));
-	std::shared_ptr<Model> bushesModel = modelManager.getModel("bushes", bushes, sizeof(bushes));
-	std::shared_ptr<Model> plainModel = modelManager.getModel("plain", plain, sizeof(plain));
-	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
+    std::shared_ptr<Model> treeModel = modelManager.getModel("tree", tree, sizeof(tree), 1);
+	std::shared_ptr<Model> bushesModel = modelManager.getModel("bushes", bushes, sizeof(bushes), 1);
+	std::shared_ptr<Model> plainModel = modelManager.getModel("plain", plain, sizeof(plain), 1);
+	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere), 1);
+    std::shared_ptr<Model> plainTextureModel = modelManager.getModel("plain_texture", plain_texture, sizeof(plain_texture), 2);
     
+    std::shared_ptr<Texture> grassTexture = textureManager.getTexture(GRASS_TEXTURE, "grass");
+
     random_device rd;
     mt19937 gen(rd());  // Random number generator
 
@@ -449,8 +463,9 @@ void Application::addForest(int sceneIndex, int numTrees) {
         // Add the tree to the specified scene
         scenes[sceneIndex]->addObject(bushObject);
     }
+    Material* material = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, grassTexture);
+    DrawableObject* plainObj = new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material);
 
-    DrawableObject* plainObj = new DrawableObject(plainModel, vertexShaderSources[2], fragmentShaderSources[5]);
     plainObj->setPosition(glm::vec3(0.0, -0.5, 0.0));
     plainObj->setScale(20.0);
 
@@ -466,7 +481,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
 }
 
 void Application::addBalls(int sceneIndex) {
-	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
+	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere), 1);
 	scenes[sceneIndex]->addLight(sphereModel, LightType::POINT);
 
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
@@ -481,37 +496,33 @@ void Application::addBalls(int sceneIndex) {
     scenes[sceneIndex]->moveObject(numOfObjectInScene, 'r', 2.0);
 }
 
-void Application::addMonkeys(int sceneIndex) {
-	std::shared_ptr<Model> suziFlatModel = modelManager.getModel("suziFlat", suziFlat, sizeof(suziFlat));
-	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
-    
-    scenes[sceneIndex]->addLight(sphereModel, LightType::POINT);
-
-	int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
-	for (int i = 0; i < 4; i++) {
-		scenes[sceneIndex]->addObject(new DrawableObject(suziFlatModel, vertexShaderSources[2], fragmentShaderSources[i]));
-	}
-
-	scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
-	scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'd', 2.0);
-	scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'l', 2.0);
-	scenes[sceneIndex]->moveObject(numOfObjectInScene, 'r', 2.0);
-}
-
 void Application::addTextures(int sceneIndex)
 {
-	std::shared_ptr<Model> plainTextureModel = modelManager.getModel("plain_texture", plain_texture, sizeof(plain_texture), 1);
-    //std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
+	std::shared_ptr<Model> plainTextureModel = modelManager.getModel("plain_texture", plain_texture, sizeof(plain_texture), 2);
+	std::shared_ptr<Model> jehlanModel = modelManager.getModel("jehlan", jehlan, sizeof(jehlan), 2);
+	std::shared_ptr<Model> skyCubeModel = modelManager.getModel("skycube", skycube, sizeof(skycube), 0);
 
     std::shared_ptr<Texture> grassTexture = textureManager.getTexture(GRASS_TEXTURE, "grass");
-	Material* material = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.0f), 1.0f, grassTexture);
+	std::shared_ptr<Texture> woodenTexture = textureManager.getTexture(WOODEN_TEXTURE, "wooden");
+    std::shared_ptr<Texture> skyTexture = textureManager.getCubeMap();
 
-	scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material));
-	scenes[sceneIndex]->addLight(nullptr, glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(1.0f), 1.0f, LightType::DIRECTIONAL);
+    Material* material1 = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, woodenTexture);
+    Material* material2 = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, grassTexture);
+    Material* skycubeM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skyTexture);
+
+    scenes[sceneIndex]->setSkyBox(new DrawableObject(skyCubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeM));
+    
+    scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material1));
+    scenes[sceneIndex]->moveObject(0, 'l', 1.5f);
+
+	scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material2));
+    scenes[sceneIndex]->moveObject(1, 'r', 1.5f);
+
+	scenes[sceneIndex]->addLight(nullptr, glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(1.0f), 1.0f, LightType::DIRECTIONAL);
 }
 
 void Application::addBallsDiffShaders(int sceneIndex) {
-	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere));
+	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere), 1);
     scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.1f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f, LightType::POINT);
 
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();

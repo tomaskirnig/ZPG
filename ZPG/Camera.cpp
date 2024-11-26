@@ -14,10 +14,14 @@ glm::mat4 Camera::getViewMatrix() {
     return glm::lookAt(Position, Position + Target, Up);
 }
 
+glm::mat4 Camera::getProjectionMatrix(float aspectRatio) {
+	return glm::perspective(glm::radians(Fov), aspectRatio, 0.1f, 100.0f);
+}
+
 // Notify all observers of a change
 void Camera::notifyObservers(float aspectRatio, vector<Light*> lights) {
     glm::mat4 viewMatrix = getViewMatrix();
-    glm::mat4 projectionMatrix = glm::perspective(glm::radians(Fov), aspectRatio, 0.1f, 100.0f);
+	glm::mat4 projectionMatrix = getProjectionMatrix(aspectRatio);
     
     // Convert to LightData
     std::vector<LightData> lightDataList;
@@ -131,4 +135,18 @@ void Camera::updateCameraVectors() {
     // Also re-calculate the Right and Up vector
     Right = glm::normalize(glm::cross(Target, WorldUp));  // Normalize the vectors
     Up = glm::normalize(glm::cross(Right, Target));
+}
+
+void Camera::setSkyBox(DrawableObject* skybox) {
+    skyBox = skybox;
+}
+
+void Camera::toggleSkyBox() {
+    followingSkybox = !followingSkybox;
+}
+
+void Camera::drawSkyBox(float aspectRatio)
+{
+    if (skyBox != nullptr) skyBox->draw(followingSkybox, getViewMatrix(), getProjectionMatrix(aspectRatio));
+	else std::cerr << "Warning: Skybox not set!" << std::endl;
 }

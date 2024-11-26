@@ -19,8 +19,8 @@ class Scene {
 
 		float aspectRatio;
 
-		void groupObjectsForInstancing();
-
+		bool skyBoxSet = false;
+		
     public:
 		Scene();
 		~Scene();
@@ -33,9 +33,10 @@ class Scene {
 		void addLight(std::shared_ptr<Model> model, LightType type);
 		void addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type);
 		Light* addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type, bool follow);
+		
 		void setFollowingSpotLight(std::shared_ptr<Model> model);
-
-        void render();
+		
+		void render();
 		void registerAllObservers(float aspectRatio);
 		void notifyCurrObservers(float aspectRatio);
 
@@ -45,6 +46,7 @@ class Scene {
 		int getNumOfLights();
 
 		void setAspectRatio(float aspectRatio);
+		float getAspectRatio() { return aspectRatio; }
 
 		// Object controls
 		void currentObjectPlus();
@@ -74,4 +76,14 @@ class Scene {
 		void mouseMovementCamera(int camera, float xOffset, float yOffset, float aspectRatio);
 		void zoomCamera(int camera, double yOffset, float aspectRatio);
 
+		// Skybox 
+		void setSkyBox(DrawableObject* skybox);
+		void setSkyBox(DrawableObject* skybox, int camera);
+		void toggleSkyBox();
+		void toggleSkyBox(int camera);
+		bool isFollowingSkybox();
+		bool isFollowingSkybox(int camera);
+		void setFollowingSkybox(bool follow);
+		void setFollowingSkybox(bool follow, int camera);
+		void drawSkyBoxes(float aspectRatio);
 };

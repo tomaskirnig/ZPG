@@ -2,14 +2,14 @@
 #include <SOIL.h>
 #include <iostream>
 
-Texture::Texture(const std::string& path, const std::string& typeName)
-    : id(0), type(typeName), path(path) {
+Texture::Texture(const std::string& path, const std::string& name, int textureCount) 
+    : id(0), name(name), path(path), textureUnit(textureCount), type(TextureType::Texture2D) {
     // Load texture 
     id = SOIL_load_OGL_texture(
         path.c_str(),
-		SOIL_LOAD_AUTO,     //SOIL_LOAD_RGBA 
+        SOIL_LOAD_RGBA,    
         SOIL_CREATE_NEW_ID,
-        SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS  //SOIL_FLAG_INVERT_Y
+        SOIL_FLAG_INVERT_Y 
     );
 
     if (id == 0) {
@@ -18,14 +18,38 @@ Texture::Texture(const std::string& path, const std::string& typeName)
     else {
         // Set texture parameters (optional)
         glBindTexture(GL_TEXTURE_2D, id);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Adjust 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Adjust 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // Adjust 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Adjust
-
-        glGenerateMipmap(GL_TEXTURE_2D);
-
         glBindTexture(GL_TEXTURE_2D, 0);
+    }
+}
+
+Texture::Texture(const std::string& name, int textureCount) 
+    : id(0), name(name), path(""), textureUnit(textureCount), type(TextureType::CubeMap) {
+	std::string pathCube = "../Textures/cubemap/";
+    id = SOIL_load_OGL_cubemap(
+        (pathCube + "posx.jpg").c_str(),  
+        (pathCube + "negx.jpg").c_str(),  
+        (pathCube + "posy.jpg").c_str(),  
+        (pathCube + "negy.jpg").c_str(),  
+        (pathCube + "posz.jpg").c_str(),  
+        (pathCube + "negz.jpg").c_str(),  
+        SOIL_LOAD_RGB,
+        SOIL_CREATE_NEW_ID,
+        SOIL_FLAG_MIPMAPS
+    );
+
+    if (id == 0) {
+        std::cerr << "Failed to load cube map at pathCube: " << pathCube << "\nSOIL error: " << SOIL_last_result() << std::endl;
+    }
+    else {
+        // Set texture parameters (optional)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, id); //GL_TEXTURE_2D
+
+        //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  // Add this
+        //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);  //GL_TEXTURE_2D 
+
+        //glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
 }
 
@@ -33,7 +57,11 @@ Texture::~Texture() {
     glDeleteTextures(1, &id);
 }
 
-void Texture::bind(GLuint unit) const {
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, id);
+void Texture::bind() {
+    if (type == TextureType::CubeMap) {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, id);
+    }
+    else {
+        glBindTexture(GL_TEXTURE_2D, id);
+    }
 }

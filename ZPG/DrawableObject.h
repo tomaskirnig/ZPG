@@ -17,18 +17,14 @@ class DrawableObject {
         Material* material;
         Transformation* transformation;
 
-        //bool isInstanced = false;         // Flag to indicate instanced rendering
-        //size_t instanceCount = 0;         // Number of instances
-
     public:
         DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile);
 		DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material);
         ~DrawableObject();
 
         void draw();
-        /*void drawInstanced(GLuint instanceCount);
-        void setupInstancedRendering(const std::vector<glm::mat4>& transformations);*/
-        
+		void draw(bool following, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
+
         glm::mat4 getTransformationMatrix();
 
 		void moveObject(const glm::vec3& direction) {
@@ -71,16 +67,4 @@ class DrawableObject {
 		std::shared_ptr<Shader> getTexture() {
 			return this->texture;
 		}
-
-       /* bool usesInstancedRendering() const { 
-            return isInstanced; 
-        }
-
-        size_t getInstanceCount() const {
-            return instanceCount; 
-        }
-        
-        void setInstanceCount(size_t count) { 
-            instanceCount = count; 
-        }*/
 };

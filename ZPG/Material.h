@@ -63,9 +63,31 @@ public:
 		this->texture = texture;
 	}
 
+	GLuint getTextureID() const {
+		if (texture) {
+			return texture->getID();
+		}
+		return 0;
+	}
+
+	GLuint getTextureUnit() const {
+		if (texture) {
+			return texture->getTextureUnit();
+		}
+		return 0;
+	}
+
+	TextureType getTextureType() const {
+		if (texture) {
+			return texture->getType();
+		}
+		return TextureType::Texture2D;
+	}
+
 	void bindTexture(GLuint unit) const {
 		if (texture) {
-			texture->bind(unit);
+			glActiveTexture(GL_TEXTURE0 + unit);
+			texture->bind();
 		}
 	}
 };

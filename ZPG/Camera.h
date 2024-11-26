@@ -24,6 +24,9 @@ private:
 
     Light* followingSpotlight = nullptr;
 
+	DrawableObject* skyBox = nullptr;
+    bool followingSkybox = true;
+
     // Updates the camera vectors
     void updateCameraVectors();
 
@@ -41,6 +44,7 @@ public:
     void notifyObservers(float aspectRatio, vector<Light*> lights) override;
 
     glm::mat4 getViewMatrix();
+	glm::mat4 getProjectionMatrix(float aspectRatio);
 
     void processKeyboardMovement(const char direction, float aspectRatio, vector<Light*> lights);
 
@@ -58,4 +62,13 @@ public:
 
     void setFollowingSpotlight(Light* spotlight);
 	Light* getFollowingSpotlight() const { return followingSpotlight; }
+
+    void setSkyBox(DrawableObject* skybox);
+	DrawableObject* getSkyBox() const { return skyBox; }
+	bool isSetSkyBox() const { return skyBox != nullptr; }
+    void toggleSkyBox();
+	bool isFollowingSkybox() const { return followingSkybox; }
+	void setFollowingSkybox(bool follow) { followingSkybox = follow; }
+
+    void drawSkyBox(float aspectRatio);
 };
