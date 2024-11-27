@@ -1,0 +1,3006 @@
+#include "Application.h"
+
+vector<string> vertexShaderSources = {
+    "vertexShaderSource1", 
+    "vertexShaderSource2", 
+    "vertexShaderSource3", 
+    "vertexShaderSource4",
+    "vertexShaderCubemap"
+};
+vector<string> fragmentShaderSources = {
+    "fragmentShaderSource1", 
+    "fragmentShaderSource2", 
+    "fragmentShaderSource3", 
+    "LambertFragmentShaderSource", 
+    "PhongFragmentShaderSource",
+    "PhongBlinnFragmentShaderSource",
+    "CubemapFragmentShaderSource"
+};
+int cntr = 0;
+
+Application::Application() {
+    if (!glfwInit()) {
+        cerr << "Failed to initialize GLFW" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    window = glfwCreateWindow(1152, 648, "ZPG", NULL, NULL);
+    if (!window) {
+        glfwTerminate();
+        cerr << "Failed to create GLFW window" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
+
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        cerr << "Failed to initialize GLEW" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+	// get version info
+    printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+    printf("Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    printf("Vendor %s\n", glGetString(GL_VENDOR));
+    printf("Renderer %s\n", glGetString(GL_RENDERER));
+    printf("GLSL %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    int major, minor, revision;
+    glfwGetVersion(&major, &minor, &revision);
+    printf("Using GLFW %i.%i.%i\n", major, minor, revision);
+
+	// Callback functions
+    glfwSetFramebufferSizeCallback(window, window_size_callback);
+	glfwSetKeyCallback(window, key_callback);
+    //glfwSetWindowFocusCallback(window, window_focus_callback);
+	//glfwSetWindowIconifyCallback(window, window_iconify_callback);
+	glfwSetCursorPosCallback(window, cursor_callback);
+	//glfwSetMouseButtonCallback(window, button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    glfwSetWindowUserPointer(window, this); // Creates pointer to app window
+
+    // Settings of app window
+    glfwGetFramebufferSize(window, &width, &height);
+    aspectRatio = width / (float)height;
+    glViewport(0, 0, width, height);	
+
+    modelManager = ModelManager();
+	textureManager = TextureManager();
+
+	addScene(); // Triangle
+    scenes[0]->addCamera();
+
+    currentScene = 0;
+    
+	lastX = width / 2;
+	lastY = height / 2;
+}
+
+Application::~Application()
+{
+	for (Scene* scene : scenes) {
+		delete scene;
+	}
+}
+
+void Application::run() {
+    float triangle[] = {
+        -0.5f,  -0.3f, 0.0f,  0.5f,  0.5f, 0.0f,
+        0.5f,  -0.3f, 0.0f,  0.0f,  0.0f, 1.0f,
+        0.0f,  0.7f, 0.0f,  0.5f,  0.5f, 0.0f,
+    };
+
+    std::shared_ptr<Model> triangleModel = modelManager.getModel("triangle", triangle, sizeof(triangle), 1);
+	
+	//vertexShaderSources[1], fragmentShaderSources[0]     // One color
+	//vertexShaderSources[1], fragmentShaderSources[2]    // Normals as colors
+	//vertexShaderSources[2], fragmentShaderSources[3-5]    // With lighting
+	//vertexShaderSources[3], fragmentShaderSources[6]    // Skybox
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    
+	addScene(); // Forest
+	addScene(); // Balls
+	addScene(); // Balls with different shaders
+	addScene(); // Textures
+
+    // Adding objects to first scene
+    scenes[0]->addObject(new DrawableObject(triangleModel, vertexShaderSources[1], fragmentShaderSources[2]));
+
+	// Add a forest to the second scene
+	addForest(1, 50);
+
+	addBalls(2);
+
+    addBallsDiffShaders(3);
+
+	addTextures(4);
+    
+    registerAllObservers();
+
+	window_size_callback(window, width, height);
+
+    // Main loop
+    while (!glfwWindowShouldClose(window)) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        processInput();
+
+        if (currentScene == 1) {
+            scenes[currentScene]->rotateObject(0, 3);
+            scenes[currentScene]->rotateObject(1, 3);
+            scenes[currentScene]->rotateObject(2, 3);
+			moveLightsRandom();
+        }        
+
+		scenes[currentScene]->notifyCurrObservers(aspectRatio);
+
+		scenes[currentScene]->render();
+
+        glfwPollEvents();
+        glfwSwapBuffers(window);
+    }
+
+	enableCursor();
+    glfwDestroyWindow(window);
+
+    glfwTerminate();
+    exit(EXIT_SUCCESS);
+}
+
+void Application::centerCursor() {
+    // Calculate the center of the window
+    double centerX = width / 2.0;
+    double centerY = height / 2.0;
+
+    // Set the cursor position to the center of the window
+    glfwSetCursorPos(window, centerX, centerY);
+}
+
+void Application::disableAndLockCursor() {
+    // Hide and grab the cursor
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void Application::enableCursor() {
+    // Make the cursor visible and free it
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+float Application::getAspectRatio() {
+	return aspectRatio;
+}
+
+// Change the current scene to the next one
+void Application::currentScenePlus() {
+    currentScene++;
+    if (currentScene >= scenes.size()) {
+        currentScene = 0; 
+    }
+	cout << "Current scene: " << currentScene << endl;
+}
+
+// Change the current scene to the previous one
+void Application::currentSceneMinus() {
+    currentScene--;
+    if (currentScene < 0) {
+        currentScene = scenes.size() - 1;
+    }
+	cout << "Current scene: " << currentScene << endl;
+}
+
+// Change the current object to the next one
+void Application::currentObjectPlus() {
+	scenes[currentScene]->currentObjectPlus();
+}
+
+void Application::currentObjectMinus() {
+	scenes[currentScene]->currentObjectMinus();
+}
+
+void Application::currentCameraPlus() {
+	scenes[currentScene]->currentCameraPlus(aspectRatio);
+}
+
+void Application::processInput() {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        scenes[currentScene]->moveCamera(scenes[currentScene]->getCurrCamera(), 'u', aspectRatio); // Move camera up
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        scenes[currentScene]->moveCamera(scenes[currentScene]->getCurrCamera(), 'd', aspectRatio); // Move camera down
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        scenes[currentScene]->moveCamera(scenes[currentScene]->getCurrCamera(), 'l', aspectRatio); // Move camera left
+    }
+	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        scenes[currentScene]->moveCamera(scenes[currentScene]->getCurrCamera(), 'r', aspectRatio); // Move camera right
+    }
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'u'); // Move object up
+    }
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'd'); // Move object down
+    }
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'l'); // Move object left
+    }
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'r'); // Move object right
+    }
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'b');  // Move object back
+    }
+    else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
+        scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'f');  // Move object front
+    }
+	else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 1);  // Rotate around x-axis
+	}
+	else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 2);  // Rotate around x-axis
+	}
+	else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 3);  // Rotate around y-axis
+	}
+	else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 4);  // Rotate around y-axis
+	}
+	else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 5);  // Rotate around z-axis
+	}
+	else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 6);  // Rotate around z-axis
+	}
+    else if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
+        scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'u'); // Scale up
+    }
+    else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
+        scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'd');  // Scale down
+    }
+    if (glfwGetKey(window, 340) == GLFW_PRESS) {
+        // Hide and lock cursor in app window
+        //centerCursor();
+        disableAndLockCursor();
+		looking = true;
+    }
+    else {
+		enableCursor();
+		looking = false;
+    }
+}
+
+void Application::addScene() {
+	scenes.push_back(new Scene());
+}
+
+void Application::registerAllObservers() {
+    for (Scene* scene : scenes) {
+        scene->registerAllObservers(aspectRatio);
+    }
+}
+
+void Application::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    //cout << "key_callback [" << key << "," << scancode << "," << action << "," << mods << "]" << endl;
+
+    Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+
+    if (app == NULL) {
+        cerr << "Key_callback -> app = NULL" << endl;
+    }
+    if (app) {
+        if (action == GLFW_PRESS) {
+            switch (key)
+            {
+                case GLFW_KEY_RIGHT:
+					app->currentScenePlus();    // Change to the next scene
+                    break;
+
+                case GLFW_KEY_LEFT:
+					app->currentSceneMinus();   // Change to the previous scene
+                    break;
+                
+                case GLFW_KEY_UP:
+					app->currentObjectPlus();   // Change to the next object
+                    break;
+
+                case GLFW_KEY_DOWN:
+					app->currentObjectMinus();  // Change to the previous object
+                    break;
+
+				case GLFW_KEY_TAB:
+					app->currentCameraPlus();   // Change to the next camera
+					break;
+
+				case GLFW_KEY_R:
+					app->scenes[app->currentScene]->resetObjectRotation(app->scenes[app->currentScene]->getCurrObject()); // Reset object rotation
+					break;
+
+				case GLFW_KEY_T:
+                    app->scenes[app->currentScene]->resetObjectScale(app->scenes[app->currentScene]->getCurrObject()); // Reset object scale
+                    break;
+
+                case GLFW_KEY_LEFT_ALT:
+					app->scenes[app->currentScene]->toggleSkyBox(); 
+					break;
+
+			    default:
+				    break;
+			}
+        }
+    }
+}
+
+// Other callback functions
+void Application::error_callback(int error, const char* description) {
+    fputs(description, stderr);
+}
+
+void Application::window_focus_callback(GLFWwindow* window, int focused) { cout << "window_focus_callback" << endl; }
+
+void Application::window_iconify_callback(GLFWwindow* window, int iconified) { cout << "window_iconify_callback" << endl; }
+
+void Application::window_size_callback(GLFWwindow* window, int width, int height) {
+    //cout << "resize " << width << ", " << height << endl;
+    glViewport(0, 0, width, height);
+	Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window)); // Get pointer to the app window
+
+	if (app == NULL) {
+		cerr << "Window_size_callback -> app = NULL" << endl;
+	}
+
+	if (app) {
+		// Resize the app window
+		app->width = width;
+		app->height = height;
+		app->aspectRatio = width / (float)height;
+
+        for (Scene* scene : app->scenes) {
+            scene->setAspectRatio(app->aspectRatio);
+        }
+    }
+}
+
+void Application::cursor_callback(GLFWwindow* window, double x, double y) { 
+    //cout << "cursor_callback" << "x: " << x << " y: " << y << endl;
+    Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+
+    if (app->looking) {
+        if (app == NULL) {
+            cerr << "Cursor_callback -> app = NULL" << endl;
+        }
+        if (app) {
+            // Calculate the offset of the cursor position
+            double xOffset = x - app->lastX;
+            double yOffset = app->lastY - y;
+
+            // Update the last cursor position
+            app->lastX = x;
+            app->lastY = y;
+
+            // Process the mouse movement
+            app->scenes[app->currentScene]->mouseMovementCamera(app->scenes[app->currentScene]->getCurrCamera(), xOffset, yOffset, app->aspectRatio);
+        }
+    }
+}
+
+void Application::button_callback(GLFWwindow* window, int button, int action, int mode) {
+    if (action == GLFW_PRESS) {
+		cout << "button_callback [" << button << "," << action << "," << mode << "]" << endl;
+	}
+}
+
+void Application::scroll_callback(GLFWwindow* window, double xOffset, double yOffset) {
+    Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+
+    // Process the scroll input
+    if (app != nullptr) {
+        app->scenes[app->currentScene]->zoomCamera(app->scenes[app->currentScene]->getCurrCamera(), yOffset, app->aspectRatio);  // Pass the scroll input to your Application class
+    }
+}
+
+// Functions for generating objects in scenes
+
+void Application::addForest(int sceneIndex, int numTrees) {
+    std::shared_ptr<Model> treeModel = modelManager.getModel("tree", tree, sizeof(tree), 1);
+	std::shared_ptr<Model> bushesModel = modelManager.getModel("bushes", bushes, sizeof(bushes), 1);
+	std::shared_ptr<Model> plainModel = modelManager.getModel("plain", plain, sizeof(plain), 1);
+	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere), 1);
+    std::shared_ptr<Model> plainTextureModel = modelManager.getModel("plain_texture", plain_texture, sizeof(plain_texture), 2);
+    
+    std::shared_ptr<Texture> grassTexture = textureManager.getTexture("grass.png");
+
+    random_device rd;
+    mt19937 gen(rd());  // Random number generator
+
+    // Trees
+    // Range for random positions
+    uniform_real_distribution<> disX(-10.0, 10.0);  // X-axis range 
+    uniform_real_distribution<> disZ(-20.0, 20.0);  // Z-axis range 
+
+    // Random scaling
+    uniform_real_distribution<> disScale(0.4, 1.0);
+
+    // Random Y-axis rotation (0 to 360 degrees in radians)
+    uniform_real_distribution<> disRotationY(0.0, 360.0);
+
+    std::vector<glm::mat4> treeTransformations;
+
+    // Place Trees
+    for (int i = 0; i < numTrees; ++i) {
+        // Generate random x, z positions 
+        float randomX = disX(gen);
+        float randomZ = disZ(gen);
+        float randomRotationY = disRotationY(gen);  // Random rotation in radians
+
+        DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[2], fragmentShaderSources[5]);
+
+        // Set the transformation matrix (position and scale) 
+        treeObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
+        treeObject->setScale(disScale(gen));  // Apply random scaling
+        treeObject->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), randomRotationY);  // Rotate around Y-axis
+
+        // Add the tree to the specified scene
+        scenes[sceneIndex]->addObject(treeObject);
+    }
+
+    // Bushes
+    for (int i = 0; i < numTrees; ++i) {
+        float randomX = disX(gen);
+        float randomZ = disZ(gen);
+        float randomRotationY = disRotationY(gen);  // Random rotation in radians
+
+        DrawableObject* bushObject = new DrawableObject(bushesModel, vertexShaderSources[2], fragmentShaderSources[5]);
+
+        // Set the transformation matrix (position and scale) 
+        bushObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
+        bushObject->setScale(disScale(gen));  // Apply random scaling
+        bushObject->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), randomRotationY);  // Rotate around Y-axis
+
+        // Add the tree to the specified scene
+        scenes[sceneIndex]->addObject(bushObject);
+    }
+    Material* material = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, grassTexture);
+    DrawableObject* plainObj = new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material);
+
+    plainObj->setPosition(glm::vec3(0.0, -0.5, 0.0));
+    plainObj->setScale(20.0);
+
+    scenes[sceneIndex]->addObject(plainObj);
+
+    for (int i = 0; i < 3; i++) {
+        float randomX = disX(gen);
+        float randomZ = disZ(gen);
+        scenes[sceneIndex]->addLight(sphereModel, glm::vec3(randomX, 0.0, randomZ), glm::vec3(1.0f, 0.5f, 0.1f), 1.0f, LightType::POINT);
+    }
+    scenes[sceneIndex]->setFollowingSpotLight(sphereModel);
+    scenes[sceneIndex]->addLight(nullptr, LightType::DIRECTIONAL); 
+}
+
+void Application::addBalls(int sceneIndex) {
+	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere), 1);
+	scenes[sceneIndex]->addLight(sphereModel, LightType::POINT);
+
+    int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
+
+    for (int i = 0; i < 4; i++) {
+        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[5]));
+    }
+    
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'd', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'l', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene, 'r', 2.0);
+}
+
+void Application::addTextures(int sceneIndex)
+{
+	std::shared_ptr<Model> plainTextureModel = modelManager.getModel("plain_texture", plain_texture, sizeof(plain_texture), 2);
+	//std::shared_ptr<Model> jehlanModel = modelManager.getModel("jehlan", jehlan, sizeof(jehlan), 2);
+    std::shared_ptr<Model> skyCubeModel = modelManager.getModel("skycube", skycube, sizeof(skycube), 0);
+    std::shared_ptr<Model> houseModel = modelManager.getModel("building", building, sizeof(building), 2);
+
+	std::shared_ptr<Model> zombie = modelManager.getModel("zombie.obj");
+
+    std::shared_ptr<Texture> grassTexture = textureManager.getTexture("grass.png");
+	std::shared_ptr<Texture> woodenTexture = textureManager.getTexture("wooden_fence.png");
+    std::shared_ptr<Texture> skyTexture = textureManager.getCubeMap();
+	std::shared_ptr<Texture> houseTexture = textureManager.getTexture("house.png");
+	std::shared_ptr<Texture> zombieTexture = textureManager.getTexture("zombie.png");
+
+    Material* material1 = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, woodenTexture);
+    Material* material2 = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, grassTexture);
+    Material* skycubeM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skyTexture);
+	Material* houseM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, houseTexture);
+	Material* zombieM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, zombieTexture);
+
+    scenes[sceneIndex]->setSkyBox(new DrawableObject(skyCubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeM));
+    
+    scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material1));
+    scenes[sceneIndex]->moveObject(0, 'l', 1.5f);
+
+	scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material2));
+    scenes[sceneIndex]->moveObject(1, 'r', 1.5f);
+
+	scenes[sceneIndex]->addObject(new DrawableObject(houseModel, vertexShaderSources[3], fragmentShaderSources[3], houseM));
+	scenes[sceneIndex]->moveObject(2, 'u', 1.5f);
+
+	scenes[sceneIndex]->addObject(new DrawableObject(zombie, vertexShaderSources[3], fragmentShaderSources[3], zombieM));
+	scenes[sceneIndex]->moveObject(3, 'd', 1.5f);
+
+	scenes[sceneIndex]->addLight(nullptr, glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(1.0f), 1.0f, LightType::DIRECTIONAL);
+}
+
+void Application::addBallsDiffShaders(int sceneIndex) {
+	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere), 1);
+    scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.1f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f, LightType::POINT);
+
+    int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
+    scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[1], fragmentShaderSources[2]));
+
+	Material* material = new Material(glm::vec3(0.1f), glm::vec3(1.0f), glm::vec3(1.0f), 130.0f);
+
+    for (int i = 3; i < 6; i++) {
+        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[i]));
+    }
+
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'd', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'l', 2.0);
+    scenes[sceneIndex]->moveObject(numOfObjectInScene, 'r', 2.0);
+}
+
+void Application::moveLightsRandom() {
+    static std::vector<char> directions = { 'u', 'd', 'l', 'r', 'f', 'b' };
+    static std::mt19937 gen(std::random_device{}());
+    static std::vector<int> randomDirections(scenes[currentScene]->getNumOfLights()); // Direction for each light
+    static std::uniform_int_distribution<> dis(0, 5);  // Random direction generator
+
+    if (cntr == 0) {
+        // Assign a new random direction for each light when counter is 0
+        for (int i = 0; i < randomDirections.size(); ++i) {
+            randomDirections[i] = dis(gen);
+        }
+        cntr++;
+    }
+    else {
+        // Move each light independently within bounds
+        for (int i = 0; i < scenes[currentScene]->getNumOfLights(); i++) {
+            if (scenes[currentScene]->getLightType(i) != LightType::SPOTLIGHT) {
+                glm::vec3 currentPosition = scenes[currentScene]->getPositionLight(i);
+                char direction = directions[randomDirections[i]];
+
+                // Check bounds for the selected direction
+                switch (direction) {
+                case 'u':  // Move up (Y)
+                    if (currentPosition.y < 0.8f) {
+                        scenes[currentScene]->moveLight(i, 'u', 0.01f);
+                    }
+                    break;
+                case 'd':  // Move down (Y)
+                    if (currentPosition.y > -0.4f) {
+                        scenes[currentScene]->moveLight(i, 'd', 0.01f);
+                    }
+                    break;
+                case 'l':  // Move left (X)
+                    if (currentPosition.x > -10.0f) {
+                        scenes[currentScene]->moveLight(i, 'l', 0.01f);
+                    }
+                    break;
+                case 'r':  // Move right (X)
+                    if (currentPosition.x < 10.0f) {
+                        scenes[currentScene]->moveLight(i, 'r', 0.01f);
+                    }
+                    break;
+                case 'f':  // Move forward (Z)
+                    if (currentPosition.z < 20.0f) {
+                        scenes[currentScene]->moveLight(i, 'f', 0.01f);
+                    }
+                    break;
+                case 'b':  // Move backward (Z)
+                    if (currentPosition.z > -20.0f) {
+                        scenes[currentScene]->moveLight(i, 'b', 0.01f);
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Increment and reset counter after 100 moves
+        cntr++;
+        if (cntr == 100) {
+            cntr = 0;
+        }
+    }
+}
+
+
+
+#pragma once
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>  
+#include <glm/vec3.hpp> 
+#include <glm/vec4.hpp> 
+#include <glm/mat4x4.hpp> 
+#include <glm/gtc/type_ptr.hpp> 
+
+//Standard libraries
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+#include <vector>
+#include <random>  
+
+//Include custom classes
+#include "ModelManager.h"
+#include "TextureManager.h"
+#include "Scene.h"
+
+class Application
+{
+    private:
+        GLFWwindow* window;
+	    int width, height;
+		int lastX, lastY;
+		float aspectRatio;
+
+        vector<Scene*> scenes;
+		ModelManager modelManager;
+        TextureManager textureManager;
+
+        int currentScene;
+        bool looking;
+
+    public:
+	    Application();
+		~Application();
+
+	    void run();
+		float getAspectRatio();
+
+
+		// Cursor controls
+        void centerCursor();
+		void disableAndLockCursor();
+		void enableCursor();
+
+		// Change the current scene
+        void currentScenePlus();
+		void currentSceneMinus();
+
+        void currentObjectPlus();
+		void currentObjectMinus();
+
+        void currentCameraPlus();   
+
+        void processInput();
+
+        void registerAllObservers();
+
+		void addScene();
+
+        void moveLightsRandom();
+         
+		// Object generation
+		void addForest(int sceneIndex, int numTrees);
+        void addBalls(int sceneIndex);
+        void addBallsDiffShaders(int sceneIndex);
+		void addTextures(int sceneIndex);
+
+        // Callback functions as static methods
+        static void error_callback(int error, const char* description);
+        static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void window_focus_callback(GLFWwindow* window, int focused);
+        static void window_iconify_callback(GLFWwindow* window, int iconified);
+        static void window_size_callback(GLFWwindow* window, int width, int height);
+        static void cursor_callback(GLFWwindow* window, double x, double y);
+        static void button_callback(GLFWwindow* window, int button, int action, int mode);
+		static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+};
+
+#pragma once
+
+#include <glm/glm.hpp>
+
+class BaseTransformation {
+public:
+    virtual ~BaseTransformation() = default;
+
+    virtual glm::mat4 getMatrix() const = 0;
+};
+#include "Camera.h"
+#include "SpotLight.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
+
+// Constructor with vectors
+Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
+    Position(position), WorldUp(up), Yaw(yaw), Pitch(pitch), MovementSpeed(0.03f), MouseSensitivity(0.1f), Fov(75.0f) {
+    updateCameraVectors();
+}
+
+// Returns the view matrix calculated using LookAt matrix
+glm::mat4 Camera::getViewMatrix() {
+    return glm::lookAt(Position, Position + Target, Up);
+}
+
+glm::mat4 Camera::getProjectionMatrix(float aspectRatio) {
+	return glm::perspective(glm::radians(Fov), aspectRatio, 0.1f, 100.0f);
+}
+
+// Notify all observers of a change
+void Camera::notifyObservers(float aspectRatio, vector<Light*> lights) {
+    glm::mat4 viewMatrix = getViewMatrix();
+	glm::mat4 projectionMatrix = getProjectionMatrix(aspectRatio);
+    
+    // Convert to LightData
+    std::vector<LightData> lightDataList;
+
+    for (auto* light : lights) {
+        if (!light) {
+            std::cerr << "Warning: Null light pointer found!" << std::endl;
+            continue;
+        }
+        LightData data;
+
+		//cout << "Light Type: " << static_cast<int>(light->getType()) << endl;
+
+		if (light->getType() == LightType::DIRECTIONAL) {
+			data.direction = ((DirectionalLight*)light)->getDirection();
+		}
+		else if (light->getType() == LightType::POINT) {
+			data.position = light->getPosition();
+		}
+		else if (light->getType() == LightType::SPOTLIGHT) {
+			data.position = light->getPosition();
+			data.direction = ((SpotLight*)light)->getDirection();
+			data.cutOff = ((SpotLight*)light)->getCutOff();
+			data.outerCutOff = ((SpotLight*)light)->getOuterCutOff();
+		}
+        
+		data.type = light->getType();
+        data.color = light->getColor();
+        data.intensity = light->getIntensity();
+
+        lightDataList.push_back(data);
+    }
+
+    for (IObserver* observer : observers) {
+        if (observer) { 
+            observer->update(viewMatrix, projectionMatrix, lightDataList, Position);
+        }
+        else {
+            std::cerr << "Warning: Null observer found!" << std::endl;
+        }
+    }
+}
+
+// Move camera in a direction
+void Camera::processKeyboardMovement(const char direction, float aspectRatio, vector<Light*> lights) {
+    float velocity = MovementSpeed;
+    if (direction == 'u')
+        Position += Target * velocity;  // Move forward
+    if (direction == 'd')
+        Position -= Target * velocity;  // Move backward
+    if (direction == 'l')
+        Position -= Right * velocity;   // Move left
+    if (direction == 'r')
+        Position += Right * velocity;   // Move right
+
+    if (followingSpotlight) {
+        followingSpotlight->setPosition(Position);
+    }
+
+	notifyObservers(aspectRatio, lights);
+}
+
+// Change the looking direction of the camera
+void Camera::processMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light*> lights) {
+    xOffset *= MouseSensitivity;
+    yOffset *= MouseSensitivity;
+
+    Yaw += xOffset;
+    Pitch += yOffset;
+
+	// Restrict the camera from flipping over
+    if (Pitch > 89.0f) Pitch = 89.0f; 
+    if (Pitch < -89.0f) Pitch = -89.0f;
+        
+    if (followingSpotlight) {
+        followingSpotlight->setDirection(Target);
+    }
+
+    // Update Target, Right, and Up Vectors
+    updateCameraVectors();
+    //notifyObservers(aspectRatio, lights);
+}
+
+// Processes input from the mouse scroll wheel
+void Camera::processMouseScroll(float yOffset, float aspectRatio, vector<Light*> lights) {
+    if (Fov >= 1.0f && Fov <= 175.0f)
+        Fov -= yOffset;
+    if (Fov <= 1.0f)
+        Fov = 1.0f;
+    if (Fov >= 175.0f)
+        Fov = 175.0f;
+
+	std::cout << "Fov: " << Fov << endl;
+
+    notifyObservers(aspectRatio, lights);
+}
+
+void Camera::setFollowingSpotlight(Light* spotlight) {
+    followingSpotlight = spotlight;
+}
+
+// Updates the Target, Right, and Up vectors using the current Euler angles
+void Camera::updateCameraVectors() {
+    // Calculate the new target direction
+    glm::vec3 target;
+    target.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    target.y = sin(glm::radians(Pitch));
+    target.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    Target = glm::normalize(target);
+
+    // Also re-calculate the Right and Up vector
+    Right = glm::normalize(glm::cross(Target, WorldUp));  // Normalize the vectors
+    Up = glm::normalize(glm::cross(Right, Target));
+}
+
+void Camera::setSkyBox(DrawableObject* skybox) {
+    skyBox = skybox;
+}
+
+void Camera::toggleSkyBox() {
+    followingSkybox = !followingSkybox;
+}
+
+void Camera::drawSkyBox(float aspectRatio)
+{
+    if (skyBox != nullptr) skyBox->draw(followingSkybox, getViewMatrix(), getProjectionMatrix(aspectRatio));
+	else std::cerr << "Warning: Skybox not set!" << std::endl;
+}
+#pragma once
+
+
+#include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
+#include "ISubject.h"
+#include "Light.h"
+
+using namespace std;
+
+class Camera : ISubject {
+private:
+    glm::vec3 Position;
+    glm::vec3 Target;
+    glm::vec3 Up;
+    glm::vec3 Right;
+    glm::vec3 WorldUp;
+
+    float Yaw;
+    float Pitch;
+    float MovementSpeed;
+    float MouseSensitivity;
+    float Fov;
+
+    Light* followingSpotlight = nullptr;
+
+	DrawableObject* skyBox = nullptr;
+    bool followingSkybox = true;
+
+    // Updates the camera vectors
+    void updateCameraVectors();
+
+public:
+    // List of observers (shaders)
+    vector<IObserver*> observers;
+
+    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
+
+    // Register an observer
+    void registerObserver(IObserver* observer) override {
+        observers.push_back(observer);
+    }
+
+    void notifyObservers(float aspectRatio, vector<Light*> lights) override;
+
+    glm::mat4 getViewMatrix();
+	glm::mat4 getProjectionMatrix(float aspectRatio);
+
+    void processKeyboardMovement(const char direction, float aspectRatio, vector<Light*> lights);
+
+    void processMouseMovement(float xOffset, float yOffset, float aspectRatio, vector<Light*> lights);
+
+    void processMouseScroll(float yOffset, float aspectRatio, vector<Light*> lights);
+
+    glm::vec3 getPosition() const {
+        return Position;
+    }
+
+	glm::vec3 getTarget() const {
+		return Target;
+	}
+
+    void setFollowingSpotlight(Light* spotlight);
+	Light* getFollowingSpotlight() const { return followingSpotlight; }
+
+    void setSkyBox(DrawableObject* skybox);
+	DrawableObject* getSkyBox() const { return skyBox; }
+	bool isSetSkyBox() const { return skyBox != nullptr; }
+    void toggleSkyBox();
+	bool isFollowingSkybox() const { return followingSkybox; }
+	void setFollowingSkybox(bool follow) { followingSkybox = follow; }
+
+    void drawSkyBox(float aspectRatio);
+};
+#pragma once
+#include "Light.h"
+
+class DirectionalLight : public Light {
+private:
+    glm::vec3 direction;
+
+public:
+    DirectionalLight(const glm::vec3& direction, const glm::vec3& color, float intensity)
+        : Light(nullptr,"", "", color, intensity, new Material(), LightType::DIRECTIONAL), direction(glm::normalize(direction)) {
+        // Directional lights do not have a position or model 
+    }
+
+    glm::vec3 getDirection() const override { return direction; }
+    void setDirection(const glm::vec3& dir) override { direction = glm::normalize(dir); }
+};
+#pragma once
+
+enum class DrawType
+{
+	ARRAY,
+	ELEMENT
+};#include "DrawableObject.h"
+
+DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile)
+    : model(model), transformation(new Transformation()), material(new Material()) {
+    shader = new Shader(vertexShaderFile, fragmentShaderFile);
+	texture = nullptr;
+}
+
+DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material)
+	: model(model), transformation(new Transformation()){
+	shader = new Shader(vertexShaderFile, fragmentShaderFile, material->getShininess());
+	
+	if (material != nullptr) this->material = material;
+	else this->material = new Material();
+}
+
+DrawableObject::~DrawableObject() {
+    delete shader;
+    delete transformation;
+	delete material;
+}
+
+// Draw the object
+void DrawableObject::draw() {
+    if (model != nullptr) {
+        shader->use(); // Set the shader to be used
+
+        glm::mat4 transformationMatrix = transformation->getMatrix();
+
+        // Get the uniform location
+        GLint transformLoc = shader->getUniformLocation("transformationMatrix");
+
+        // Set material uniforms
+        shader->setMaterial(material);
+
+        // Send the transformation matrix to the shader
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformationMatrix));
+        model->draw();
+    }
+}
+
+void DrawableObject::draw(bool following, glm::mat4 viewMatrix, glm::mat4 projectionMatrix) {
+    if (model != nullptr) {
+        shader->use(); // Set the shader to be used
+        if (following) {
+            viewMatrix = glm::mat4(glm::mat3(viewMatrix));
+        }
+
+        // Get the uniform location
+        GLint viewLoc = shader->getUniformLocation("viewMatrix");
+        GLint projectionLoc = shader->getUniformLocation("projectionMatrix");
+
+		if (viewLoc == -1 || projectionLoc == -1) cout << "Error: view or projection matrix not found" << endl;
+        
+        // Set material uniforms
+        shader->setMaterial(material);
+
+        // Send the matrixes to the shader
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+        model->draw();
+	}
+	else cout << "Error: Model not found" << endl;
+}
+
+// Get the transformation of the object
+glm::mat4 DrawableObject::getTransformationMatrix() {
+    return transformation->getMatrix();
+}
+#pragma once
+
+#include <memory>
+#include "Model.h"
+#include "Shader.h"
+#include "Transformation.h"
+#include "Material.h"
+#include "Texture.h"
+
+
+
+class DrawableObject {
+    private:
+        std::shared_ptr<Model> model;
+		std::shared_ptr<Shader> texture;
+        Shader* shader;
+        Material* material;
+        Transformation* transformation;
+
+    public:
+        DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile);
+		DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material);
+        ~DrawableObject();
+
+        void draw();
+		void draw(bool following, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
+
+        glm::mat4 getTransformationMatrix();
+
+		void moveObject(const glm::vec3& direction) {
+			transformation->moveObject(direction);
+		}
+
+		void setPosition(const glm::vec3& pos) {
+			transformation->setPosition(pos);
+		}
+
+        void rotateObject(const glm::vec3& axis, float angle) {
+			transformation->rotateObject(glm::radians(angle), axis);
+		}
+
+        void setRotation(const glm::vec3& axis, float angle) {
+			transformation->setRotation(glm::radians(angle), axis);
+        }
+
+        void scaleObject(const float scale) {
+			transformation->scaleObject(glm::vec3 (1.0f) * scale);
+		}
+
+        void setScale(const float scale) {
+            transformation->setScale(glm::vec3(1.0f) * scale);
+        }
+
+		glm::vec3 getPosition() {
+			return transformation->getPosition();
+		}
+
+		// Get the shader of the object
+        Shader* getShader() {
+            return this->shader;
+        }
+
+		std::shared_ptr<Model> getModel() {
+			return this->model;
+		}
+
+		std::shared_ptr<Shader> getTexture() {
+			return this->texture;
+		}
+};
+#pragma once
+#include <vector>
+#include "LightData.h"
+
+class IObserver {
+public:
+    //virtual ~Observer() {}
+    virtual void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) = 0;  // Observer will update using the new view matrix
+};
+#pragma once
+#include <vector>
+#include "IObserver.h"
+#include "Light.h"
+
+class ISubject {
+	virtual void registerObserver(IObserver* observer) = 0;
+	virtual void notifyObservers(float aspectRatio, vector<Light*> lights) = 0;
+};#pragma once
+#include <glm/glm.hpp>
+#include "DrawableObject.h"
+#include "LightType.h"
+
+class Light : public DrawableObject {
+protected:
+    LightType type;
+    glm::vec3 lightColor;
+    float intensity;
+
+public:
+    Light(std::shared_ptr<Model> model,
+        const std::string& vertexShaderFile = "vertexShaderSource3", 
+        const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
+        const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f), 
+        float intensity = 1.0f,
+        Material* material = new Material(),
+        LightType type = LightType::POINT)
+        : DrawableObject(model, vertexShaderFile, fragmentShaderFile, material),
+        lightColor(color), intensity(intensity), type(type) {
+		this->setScale(0.1f);
+    }
+
+    // Set/Get light properties
+    void setColor(const glm::vec3& color) { lightColor = color; }
+    glm::vec3 getColor() const { return lightColor; }
+
+    void setIntensity(float intensity) { this->intensity = intensity; }
+    float getIntensity() const { return intensity; }
+    
+    LightType getType() const { return type; }
+
+    virtual glm::vec3 getDirection() const = 0;
+    virtual void setDirection(const glm::vec3& direction) = 0;
+
+    virtual float getCutOff() const { return 0.0f; }
+    virtual float getOuterCutOff() const { return 0.0f; }
+};
+#pragma once
+#include <glm/glm.hpp>
+#include "LightType.h"
+
+struct LightData {
+    glm::vec3 position;
+    glm::vec3 direction; // For directional and spotlights
+    glm::vec3 color;
+    float intensity;
+    float cutOff;       // For spotlights
+    float outerCutOff;  // For spotlights
+    LightType type;
+};
+#pragma once
+
+enum class LightType {
+    POINT,
+    DIRECTIONAL,
+    SPOTLIGHT
+};
+
+﻿#include "Application.h"
+
+
+int main(void)
+{
+	Application app;
+	app.run();
+
+	return 0;
+}#include "Material.h"
+#pragma once
+#include <glm/glm.hpp>
+#include <memory>
+#include "Texture.h"
+
+class Material {
+private:
+    glm::vec3 ambient;   // ra
+    glm::vec3 diffuse;   // rd
+    glm::vec3 specular;  // rs
+    float shininess;
+	std::shared_ptr<Texture> texture;
+
+public:
+	Material(const glm::vec3& ambient = glm::vec3(0.1f),
+        const glm::vec3& diffuse = glm::vec3(1.0f),
+        const glm::vec3& specular = glm::vec3(1.0f),
+        float shininess = 32.0f,
+		std::shared_ptr<Texture> texture = nullptr)
+        : ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess) {
+		if (texture) {
+			this->texture = texture;
+		}
+	}
+
+	void setAmbient(const glm::vec3& ambient) {
+		this->ambient = ambient;
+	}
+
+	void setDiffuse(const glm::vec3& diffuse) {
+		this->diffuse = diffuse;
+	}
+
+	void setSpecular(const glm::vec3& specular) {
+		this->specular = specular;
+	}
+
+	void setShininess(float shininess) {
+		this->shininess = shininess;
+	}
+
+	glm::vec3 getAmbient() const {
+		return ambient;
+	}
+
+	glm::vec3 getDiffuse() const {
+		return diffuse;
+	}
+
+	glm::vec3 getSpecular() const {
+		return specular;
+	}
+
+	float getShininess() const {
+		return shininess;
+	}
+
+	std::shared_ptr<Texture> getTexture() const {
+		return texture;
+	}
+
+	void setTexture(std::shared_ptr<Texture> texture) {
+		this->texture = texture;
+	}
+
+	GLuint getTextureID() const {
+		if (texture) {
+			return texture->getID();
+		}
+		return 0;
+	}
+
+	GLuint getTextureUnit() const {
+		if (texture) {
+			return texture->getTextureUnit();
+		}
+		return 0;
+	}
+
+	TextureType getTextureType() const {
+		if (texture) {
+			return texture->getType();
+		}
+		return TextureType::Texture2D;
+	}
+
+	void bindTexture(GLuint unit) const {
+		if (texture) {
+			glActiveTexture(GL_TEXTURE0 + unit);
+			texture->bind();
+		}
+	}
+};
+#include "Model.h"
+
+Model::Model(const float* points, size_t size, int ver) {
+    drawType = DrawType::ARRAY;
+
+    switch (ver)
+    {
+        case 0: {
+		    Model0(points, size);
+		    break;
+        }
+	    case 1: {
+		    Model1(points, size);
+		    break;
+	    }
+	    case 2: {
+		    Model2(points, size);
+		    break;
+        }
+        default: {
+            printf("Error: Model (constructor) version not found\n");
+            break;
+        }
+    }
+}
+
+Model::Model(std::string fileName)
+{
+    drawType = DrawType::ELEMENT;
+
+    Assimp::Importer importer;
+    unsigned int importOptions = aiProcess_Triangulate //Converts polygons to triangles
+        | aiProcess_OptimizeMeshes              // Reduces the number of submeshes
+        | aiProcess_JoinIdenticalVertices       // Removes duplicate vertices
+        | aiProcess_CalcTangentSpace;           // Computes tangents and bitangents
+
+    //aiProcess_GenNormals/ai_Process_GenSmoothNormals - Generates flat/Smooth normals
+
+    const aiScene* scene = importer.ReadFile(OBJ_MODEL_PATH + fileName, importOptions);
+
+    if (scene) { //pokud bylo nacteni uspesne
+        printf("scene->mNumMeshes = %d\n", scene->mNumMeshes);
+        printf("scene->mNumMaterials = %d\n", scene->mNumMaterials);
+        //Materials
+        for (unsigned int i = 0; i < scene->mNumMaterials; i++)
+        {
+            const aiMaterial* mat = scene->mMaterials[i];
+            aiString name;
+            mat->Get(AI_MATKEY_NAME, name);
+            printf("Material [%d] name %s\n", i, name.C_Str());
+            aiColor4D d;
+            glm::vec4 diffuse = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
+            if (AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, &d))
+                diffuse = glm::vec4(d.r, d.g, d.b, d.a);
+        }
+        //Objects
+        for (unsigned int i = 0; i < scene->mNumMeshes; i++)
+        {
+            aiMesh* mesh = scene->mMeshes[i];
+            Vertex* pVertices = new Vertex[mesh->mNumVertices];
+            std::memset(pVertices, 0, sizeof(Vertex) * mesh->mNumVertices);
+            for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+            {
+                if (mesh->HasPositions()) {
+                    pVertices[i].Position[0] = mesh->mVertices[i].x;
+                    pVertices[i].Position[1] = mesh->mVertices[i].y;
+                    pVertices[i].Position[2] = mesh->mVertices[i].z;
+                }
+
+                if (mesh->HasNormals()) {
+                    pVertices[i].Normal[0] = mesh->mNormals[i].x;
+                    pVertices[i].Normal[1] = mesh->mNormals[i].y;
+                    pVertices[i].Normal[2] = mesh->mNormals[i].z;
+                }
+
+                if (mesh->HasTextureCoords(0)) {
+                    pVertices[i].Texture[0] = mesh->mTextureCoords[0][i].x;
+                    pVertices[i].Texture[1] = mesh->mTextureCoords[0][i].y;
+                }
+
+                if (mesh->HasTangentsAndBitangents()) {
+                    pVertices[i].Tangent[0] = mesh->mTangents[i].x;
+                    pVertices[i].Tangent[1] = mesh->mTangents[i].y;
+                    pVertices[i].Tangent[2] = mesh->mTangents[i].z;
+                }
+            }
+
+            unsigned int* pIndices = nullptr;
+            if (mesh->HasFaces()) {
+                pIndices = new unsigned int[mesh->mNumFaces * 3];
+                for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+                    pIndices[i * 3] = mesh->mFaces[i].mIndices[0];
+                    pIndices[i * 3 + 1] = mesh->mFaces[i].mIndices[1];
+                    pIndices[i * 3 + 2] = mesh->mFaces[i].mIndices[2];
+                }
+            }
+
+            VAO = 0;
+            glGenVertexArrays(1, &VAO);
+
+            VBO = 0;
+            glGenBuffers(1, &VBO);
+
+            GLuint IBO = 0;
+            glGenBuffers(1, &IBO);
+
+            glBindVertexArray(VAO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mesh->mNumVertices, pVertices, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(0));
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(3 * sizeof(GLfloat)));
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
+
+            //Tangent for Normal Map
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(8 * sizeof(GLfloat)));
+
+            //Index Buffer
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mesh->mNumFaces * 3, pIndices, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(VAO);
+
+            GLuint err = glGetError();
+            if (err != GL_NO_ERROR) {
+                std::cout << "GL ERROR: " << err << std::endl;
+            }
+            objectSize = mesh->mNumFaces * 3;
+            delete[] pVertices;
+            delete[] pIndices;
+        }
+    }
+    else {
+        printf("Error during parsing mesh from %s : %s \n", fileName.c_str(), importer.GetErrorString());
+    }
+    glBindVertexArray(0);
+}
+
+// Delete the model
+Model::~Model() {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+}
+
+void Model::Model0(const float* points, size_t size) {
+    objectSize = size / (sizeof(float) * 3); // 3 floats (3 position)
+
+    glGenVertexArrays(1, &VAO); // generate the VAO
+    glGenBuffers(1, &VBO); // generate the VBO
+
+    glBindVertexArray(VAO); // bind the VAO
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the VBO
+    glBufferData(GL_ARRAY_BUFFER, size, points, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);  // Enable position attribute
+
+    // Position attribute: location 0, 3 floats, stride of 3 floats
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void Model::Model1(const float* points, size_t size) {
+    objectSize = size / (sizeof(float) * 6); // 6 floats (3 position, 3 normal)
+
+    glGenVertexArrays(1, &VAO); // generate the VAO
+    glGenBuffers(1, &VBO); // generate the VBO
+
+    glBindVertexArray(VAO); // bind the VAO
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the VBO
+    glBufferData(GL_ARRAY_BUFFER, size, points, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);  // Enable position attribute
+    glEnableVertexAttribArray(1);  // Enable normal attribute
+
+    // Position attribute: location 0, 3 floats, stride of 6 floats
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)0);
+
+    // Normal attribute: location 1, 3 floats, offset by 3 floats
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void Model::Model2(const float* points, size_t size) {
+    objectSize = size / (sizeof(float) * 8); // 8 floats (3 position, 3 normal, 2 texCoords)
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, size, points, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    // Positions (location = 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)0);
+
+    // Normals (location = 1)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+
+    // Texture Coordinates (location = 2)
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+// Draw the object
+void Model::draw() {
+    glBindVertexArray(VAO);
+    if (drawType == DrawType::ARRAY) {
+        glDrawArrays(GL_TRIANGLES, 0, objectSize); // Possible to use GL_TRIANGLE_STRIP
+    }
+    else {
+        glDrawElements(GL_TRIANGLES, objectSize, GL_UNSIGNED_INT, NULL);
+    }
+    glBindVertexArray(0);
+}#pragma once
+#include <GL/glew.h>
+#include <cstddef>
+#include <iostream>
+#include <vector>
+#include <glm/glm.hpp>
+#include<assimp/Importer.hpp>	// C++ importerinterface
+#include<assimp/scene.h>		// aiSceneoutputdata structure
+#include<assimp/postprocess.h>	// Post processingflags
+
+#include "DrawType.h"
+
+//Include objects
+#include "sphere.h"
+#include "tree.h"
+#include "bushes.h"
+#include "plain.h"
+#include "suzi_flat.h"
+#include "suzi_smooth.h"
+#include "plain_texture.h"
+#include "jehlan.h"
+#include "skycube.h"
+#include "building.h"
+
+#define OBJ_MODEL_PATH "../Models/Models/"
+
+using namespace std;
+
+struct Vertex
+{
+    float Position[3];
+    float Normal[3];
+    float Texture[2];
+    float Tangent[3];
+};
+
+
+
+class Model {
+    private:
+		GLuint VAO, VBO; // instanceVBO
+        size_t objectSize;
+        DrawType drawType;
+
+    public:
+        Model(const float* points, size_t size, int ver);
+        Model(std::string fileName);
+
+        void Model0(const float* points, size_t size); // just obj coords
+        void Model1(const float* points, size_t size); // obj coords and normals
+        void Model2(const float* points, size_t size); // obj coords, normals and texture
+
+        ~Model();
+        
+        void draw();   
+};
+#include "ModelManager.h"
+
+std::shared_ptr<Model> ModelManager::getModel(const std::string& modelName, const float* points, size_t size, int ver) {
+    // Check if the model is already loaded
+    auto it = models.find(modelName);
+    if (it != models.end()) {
+        return it->second;
+    }
+
+    // If not, load the model and store it
+    std::shared_ptr<Model> model = std::make_shared<Model>(points, size, ver);
+    models[modelName] = model;
+    cout << "Model loaded: " << modelName << endl;
+    return model;
+}
+
+std::shared_ptr<Model> ModelManager::getModel(const std::string& fileName) {
+    auto it = models.find(fileName);
+    if (it != models.end()) {
+        return it->second;
+    }
+
+    std::shared_ptr<Model> model = std::make_shared<Model>(fileName);
+    models[fileName] = model;
+    cout << "Model loaded: " << fileName << endl;
+    return model;
+}#pragma once
+
+#include <unordered_map>
+#include <string>
+#include <memory>
+#include "Model.h"
+
+class ModelManager {
+private:
+    std::unordered_map<std::string, std::shared_ptr<Model>> models;
+
+public:
+    std::shared_ptr<Model> getModel(const std::string& modelName, const float* points, size_t size, int ver);
+    std::shared_ptr<Model> getModel(const std::string& fileName);
+    void clearModels() { models.clear(); };
+};#pragma once
+#include "Light.h"
+
+class PointLight : public Light {
+public:
+    PointLight(std::shared_ptr<Model> model, const glm::vec3& position, const glm::vec3& color, float intensity,
+        const std::string& vertexShaderFile = "vertexShaderSource3",
+        const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
+        Material* material = new Material())
+        : Light(model, vertexShaderFile, fragmentShaderFile, color, intensity, material, LightType::POINT) {
+        setPosition(position);
+    }
+
+	glm::vec3 getDirection() const override { return glm::vec3(0.0f); }
+	void setDirection(const glm::vec3& dir) override { /* Do nothing */ }
+};
+#pragma once
+
+#include "BaseTransformation.h"
+#include <glm/gtc/matrix_transform.hpp>
+
+class Rotation : public BaseTransformation {
+public:
+    float angle;
+    glm::vec3 axis;
+
+    Rotation(float angleDegrees, const glm::vec3& axis) : angle(angleDegrees), axis(axis) {}
+
+    glm::mat4 getMatrix() const override {
+        if (glm::length(axis) == 0.0f) {
+            return glm::mat4(1.0f); // Return identity matrix if axis is zero
+        }
+        return glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis);
+    }
+};
+#pragma once
+
+#include "BaseTransformation.h"
+#include <glm/gtc/matrix_transform.hpp>
+
+class Scale : public BaseTransformation {
+public:
+    glm::vec3 scaleFactor;
+
+    Scale(const glm::vec3& scaleFactor) : scaleFactor(scaleFactor) {}
+
+    glm::mat4 getMatrix() const override {
+        return glm::scale(glm::mat4(1.0f), scaleFactor);
+    }
+};
+#include "Scene.h"
+
+Scene::Scene() : currentObject(0), currentCamera(0) {
+	addCamera();
+}
+
+Scene::~Scene() {
+    for (auto* obj : objects) delete obj;
+    for (auto* cam : cameras) delete cam;
+    for (auto* light : lights) delete light;
+}
+
+// Adds a new object to the scene
+void Scene::addObject(DrawableObject* object) {
+    objects.push_back(object);
+    //groupObjectsForInstancing();
+}
+
+// Deletes an object from the scene
+void Scene::deleteObject(DrawableObject* delObject) {
+    for (auto obj = objects.begin(); obj != objects.end(); obj++) {
+        if (*obj == delObject) {
+            objects.erase(obj);
+            break;
+        }
+    }
+}
+
+void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
+{
+	cameras.push_back(new Camera(position, up, yaw, pitch));
+}
+
+void Scene::addLight(std::shared_ptr<Model> model, LightType type)
+{
+    switch(type){
+	    case LightType::POINT:
+		    lights.push_back(new PointLight(model, 
+                glm::vec3(0.0f, 0.0f, 0.0f),
+			    glm::vec3(1.0f, 1.0f, 1.0f),
+                1.0f));
+		    break;
+	    case LightType::DIRECTIONAL:
+			lights.push_back(new DirectionalLight(glm::vec3(-1.0f, 0.0f, 0.0f),
+		        glm::vec3(0.0f, 1.0f, 0.0f),
+                1.0f));
+		    break;
+	    case LightType::SPOTLIGHT:
+			lights.push_back(new SpotLight(model,
+				cameras[currentCamera]->getPosition(),
+				cameras[currentCamera]->getTarget(),
+				glm::vec3(1.0f, 1.0f, 1.0f),
+				1.0f,
+                12.5f,
+                17.5f));
+		    break;
+    }
+}
+
+void Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type)
+{
+    switch (type) {
+    case LightType::POINT:
+        lights.push_back(new PointLight(model,
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            color,
+            1.0f));
+        break;
+    case LightType::DIRECTIONAL:
+        lights.push_back(new DirectionalLight(glm::vec3(0.0f, -1.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            1.0f));
+        break;
+    case LightType::SPOTLIGHT:
+        lights.push_back(new SpotLight(model,
+            cameras[currentCamera]->getPosition(),
+            cameras[currentCamera]->getTarget(),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            1.0f,
+            12.5f,
+            17.5f));
+        break;
+    }
+}
+
+Light* Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type, bool follow) {
+    Light* newLight = nullptr;
+    switch (type) {
+    case LightType::POINT:
+        newLight = new PointLight(model, position, color, intensity);
+        break;
+    case LightType::DIRECTIONAL:
+        newLight = new DirectionalLight(position, color, intensity);  // 'position' used as direction
+        break;
+    case LightType::SPOTLIGHT:
+        newLight = new SpotLight(model,
+            cameras[currentCamera]->getPosition(),
+            cameras[currentCamera]->getTarget(),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            1.0f,
+            12.5f,
+            17.5f);
+        break;
+    }
+    if (newLight) {
+        lights.push_back(newLight);
+    }
+    return newLight;
+}
+
+void Scene::setFollowingSpotLight(std::shared_ptr<Model> model)
+{
+    cameras[currentCamera]->setFollowingSpotlight(new SpotLight(
+        model,  //should be nullptr 
+		cameras[currentCamera]->getPosition(),
+		cameras[currentCamera]->getTarget(),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		1.0f,
+		12.5f,
+		17.5f));
+	lights.push_back(cameras[currentCamera]->getFollowingSpotlight());
+}
+
+// Renders all objects in the scene
+void Scene::render() {
+    // Render all objects in the scene
+    if (skyBoxSet) {
+        glDepthMask(GL_FALSE);  // Disable writing to the depth buffer
+        glDisable(GL_DEPTH_TEST);  // Disable depth testing
+		
+        drawSkyBoxes(aspectRatio);
+        
+        glEnable(GL_DEPTH_TEST); 
+        glDepthMask(GL_TRUE);   
+    }
+
+    for (DrawableObject* object : objects) {
+        object->draw();
+    }
+    for (Light* light : lights) {
+        light->draw();
+    }
+
+}
+
+void Scene::registerAllObservers(float aspectRatio)
+{
+    for (Camera* camera : cameras) {
+        for (DrawableObject* object : objects) {
+            camera->registerObserver((IObserver*)object->getShader());
+        }
+        for (Light* light : lights) {
+			camera->registerObserver((IObserver*)light->getShader());
+        }
+		if (camera->isSetSkyBox()) {
+			camera->registerObserver((IObserver*)camera->getSkyBox()->getShader());
+		}
+    }
+
+    for (Camera* camera : cameras) {
+		camera->notifyObservers(aspectRatio, lights);
+    }
+
+}
+
+void Scene::notifyCurrObservers(float aspectRatio)
+{
+	cameras[currentCamera]->notifyObservers(aspectRatio, lights);
+}
+
+// Returns the number of objects in the scene
+int Scene::objectsCount() {
+	return objects.size();
+}
+
+int Scene::getCurrCamera()
+{
+    return currentCamera;
+}
+
+int Scene::getCurrObject()
+{
+    return currentObject;
+}
+
+int Scene::getNumOfLights()
+{
+	return (int)lights.size();
+}
+
+void Scene::setAspectRatio(float aspectRatio)
+{
+    this->aspectRatio = aspectRatio;
+}
+
+void Scene::currentObjectPlus()
+{
+	currentObject++;
+	if (currentObject >= objects.size()) {
+		currentObject = 0;
+	}
+    cout << "Current object: " << currentObject << endl;
+}
+
+void Scene::currentObjectMinus()
+{
+	currentObject--;
+	if (currentObject < 0) {
+		currentObject = objects.size() - 1;
+	}
+    cout << "Current object: " << currentObject << endl;
+}
+
+void Scene::currentCameraPlus(float aspectRatio)
+{
+    currentCamera++;
+    if (currentCamera >= cameras.size()) {
+        currentCamera = 0;
+    }
+    cout << "Current camera: " << currentCamera << endl;
+
+	notifyCurrObservers(aspectRatio);
+}
+
+// Moves the current object in the scene
+void Scene::moveObject(int object, char direction) {
+    float movementSpeed = 0.01f;
+    if (object >= 0 && object < objects.size()) {
+        switch (direction) {
+        case 'u':
+            objects[object]->moveObject(glm::vec3(0.0f, movementSpeed, 0.0f)); // Move + Y-axis
+            break;
+
+        case 'd':
+            objects[object]->moveObject(glm::vec3(0.0f, -movementSpeed, 0.0f)); // Move - Y-axis
+            break;
+
+        case 'l':
+            objects[object]->moveObject(glm::vec3(-movementSpeed, 0.0f, 0.0f)); // Move + X-axis
+            break;
+
+        case 'r':
+            objects[object]->moveObject(glm::vec3(movementSpeed, 0.0f, 0.0f)); // Move - X-axis
+            break;
+
+        case 'f':
+            objects[object]->moveObject(glm::vec3(0.0f, 0.0f, movementSpeed)); // Move + Z-axis
+            break;
+
+        case 'b':
+            objects[object]->moveObject(glm::vec3(0.0f, 0.0f, -movementSpeed)); // Move - Z-axis
+            break;
+        default:
+            break;
+        }
+	}
+	else printf("Object index out of bounds\n");
+    
+}
+
+void Scene::moveObject(int object, char direction, float amount) {
+    switch (direction)
+    {
+    case 'u':
+		objects[object]->moveObject(glm::vec3(0.0f, amount, 0.0f)); // Move + Y-axis
+        break;
+
+    case 'd':
+		objects[object]->moveObject(glm::vec3(0.0f, -amount, 0.0f)); // Move - Y-axis
+        break;
+
+    case 'l':
+		objects[object]->moveObject(glm::vec3(-amount, 0.0f, 0.0f)); // Move + X-axis
+        break;
+
+    case 'r':
+		objects[object]->moveObject(glm::vec3(amount, 0.0f, 0.0f)); // Move - X-axis
+        break;
+
+    case 'f':
+		objects[object]->moveObject(glm::vec3(0.0f, 0.0f, amount)); // Move + Z-axis
+        break;
+
+    case 'b':
+		objects[object]->moveObject(glm::vec3(0.0f, 0.0f, -amount)); // Move - Z-axis
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Scene::moveLight(int light, char direction) {
+    float movementSpeed = 0.01f;
+
+    switch (direction)
+    {
+    case 'u':
+        lights[light]->moveObject(glm::vec3(0.0f, movementSpeed, 0.0f)); // Move + Y-axis
+        break;
+
+    case 'd':
+        lights[light]->moveObject(glm::vec3(0.0f, -movementSpeed, 0.0f)); // Move - Y-axis
+        break;
+
+    case 'l':
+        lights[light]->moveObject(glm::vec3(-movementSpeed, 0.0f, 0.0f)); // Move + X-axis
+        break;
+
+    case 'r':
+        lights[light]->moveObject(glm::vec3(movementSpeed, 0.0f, 0.0f)); // Move - X-axis
+        break;
+
+    case 'f':
+        lights[light]->moveObject(glm::vec3(0.0f, 0.0f, movementSpeed)); // Move + Z-axis
+        break;
+
+    case 'b':
+        lights[light]->moveObject(glm::vec3(0.0f, 0.0f, -movementSpeed)); // Move - Z-axis
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Scene::moveLight(int light, char direction, float amount) {
+    switch (direction)
+    {
+    case 'u':
+        lights[light]->moveObject(glm::vec3(0.0f, amount, 0.0f)); // Move + Y-axis
+        break;
+
+    case 'd':
+        lights[light]->moveObject(glm::vec3(0.0f, -amount, 0.0f)); // Move - Y-axis
+        break;
+
+    case 'l':
+        lights[light]->moveObject(glm::vec3(-amount, 0.0f, 0.0f)); // Move + X-axis
+        break;
+
+    case 'r':
+        lights[light]->moveObject(glm::vec3(amount, 0.0f, 0.0f)); // Move - X-axis
+        break;
+
+    case 'f':
+        lights[light]->moveObject(glm::vec3(0.0f, 0.0f, amount)); // Move + Z-axis
+        break;
+
+    case 'b':
+        lights[light]->moveObject(glm::vec3(0.0f, 0.0f, -amount)); // Move - Z-axis
+        break;
+
+    default:
+        break;
+    }
+}
+
+// Rotates the current object in the scene
+void Scene::rotateObject(int object, int direction) {
+    switch (direction) {
+    case 1:
+		objects[object]->rotateObject(glm::vec3(1.0f, 0.0f, 0.0f), 1.0f); // Rotate +1 degree on X-axis
+        break;
+
+    case 2:
+		objects[object]->rotateObject(glm::vec3(1.0f, 0.0f, 0.0f), -1.0f); // Rotate -1 degree on X-axis
+        break;
+
+    case 3:
+		objects[object]->rotateObject(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f); // Rotate +1 degree on Y-axis
+        break;
+
+    case 4:
+		objects[object]->rotateObject(glm::vec3(0.0f, 1.0f, 0.0f), -1.0f); // Rotate -1 degree on Y-axis
+        break;
+
+    case 5:
+		objects[object]->rotateObject(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f); // Rotate +1 degree on Z-axis
+        break;
+
+    case 6:
+		objects[object]->rotateObject(glm::vec3(0.0f, 0.0f, 1.0f), -1.0f); // Rotate -1 degree on Z-axis
+        break;
+
+    default:
+        break;
+    }
+}
+
+// Scales the current object in the scene
+void Scene::scaleObject(int object, char direction) {
+	if (direction == 'u') { 
+        objects[object]->scaleObject(0.01f);
+	}
+	else if (direction == 'd') { 
+		objects[object]->scaleObject(-0.01f);
+    }
+}
+
+// Resets the rotation of the current object in the scene
+void Scene::resetObjectRotation(int currentObject) {
+    objects[currentObject]->setScale(1.0f);
+}
+
+// Resets the scale of the current object in the scene
+void Scene::resetObjectScale(int currentObject) {
+    objects[currentObject]->setRotation(glm::vec3(1.0f, 0.0f, 0.0f), 0.0f);
+    objects[currentObject]->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), 0.0f);
+    objects[currentObject]->setRotation(glm::vec3(0.0f, 0.0f, 1.0f), 0.0f);
+}
+
+glm::vec3 Scene::getPositionLight(int light)
+{
+    return lights[light]->getPosition();
+}
+
+glm::vec3 Scene::getPositionObject(int object)
+{
+    return objects[object]->getPosition();
+}
+
+LightType Scene::getLightType(int light)
+{
+	return lights[light]->getType();
+}
+
+void Scene::moveCamera(int camera, char direction, float aspectRatio)
+{
+	cameras[camera]->processKeyboardMovement(direction, aspectRatio, lights);
+}
+
+void Scene::mouseMovementCamera(int camera, float xOffset, float yOffset, float aspectRatio)
+{
+	cameras[camera]->processMouseMovement(xOffset, yOffset, aspectRatio, lights);
+}
+
+void Scene::zoomCamera(int camera, double yOffset, float aspectRatio)
+{
+	cameras[camera]->processMouseScroll(yOffset, aspectRatio, lights);
+}
+
+// Returns the shaders used by the objects in the scene
+vector<Shader*> Scene::getShaders() {
+	vector<Shader*> shaders;
+
+	for (int i = 0; i < objectsCount(); i++) {
+		shaders.push_back(objects[i]->getShader());
+	}
+
+	return shaders;
+}
+
+void Scene::setSkyBox(DrawableObject* skybox)
+{
+	skyBoxSet = true;
+	cameras[currentCamera]->setSkyBox(skybox);
+}
+
+void Scene::setSkyBox(DrawableObject* skybox, int camera)
+{
+	skyBoxSet = true;
+	cameras[camera]->setSkyBox(skybox);
+}
+
+void Scene::toggleSkyBox()
+{
+	cameras[currentCamera]->toggleSkyBox();
+	cout << "Skybox toggled for camera [" << currentCamera << "]: " << cameras[currentCamera]->isFollowingSkybox() << endl;
+}
+
+void Scene::toggleSkyBox(int camera)
+{
+	cameras[camera]->toggleSkyBox();
+}
+
+void Scene::setFollowingSkybox(bool follow)
+{
+    cameras[currentCamera]->setFollowingSkybox(follow);
+}
+
+void Scene::setFollowingSkybox(bool follow, int camera)
+{
+    cameras[camera]->setFollowingSkybox(follow);
+}
+
+void Scene::drawSkyBoxes(float aspectRatio)
+{
+	for (Camera* camera : cameras) {
+        if (camera->isSetSkyBox()) {
+            camera->drawSkyBox(aspectRatio);
+		}
+		else cout << "Skybox not set for camera [" << currentCamera << "]" << endl;
+	}
+}
+
+bool Scene::isFollowingSkybox()
+{
+	return cameras[currentCamera]->isFollowingSkybox();
+}
+
+bool Scene::isFollowingSkybox(int camera)
+{
+    return cameras[camera]->isFollowingSkybox();
+}#pragma once
+#include <vector>
+#include <map>
+#include "DrawableObject.h"
+#include "Camera.h"
+#include "SpotLight.h"
+#include "PointLight.h"
+#include "DirectionalLight.h"
+
+class Scene {
+    private:
+        vector<DrawableObject*> objects;
+		std::map<std::tuple<Shader*, Model*>, std::vector<DrawableObject*>> groupedObjects;
+		vector<Camera*> cameras;
+		vector<Light*> lights;
+
+		int currentObject;
+		int currentCamera;
+
+		float aspectRatio;
+
+		bool skyBoxSet = false;
+		
+    public:
+		Scene();
+		~Scene();
+
+        void addObject(DrawableObject* object);
+	    void deleteObject(DrawableObject* object);
+
+		void addCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f);
+		
+		void addLight(std::shared_ptr<Model> model, LightType type);
+		void addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type);
+		Light* addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type, bool follow);
+		
+		void setFollowingSpotLight(std::shared_ptr<Model> model);
+		
+		void render();
+		void registerAllObservers(float aspectRatio);
+		void notifyCurrObservers(float aspectRatio);
+
+		int objectsCount();
+		int getCurrCamera();
+		int getCurrObject();
+		int getNumOfLights();
+
+		void setAspectRatio(float aspectRatio);
+		float getAspectRatio() { return aspectRatio; }
+
+		// Object controls
+		void currentObjectPlus();
+		void currentObjectMinus();
+
+		void currentCameraPlus(float aspectRatio);
+
+		vector<Shader*> getShaders();
+
+		// Object controls
+		void moveObject(int object, char direction);
+		void moveObject(int object, char direction, float amount);
+		void moveLight(int light, char direction);
+		void moveLight(int light, char direction, float amount);
+		void rotateObject(int currentObject, int direction);
+		void resetObjectRotation(int currentObject);
+		void scaleObject(int currentObject, char direction);
+		void resetObjectScale(int currentObject);
+
+		glm::vec3 getPositionLight(int light);
+		glm::vec3 getPositionObject(int object);
+
+		LightType getLightType(int light);
+
+		// Camera controls
+		void moveCamera(int camera, char direction, float aspectRatio);
+		void mouseMovementCamera(int camera, float xOffset, float yOffset, float aspectRatio);
+		void zoomCamera(int camera, double yOffset, float aspectRatio);
+
+		// Skybox 
+		void setSkyBox(DrawableObject* skybox);
+		void setSkyBox(DrawableObject* skybox, int camera);
+		void toggleSkyBox();
+		void toggleSkyBox(int camera);
+		bool isFollowingSkybox();
+		bool isFollowingSkybox(int camera);
+		void setFollowingSkybox(bool follow);
+		void setFollowingSkybox(bool follow, int camera);
+		void drawSkyBoxes(float aspectRatio);
+};
+#include "Shader.h"
+#include "SpotLight.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
+
+Shader::Shader(string vertexFile, string fragmentFile, float shininess) {
+	this->shininess = shininess;
+
+	cout << "Shininess" << this->shininess << endl;
+
+    vertexFile = "../Shaders/Vertex/" + vertexFile + ".glsl";
+	fragmentFile = "../Shaders/Fragment/" + fragmentFile + ".glsl";
+
+	ID = loadShader(vertexFile.c_str(), fragmentFile.c_str());
+}
+
+// Compile a shader from source code
+GLuint Shader::compileShader(const char* source, GLenum type) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+    checkCompileErrors(shader, (type == GL_VERTEX_SHADER) ? "VERTEX" : "FRAGMENT");
+    return shader;
+}
+
+// Check for compilation errors
+void Shader::checkCompileErrors(GLuint shader, string type) {
+    GLint success;
+    GLchar infoLog[1024];
+    if (type != "PROGRAM") {
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+            cerr << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    else {
+        glGetProgramiv(shader, GL_LINK_STATUS, &success);
+        if (!success) {
+            glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+            cerr << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void Shader::update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) {
+    use();
+
+    glUniformMatrix4fv(getUniformLocation("viewMatrix"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+    glUniformMatrix4fv(getUniformLocation("projectionMatrix"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+    glUniform3fv(getUniformLocation("viewPosition"), 1, glm::value_ptr(viewPosition));
+
+    // Separate lights by type
+    std::vector<LightData> pointLights;
+    std::vector<LightData> dirLights;
+    std::vector<LightData> spotLights;
+
+    for (const auto& light : lights) {
+        switch (light.type) {
+        case LightType::POINT:
+            pointLights.push_back(light);
+            break;
+        case LightType::DIRECTIONAL:
+            dirLights.push_back(light);
+            break;
+        case LightType::SPOTLIGHT:
+            spotLights.push_back(light);
+            break;
+        default:
+            std::cerr << "Unknown light type detected!" << std::endl;
+        }
+    }
+
+    setPointLights(pointLights);
+
+    setDirLights(dirLights);
+
+    setSpotLights(spotLights);
+
+    glUniform1f(getUniformLocation("shininess"), shininess);
+
+    // Debug information
+    /*std::cout << "Number of Point Lights: " << pointLights.size() << std::endl;
+    std::cout << "Number of Dir Lights: " << dirLights.size() << std::endl;
+    std::cout << "Number of Spot Lights: " << spotLights.size() << std::endl;
+
+    for (size_t i = 0; i < pointLights.size(); ++i) {
+        std::cout << "Point Light [" << i << "] Position: "
+            << pointLights[i].position.x << ", "
+            << pointLights[i].position.y << ", "
+            << pointLights[i].position.z << std::endl;
+        std::cout << "Point Light [" << i << "] Color: "
+            << pointLights[i].color.r << ", "
+            << pointLights[i].color.g << ", "
+            << pointLights[i].color.b << std::endl;
+        std::cout << "Point Light [" << i << "] Intensity: " << pointLights[i].intensity << std::endl;
+    }*/
+}
+
+
+// Retrieve the location of a uniform, caching it after the first retrieval
+GLint Shader::getUniformLocation(const string& name) {
+    // If the uniform location is not in the cache, get it from the shader and cache it
+    if (uniformLocations.find(name) == uniformLocations.end()) {
+        uniformLocations[name] = glGetUniformLocation(ID, name.c_str());
+    }
+    // Return the cached location
+    return uniformLocations[name];
+}
+
+
+void Shader::setSpotLights(const std::vector<LightData>& spotLights) {
+    int spotLightCount = static_cast<int>(spotLights.size());
+    glUniform1i(getUniformLocation("numberOfSpotLights"), spotLightCount);
+
+    for (int i = 0; i < spotLightCount && i < MAX_SPOT_LIGHTS; ++i) {
+        std::string index = std::to_string(i);
+
+        glUniform3fv(getUniformLocation("spotLights[" + index + "].position"), 1, glm::value_ptr(spotLights[i].position));
+        glUniform3fv(getUniformLocation("spotLights[" + index + "].direction"), 1, glm::value_ptr(spotLights[i].direction));
+        glUniform3fv(getUniformLocation("spotLights[" + index + "].color"), 1, glm::value_ptr(spotLights[i].color));
+        glUniform1f(getUniformLocation("spotLights[" + index + "].intensity"), spotLights[i].intensity);
+        glUniform1f(getUniformLocation("spotLights[" + index + "].cutOff"), glm::cos(glm::radians(spotLights[i].cutOff)));
+        glUniform1f(getUniformLocation("spotLights[" + index + "].outerCutOff"), glm::cos(glm::radians(spotLights[i].outerCutOff)));
+    }
+}
+
+void Shader::setPointLights(const std::vector<LightData>& pointLights) {
+    int pointLightCount = static_cast<int>(pointLights.size());
+    glUniform1i(getUniformLocation("numberOfPointLights"), pointLightCount);
+
+    for (int i = 0; i < pointLightCount && i < MAX_POINT_LIGHTS; ++i) {
+        std::string index = std::to_string(i);
+
+        glUniform3fv(getUniformLocation("pointLights[" + index + "].position"), 1, glm::value_ptr(pointLights[i].position));
+        glUniform3fv(getUniformLocation("pointLights[" + index + "].color"), 1, glm::value_ptr(pointLights[i].color));
+        glUniform1f(getUniformLocation("pointLights[" + index + "].intensity"), pointLights[i].intensity);
+    }
+}
+
+void Shader::setDirLights(const std::vector<LightData>& dirLights) {
+    int dirLightCount = static_cast<int>(dirLights.size());
+    glUniform1i(getUniformLocation("numberOfDirLights"), dirLightCount);
+
+    for (int i = 0; i < dirLightCount && i < MAX_DIR_LIGHTS; ++i) {
+        std::string index = std::to_string(i);
+
+        glUniform3fv(getUniformLocation("dirLights[" + index + "].direction"), 1, glm::value_ptr(dirLights[i].direction));
+        glUniform3fv(getUniformLocation("dirLights[" + index + "].color"), 1, glm::value_ptr(dirLights[i].color));
+        glUniform1f(getUniformLocation("dirLights[" + index + "].intensity"), dirLights[i].intensity);
+    }
+}
+
+void Shader::setMaterial(const Material* material) {
+    //use(); 
+    glUniform3fv(getUniformLocation("material.ambient"), 1, glm::value_ptr(material->getAmbient()));
+    glUniform3fv(getUniformLocation("material.diffuse"), 1, glm::value_ptr(material->getDiffuse()));
+    glUniform3fv(getUniformLocation("material.specular"), 1, glm::value_ptr(material->getSpecular()));
+    glUniform1f(getUniformLocation("material.shininess"), material->getShininess());
+
+    if (material->getTexture() != nullptr){
+        // Bind and set textures
+        material->bindTexture(material->getTextureUnit());
+        if (material->getTextureType() == TextureType::Texture2D) {
+            glUniform1i(getUniformLocation("textureUnitID"), material->getTextureUnit());
+            glUniform1i(getUniformLocation("material.hasTexture"), 1);
+        }
+        else {
+			glUniform1i(getUniformLocation("UISky"), material->getTextureUnit());
+        }
+        
+	}
+	else {
+		glUniform1i(getUniformLocation("material.hasTexture"), 0);
+	}
+}
+
+
+#pragma once
+#include <GL/glew.h>
+#include <iostream>
+#include <unordered_map>
+
+#include <glm/gtc/type_ptr.hpp>
+
+#include "IObserver.h"
+#include "ShaderLoader.h"
+#include "LightData.h"
+#include "Material.h"
+
+
+#define MAX_SPOT_LIGHTS 4
+#define MAX_DIR_LIGHTS 4
+#define MAX_POINT_LIGHTS 4
+
+using namespace std;
+
+class Shader : IObserver, ShaderLoader{
+    private:
+        GLuint ID;
+        unordered_map<string, GLint> uniformLocations;  // Cache for uniform locations
+        float shininess;
+
+        void checkCompileErrors(GLuint shader, string type);
+
+    public:
+        Shader(string vertexFile, string fragmentFile, float shininess = 50.0f);
+
+	    GLuint compileShader(const char* source, GLenum type);
+
+        void use() {
+            glUseProgram(ID);
+        }
+
+        // Observer's update method implementation
+        void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) override;
+
+        void deleteShader() {
+            glDeleteProgram(ID);
+        }
+
+        GLuint getShaderID() {
+		    return ID;
+	    }
+
+        GLint getUniformLocation(const string& name);
+        
+        void setSpotLights(const std::vector<LightData>& spotLights);
+        void setPointLights(const std::vector<LightData>& pointLights);
+        void setDirLights(const std::vector<LightData>& dirLights);
+
+        void setMaterial(const Material* material);
+};
+#include "ShaderLoader.h"
+
+string ShaderLoader::loadFile(const char *fname)
+{
+	ifstream file(fname);
+	if (!file.is_open())
+	{
+		cout << "Unable to open file " << fname << endl;
+		//exit(1);
+	}
+	std::stringstream fileData;
+	fileData << file.rdbuf();
+	file.close();
+	return fileData.str();
+}
+
+GLuint ShaderLoader::loadShader(const char *vertexFile, const char *fragmentFile){
+	printf("Shader::loadShader %s %s \n", vertexFile, fragmentFile);
+	string vertexShaderString = loadFile(vertexFile);
+	string fragmentShaderString = loadFile(fragmentFile);
+	int vlen = vertexShaderString.length();
+	int flen = fragmentShaderString.length();
+
+	if (vertexShaderString.empty()) printf("Empty Vertex Shader\n");
+	if (fragmentShaderString.empty()) printf("Empty Fragment Shader\n");
+
+	const char *vertexShaderCStr = vertexShaderString.c_str();
+	const char *fragmentShaderCStr = fragmentShaderString.c_str();
+
+	vertexID = glCreateShader(GL_VERTEX_SHADER);    //Vertex Shader
+	glShaderSource(vertexID, 1, (const GLchar **)&vertexShaderCStr, &vlen);
+	glCompileShader(vertexID);
+	GLint status;
+	glGetShaderiv(vertexID, GL_COMPILE_STATUS, &status);
+	if (status == GL_FALSE)
+	{
+		GLint infoLogLength;
+		glGetShaderiv(vertexID, GL_INFO_LOG_LENGTH, &infoLogLength);
+		GLchar *strInfoLog = new GLchar[infoLogLength + 1];
+		glGetShaderInfoLog(vertexID, infoLogLength, NULL, strInfoLog);
+		fprintf(stderr, "Compile failure in Vertex shader:\n%s\n", strInfoLog);
+		delete[] strInfoLog;
+	}
+
+	fragmentID = glCreateShader(GL_FRAGMENT_SHADER); //Fragment Shader
+	glShaderSource(fragmentID, 1, (const GLchar **)&fragmentShaderCStr, &flen);
+	glCompileShader(fragmentID);
+
+	glGetShaderiv(fragmentID, GL_COMPILE_STATUS, &status);
+	if (status == GL_FALSE)
+	{
+		GLint infoLogLength;
+		glGetShaderiv(fragmentID, GL_INFO_LOG_LENGTH, &infoLogLength);
+		GLchar *strInfoLog = new GLchar[infoLogLength + 1];
+		glGetShaderInfoLog(fragmentID, infoLogLength, NULL, strInfoLog);
+		fprintf(stderr, "Compile failure in Fragment shader:\n%s\n", strInfoLog);
+		delete[] strInfoLog;
+	}
+
+	shaderProgramID = glCreateProgram();
+	glAttachShader(shaderProgramID, vertexID);
+	glAttachShader(shaderProgramID, fragmentID);
+	glLinkProgram(shaderProgramID);
+
+	glGetProgramiv(shaderProgramID, GL_LINK_STATUS, &status);
+	if (status == GL_FALSE)
+	{
+		GLint infoLogLength;
+		glGetProgramiv(shaderProgramID, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+		GLchar *strInfoLog = new GLchar[infoLogLength + 1];
+		glGetProgramInfoLog(shaderProgramID, infoLogLength, NULL, strInfoLog);
+		fprintf(stderr, "Linker failure: %s\n", strInfoLog);
+		delete[] strInfoLog;
+	}else printf(" Shader:Load OK \n");
+
+	return shaderProgramID;
+}
+
+void ShaderLoader::deleteShader(){
+	printf("ShaderLoader::deleteShader()\n");
+	glDetachShader(shaderProgramID, vertexID);
+	glDetachShader(shaderProgramID, fragmentID);
+	glDeleteShader(vertexID);
+	glDeleteShader(fragmentID);
+	glUseProgram(0);
+	glDeleteProgram(this->shaderProgramID);
+
+}
+
+ShaderLoader::ShaderLoader(const char *vertexFile, const char *fragmentFile, GLuint *shaderID) {
+	
+	*shaderID = loadShader(vertexFile, fragmentFile);
+}
+
+
+
+ShaderLoader::ShaderLoader()
+{
+}
+
+
+ShaderLoader::~ShaderLoader()
+{
+}
+#pragma once
+//GLEW - The OpenGL Extension Wrangler Library
+#include <GL/glew.h>
+
+#include <string.h> 
+#include <stdio.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+
+
+using namespace std;
+
+class ShaderLoader
+{
+	GLuint vertexID = 0;
+	GLuint fragmentID = 0;
+	string loadFile(const char *fname);
+protected:
+	GLuint	shaderProgramID=0;
+public:
+	GLuint loadShader(const char *vertexFile, const char *fragmentFile);
+	void deleteShader();
+	ShaderLoader();
+	ShaderLoader(const char *vertexFile, const char *fragmentFile, GLuint *shaderID);
+	~ShaderLoader();
+};
+#pragma once
+#include "Light.h"
+
+class SpotLight : public Light {
+private:
+    glm::vec3 direction;
+    float cutOff;
+    float outerCutOff;
+
+public:
+    SpotLight(std::shared_ptr<Model> model, const glm::vec3& position, const glm::vec3& direction,
+        const glm::vec3& color, float intensity, float cutOffAngle, float outerCutOffAngle,
+        const std::string& vertexShaderFile = "vertexShaderSource3",
+        const std::string& fragmentShaderFile = "LambertFragmentShaderSource",
+        Material* material = new Material())
+        : Light(model, vertexShaderFile, fragmentShaderFile, color, intensity, material, LightType::SPOTLIGHT),
+        direction(glm::normalize(direction)), cutOff(cutOffAngle), outerCutOff(outerCutOffAngle) {
+        setPosition(position);
+    }
+
+    glm::vec3 getDirection() const override { return direction; }
+    void setDirection(const glm::vec3& dir) override { direction = glm::normalize(dir); }
+
+    float getCutOff() const { return cutOff; }
+    void setCutOff(float angle) { cutOff = angle; }
+
+    float getOuterCutOff() const { return outerCutOff; }
+    void setOuterCutOff(float angle) { outerCutOff = angle; }
+};
+#include "Texture.h"
+#include <iostream>
+
+Texture::Texture(const std::string& name, int textureCount, int ver) 
+    : id(0), name(name), textureUnit(textureCount), type(TextureType::Texture2D) {
+    if (ver == 1) {
+        id = SOIL_load_OGL_texture(
+            (TEXTURE_PATH + name).c_str(),
+            SOIL_LOAD_RGBA,    
+            SOIL_CREATE_NEW_ID,
+            SOIL_FLAG_INVERT_Y 
+        );
+
+        if (id == 0) {
+            std::cerr << "Failed to load texture at path: " << name << "\nSOIL error: " << SOIL_last_result() << std::endl;
+        }
+        else {
+            // Set texture parameters (optional)
+            glBindTexture(GL_TEXTURE_2D, id);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+    }
+    else {
+        id = SOIL_load_OGL_cubemap(
+            (TEXTURE_PATH_CUBE + (std::string)"posx.jpg").c_str(),
+            (TEXTURE_PATH_CUBE + (std::string)"negx.jpg").c_str(),
+            (TEXTURE_PATH_CUBE + (std::string)"posy.jpg").c_str(),
+            (TEXTURE_PATH_CUBE + (std::string)"negy.jpg").c_str(),
+            (TEXTURE_PATH_CUBE + (std::string)"posz.jpg").c_str(),
+            (TEXTURE_PATH_CUBE + (std::string)"negz.jpg").c_str(),
+            SOIL_LOAD_RGB,
+            SOIL_CREATE_NEW_ID,
+            SOIL_FLAG_MIPMAPS
+        );
+
+        if (id == 0) {
+            std::cerr << "Failed to load cube map at pathCube: " << TEXTURE_PATH_CUBE << "\nSOIL error: " << SOIL_last_result() << std::endl;
+        }
+        else {
+            // Set texture parameters (optional)
+            glBindTexture(GL_TEXTURE_CUBE_MAP, id); //GL_TEXTURE_2D
+
+            //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  // Add this
+            //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);  //GL_TEXTURE_2D 
+
+            //glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+        }
+    }
+    
+}
+
+Texture::~Texture() {
+    glDeleteTextures(1, &id);
+}
+
+void Texture::bind() {
+    if (type == TextureType::CubeMap) {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, id);
+    }
+    else {
+        glBindTexture(GL_TEXTURE_2D, id);
+    }
+}
+#pragma once
+#include <string>
+#include <GL/glew.h>
+#include <iostream>
+#include <SOIL.h>
+
+#include "TextureType.h"
+
+#define TEXTURE_PATH "../Textures/"
+#define TEXTURE_PATH_CUBE "../Textures/cubemap/"
+
+using namespace std;
+
+class Texture {
+private:
+    GLuint id;
+	GLuint textureUnit;
+    std::string name;
+	TextureType type;
+
+public:
+    Texture(const std::string& name, int textureCount, int ver);
+    ~Texture();
+
+	GLuint getID() const {
+		return id;
+	}
+
+	GLuint getTextureUnit() const {
+		return textureUnit;
+	}
+
+	TextureType getType() const {
+		return type;
+	}
+
+    void bind();
+};
+#include "TextureManager.h"
+
+std::shared_ptr<Texture> TextureManager::getTexture(const std::string& textureName) {
+    auto it = textures.find(textureName);
+    if (it != textures.end()) {
+        return it->second;
+    }
+    else {
+        auto texture = std::make_shared<Texture>(textureName, textures.size(), 0);
+        textures[textureName] = texture;
+        cout << "Texture loaded: " << textureName << endl;
+        return texture;
+    }
+}
+
+std::shared_ptr<Texture> TextureManager::getCubeMap() {
+	auto it = textures.find("skybox");
+	if (it != textures.end()) {
+		return it->second;
+	}
+	else {
+		auto texture = std::make_shared<Texture>("skybox", textures.size(), 1);
+		textures["skybox"] = texture;
+		cout << "Skybox loaded" << endl;
+		return texture;
+	}
+}
+#pragma once
+#include <unordered_map>
+#include <string>
+#include <memory>
+#include "Texture.h"
+
+class TextureManager {
+private:
+    std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
+
+public:
+    std::shared_ptr<Texture> getTexture(const std::string& textureName);
+	std::shared_ptr<Texture> getCubeMap();
+};
+#pragma once
+
+enum class TextureType {
+    Texture2D,
+    CubeMap
+};
+#include "Transformation.h"
+
+Transformation::Transformation() {
+    addTransformation(new Translation(glm::vec3(0.0f)));
+    addTransformation(new Rotation(0.0f, glm::vec3(1.0f, 0.0f, 0.0f)));
+    addTransformation(new Rotation(0.0f, glm::vec3(0.0f, 1.0f, 0.0f)));
+    addTransformation(new Rotation(0.0f, glm::vec3(0.0f, 0.0f, 1.0f)));
+    addTransformation(new Scale(glm::vec3(1.0f)));
+}
+
+Transformation::~Transformation() {
+    for (auto* child : transformations) {
+        delete child;
+    }
+}
+
+// Returns the transformation matrix
+glm::mat4 Transformation::getMatrix() const {
+    glm::mat4 result = glm::mat4(1.0f);
+    for (const auto& child : transformations) {
+        result *= child->getMatrix();
+    }
+    return result;
+}
+
+// Position
+void Transformation::moveObject(const glm::vec3& offset) {
+    Translation* translation = nullptr;
+
+    // Search for an existing Translation transformation
+    for (auto* trans : transformations) {
+        translation = dynamic_cast<Translation*>(trans);
+        if (translation) {
+            break;
+        }
+    }
+
+    // Modify the existing Translation or add a new one
+    if (translation) {
+        translation->offset += offset; 
+    }
+    else {
+        translation = new Translation(offset);
+        addTransformation(translation);
+    }
+}
+
+void Transformation::setPosition(const glm::vec3& position) {
+    Translation* translation = nullptr;
+
+    for (auto* trans : transformations) {
+        translation = dynamic_cast<Translation*>(trans);
+        if (translation) {
+            break;
+        }
+    }
+
+    if (translation) {
+        translation->offset = position; 
+    }
+    else {
+        translation = new Translation(position);
+        addTransformation(translation);
+    }
+}
+
+// Returns the position
+glm::vec3 Transformation::getPosition(){
+    for (const auto* trans : transformations) {
+        const Translation* translation = dynamic_cast<const Translation*>(trans);
+        if (translation) {
+            return translation->offset;
+        }
+    }
+    return glm::vec3(0.0f);  // Default position if no Translation found
+}
+
+void Transformation::rotateObject(float angleDegrees, const glm::vec3& axis) {
+    // Check if there's already a Rotation with the same axis
+    for (auto* trans : transformations) {
+        Rotation* rotation = dynamic_cast<Rotation*>(trans);
+        if (rotation && rotation->axis == axis) {
+            rotation->angle += angleDegrees * 20;
+            return;
+        }
+    }
+
+    // If no matching axis found, create a new Rotation
+    Rotation* newRotation = new Rotation(angleDegrees, axis);
+    addTransformation(newRotation);
+}
+
+// Sets new rotation matrix
+void Transformation::setRotation(float angleDegrees, const glm::vec3& axis) {
+    for (auto* trans : transformations) {
+        Rotation* rotation = dynamic_cast<Rotation*>(trans);
+        if (rotation && rotation->axis == axis) {
+            rotation->angle = angleDegrees;
+            return;
+        }
+    }
+
+    Rotation* newRotation = new Rotation(angleDegrees, axis);
+    addTransformation(newRotation);
+}
+
+// Scale object by modifying or adding a Scale transformation
+void Transformation::scaleObject(const glm::vec3& scaleFactor) {
+    Scale* scaling = nullptr;
+
+    for (auto* trans : transformations) {
+        scaling = dynamic_cast<Scale*>(trans);
+        if (scaling) {
+            break;
+        }
+    }
+
+    if (scaling) {
+        scaling->scaleFactor *= scaleFactor;
+    }
+    else {
+        scaling = new Scale(scaleFactor);
+        addTransformation(scaling);
+    }
+}
+
+// Sets new scale
+void Transformation::setScale(const glm::vec3& scale) {
+    Scale* scaling = nullptr;
+
+    for (auto* trans : transformations) {
+        scaling = dynamic_cast<Scale*>(trans);
+        if (scaling) {
+            break;
+        }
+    }
+
+    if (scaling) {
+        scaling->scaleFactor = scale;
+    }
+    else {
+        scaling = new Scale(scale);
+        addTransformation(scaling);
+    }
+}
+
+#pragma once
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> 
+#include <vector>
+
+#include "BaseTransformation.h"
+#include "Translation.h"
+#include "Rotation.h"
+#include "Scale.h"
+
+using namespace std;
+
+class Transformation : public BaseTransformation
+{
+    private:
+        // (Composite pattern)
+        std::vector<BaseTransformation*> transformations;
+
+    public:
+        Transformation();
+        ~Transformation();
+
+        glm::mat4 getMatrix() const override;
+
+        void addTransformation(BaseTransformation* child) {
+            transformations.push_back(child);
+        }
+
+        void removeTransformation(BaseTransformation* child) {
+            transformations.erase(std::remove(transformations.begin(), transformations.end(), child), transformations.end());
+        }
+
+		// Position
+        void moveObject(const glm::vec3& offset);
+        void setPosition(const glm::vec3& position);
+		glm::vec3 getPosition();
+
+		// Scale
+		void scaleObject(const glm::vec3& scale);
+        void setScale(const glm::vec3& scale);
+
+		// Rotation
+		void rotateObject(float angleDegrees, const glm::vec3& axis);
+		void setRotation(float angleDegrees, const glm::vec3& axis);
+};
+
+#pragma once
+
+#include "BaseTransformation.h"
+#include <glm/gtc/matrix_transform.hpp>
+
+class Translation : public BaseTransformation {
+public:
+    glm::vec3 offset;
+
+    Translation(const glm::vec3& offset) : offset(offset) {}
+
+    glm::mat4 getMatrix() const override {
+        return glm::translate(glm::mat4(1.0f), offset);
+    }
+};
