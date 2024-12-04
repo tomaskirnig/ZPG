@@ -1,7 +1,6 @@
-#version 330 core
+#version 450
 
 struct Material {
-    sampler2D diffuseTexture;
     vec3 ambient;	
     vec3 diffuse;
     vec3 specular;	
@@ -50,6 +49,7 @@ uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform int numberOfSpotLights;
 
 uniform vec3 viewPosition;
+uniform sampler2D textureUnitID;
 
 void main() {
     //Ambient
@@ -62,7 +62,7 @@ void main() {
     vec3 diffuseColor;
 
     if (material.hasTexture) {
-        diffuseColor = texture(material.diffuseTexture, TexCoords).rgb;
+        diffuseColor = texture(textureUnitID, TexCoords).rgb;
     } else {
         diffuseColor = material.diffuse;
     }
@@ -126,5 +126,5 @@ void main() {
         result += diffuse + specular;
     }
 
-    out_Color = texture(material.diffuseTexture, TexCoords);//result
+    out_Color = vec4(result, 1.0);
 }

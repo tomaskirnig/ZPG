@@ -2,12 +2,12 @@
 #include <string>
 #include <GL/glew.h>
 #include <iostream>
+#include <SOIL.h>
 
 #include "TextureType.h"
 
-// Include textures
-#define GRASS_TEXTURE "../Textures/grass.png"
-#define WOODEN_TEXTURE "../Textures/wooden_fence.png"
+#define TEXTURE_PATH "../Textures/"
+#define TEXTURE_PATH_CUBE "../Textures/cubemap/"
 
 using namespace std;
 
@@ -16,12 +16,10 @@ private:
     GLuint id;
 	GLuint textureUnit;
     std::string name;
-    std::string path;
 	TextureType type;
 
 public:
-    Texture(const std::string& path, const std::string& name, int textureCount);
-    Texture(const std::string& name, int textureCount);
+    Texture(const std::string& name, int textureCount, int ver);
     ~Texture();
 
 	GLuint getID() const {

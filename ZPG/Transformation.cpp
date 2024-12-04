@@ -75,54 +75,46 @@ glm::vec3 Transformation::getPosition(){
     return glm::vec3(0.0f);  // Default position if no Translation found
 }
 
-void Transformation::rotateObject(float angleDegrees, const glm::vec3& axis) {
+void Transformation::rotateObject(float angleRadians, const glm::vec3& axis) {
     // Check if there's already a Rotation with the same axis
     for (auto* trans : transformations) {
         Rotation* rotation = dynamic_cast<Rotation*>(trans);
         if (rotation && rotation->axis == axis) {
-            rotation->angle += angleDegrees * 20;
+            rotation->angle += angleRadians;
             return;
         }
     }
 
     // If no matching axis found, create a new Rotation
-    Rotation* newRotation = new Rotation(angleDegrees, axis);
+    Rotation* newRotation = new Rotation(angleRadians, axis);
     addTransformation(newRotation);
 }
 
 // Sets new rotation matrix
-void Transformation::setRotation(float angleDegrees, const glm::vec3& axis) {
+void Transformation::setRotation(float angleRadians, const glm::vec3& axis) {
     for (auto* trans : transformations) {
         Rotation* rotation = dynamic_cast<Rotation*>(trans);
         if (rotation && rotation->axis == axis) {
-            rotation->angle = angleDegrees;
+            rotation->angle = angleRadians;
             return;
         }
     }
 
-    Rotation* newRotation = new Rotation(angleDegrees, axis);
+    Rotation* newRotation = new Rotation(angleRadians, axis);
     addTransformation(newRotation);
 }
 
 // Scale object by modifying or adding a Scale transformation
 void Transformation::scaleObject(const glm::vec3& scaleFactor) {
-    Scale* scaling = nullptr;
-
     for (auto* trans : transformations) {
-        scaling = dynamic_cast<Scale*>(trans);
-        if (scaling) {
-            break;
+        if (Scale* scaling = dynamic_cast<Scale*>(trans)) {
+            scaling->scaleFactor *= scaleFactor;
+            return;
         }
     }
-
-    if (scaling) {
-        scaling->scaleFactor *= scaleFactor;
-    }
-    else {
-        scaling = new Scale(scaleFactor);
-        addTransformation(scaling);
-    }
+    addTransformation(new Scale(scaleFactor));
 }
+
 
 // Sets new scale
 void Transformation::setScale(const glm::vec3& scale) {

@@ -44,7 +44,7 @@ class DrawableObject {
         }
 
         void scaleObject(const float scale) {
-			transformation->scaleObject(glm::vec3 (1.0f) * scale);
+			transformation->scaleObject(glm::vec3 (scale));
 		}
 
         void setScale(const float scale) {

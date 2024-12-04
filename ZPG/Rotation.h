@@ -14,6 +14,6 @@ public:
         if (glm::length(axis) == 0.0f) {
             return glm::mat4(1.0f); // Return identity matrix if axis is zero
         }
-        return glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis);
+        return glm::rotate(glm::mat4(1.0f), angle, axis);
     }
 };

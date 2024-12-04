@@ -36,20 +36,20 @@ void Scene::addLight(std::shared_ptr<Model> model, LightType type)
     switch(type){
 	    case LightType::POINT:
 		    lights.push_back(new PointLight(model, 
-                glm::vec3(0.0f, 0.0f, 0.0f),
-			    glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec3(0.0f),
+			    glm::vec3(1.0f),
                 1.0f));
 		    break;
 	    case LightType::DIRECTIONAL:
-			lights.push_back(new DirectionalLight(glm::vec3(-1.0f, 0.0f, 0.0f),
-		        glm::vec3(0.0f, 1.0f, 0.0f),
+			lights.push_back(new DirectionalLight(glm::vec3(-1.0f, -1.0f, 0.0f),
+		        glm::vec3(1.0f),
                 1.0f));
 		    break;
 	    case LightType::SPOTLIGHT:
 			lights.push_back(new SpotLight(model,
 				cameras[currentCamera]->getPosition(),
 				cameras[currentCamera]->getTarget(),
-				glm::vec3(1.0f, 1.0f, 1.0f),
+				glm::vec3(1.0f),
 				1.0f,
                 12.5f,
                 17.5f));
@@ -62,20 +62,20 @@ void Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3
     switch (type) {
     case LightType::POINT:
         lights.push_back(new PointLight(model,
-            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f),
             color,
             1.0f));
         break;
     case LightType::DIRECTIONAL:
         lights.push_back(new DirectionalLight(glm::vec3(0.0f, -1.0f, 0.0f),
-            glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(1.0f),
             1.0f));
         break;
     case LightType::SPOTLIGHT:
         lights.push_back(new SpotLight(model,
             cameras[currentCamera]->getPosition(),
             cameras[currentCamera]->getTarget(),
-            glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(1.0f),
             1.0f,
             12.5f,
             17.5f));
@@ -96,7 +96,7 @@ Light* Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::ve
         newLight = new SpotLight(model,
             cameras[currentCamera]->getPosition(),
             cameras[currentCamera]->getTarget(),
-            glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(1.0f),
             1.0f,
             12.5f,
             17.5f);
@@ -114,7 +114,7 @@ void Scene::setFollowingSpotLight(std::shared_ptr<Model> model)
         model,  //should be nullptr 
 		cameras[currentCamera]->getPosition(),
 		cameras[currentCamera]->getTarget(),
-		glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3(1.0f),
 		1.0f,
 		12.5f,
 		17.5f));
@@ -356,31 +356,62 @@ void Scene::moveLight(int light, char direction, float amount) {
     }
 }
 
-// Rotates the current object in the scene
-void Scene::rotateObject(int object, int direction) {
+// Rotates object -> 1 = X, 2 = -X, 3 = Y, 4 = -Y, 5 = Z, 6 = -Z
+void Scene::rotateObject(int object, int direction, float amount) {
     switch (direction) {
     case 1:
-		objects[object]->rotateObject(glm::vec3(1.0f, 0.0f, 0.0f), 1.0f); // Rotate +1 degree on X-axis
+		objects[object]->rotateObject(glm::vec3(1.0f, 0.0f, 0.0f), amount); // Rotate +1 degree on X-axis
         break;
 
     case 2:
-		objects[object]->rotateObject(glm::vec3(1.0f, 0.0f, 0.0f), -1.0f); // Rotate -1 degree on X-axis
+		objects[object]->rotateObject(glm::vec3(1.0f, 0.0f, 0.0f), -amount); // Rotate -1 degree on X-axis
         break;
 
     case 3:
-		objects[object]->rotateObject(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f); // Rotate +1 degree on Y-axis
+		objects[object]->rotateObject(glm::vec3(0.0f, 1.0f, 0.0f), amount); // Rotate +1 degree on Y-axis
         break;
 
     case 4:
-		objects[object]->rotateObject(glm::vec3(0.0f, 1.0f, 0.0f), -1.0f); // Rotate -1 degree on Y-axis
+		objects[object]->rotateObject(glm::vec3(0.0f, 1.0f, 0.0f), -amount); // Rotate -1 degree on Y-axis
         break;
 
     case 5:
-		objects[object]->rotateObject(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f); // Rotate +1 degree on Z-axis
+		objects[object]->rotateObject(glm::vec3(0.0f, 0.0f, 1.0f), amount); // Rotate +1 degree on Z-axis
         break;
 
     case 6:
-		objects[object]->rotateObject(glm::vec3(0.0f, 0.0f, 1.0f), -1.0f); // Rotate -1 degree on Z-axis
+		objects[object]->rotateObject(glm::vec3(0.0f, 0.0f, 1.0f), -amount); // Rotate -1 degree on Z-axis
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Scene::setObjectRotation(int object, int direction, float amount) {
+    switch (direction) {
+    case 1:
+        objects[object]->setRotation(glm::vec3(1.0f, 0.0f, 0.0f), amount); // Rotate +1 degree on X-axis
+        break;
+
+    case 2:
+        objects[object]->setRotation(glm::vec3(1.0f, 0.0f, 0.0f), -amount); // Rotate -1 degree on X-axis
+        break;
+
+    case 3:
+        objects[object]->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), amount); // Rotate +1 degree on Y-axis
+        break;
+
+    case 4:
+        objects[object]->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), -amount); // Rotate -1 degree on Y-axis
+        break;
+
+    case 5:
+        objects[object]->setRotation(glm::vec3(0.0f, 0.0f, 1.0f), amount); // Rotate +1 degree on Z-axis
+        break;
+
+    case 6:
+        objects[object]->setRotation(glm::vec3(0.0f, 0.0f, 1.0f), -amount); // Rotate -1 degree on Z-axis
         break;
 
     default:
@@ -390,12 +421,12 @@ void Scene::rotateObject(int object, int direction) {
 
 // Scales the current object in the scene
 void Scene::scaleObject(int object, char direction) {
-	if (direction == 'u') { 
-        objects[object]->scaleObject(0.01f);
-	}
-	else if (direction == 'd') { 
-		objects[object]->scaleObject(-0.01f);
-    }
+    float scaleFactor = (direction == 'u') ? 1.01f : 0.99f;
+    objects[object]->scaleObject(scaleFactor);
+}
+
+void Scene::setScaleObject(int object, float amount) {
+    objects[object]->scaleObject(amount);
 }
 
 // Resets the rotation of the current object in the scene

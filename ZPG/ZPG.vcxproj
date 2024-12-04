@@ -104,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include;..\Libraries\glm-master\glm-master;..\Libraries\glew-2.1.0-win32\glew-2.1.0\include;..\Libraries\AntTweakBar\include;..\Libraries\soil\include;..\Models\Models;..\Textures;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include;..\Libraries\glm-master\glm-master;..\Libraries\glew-2.1.0-win32\glew-2.1.0\include;..\Libraries\AntTweakBar\include;..\Libraries\soil\include;..\Libraries\assimp\include;..\Models\Models;..\Textures;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\lib-vc2022;..\Libraries\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;..\Libraries\AntTweakBar\lib;F:\VS\ZPG\Libraries\soil\lib-vc2012\Platform_x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glfw3.lib;glew32.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\lib-vc2022;..\Libraries\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;..\Libraries\AntTweakBar\lib;..\Libraries\soil\lib-vc2012\Platform_x64;..\Libraries\assimp\lib\x64\v140\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;glfw3.lib;glew32.lib;SOIL.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -150,6 +150,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="DrawableObject.h" />
+    <ClInclude Include="DrawType.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightData.h" />
     <ClInclude Include="LightType.h" />

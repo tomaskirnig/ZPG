@@ -13,3 +13,15 @@ std::shared_ptr<Model> ModelManager::getModel(const std::string& modelName, cons
     cout << "Model loaded: " << modelName << endl;
     return model;
 }
+
+std::shared_ptr<Model> ModelManager::getModel(const std::string& fileName) {
+    auto it = models.find(fileName);
+    if (it != models.end()) {
+        return it->second;
+    }
+
+    std::shared_ptr<Model> model = std::make_shared<Model>(fileName);
+    models[fileName] = model;
+    cout << "Model loaded: " << fileName << endl;
+    return model;
+}

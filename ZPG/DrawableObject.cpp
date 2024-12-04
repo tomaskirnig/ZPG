@@ -43,7 +43,7 @@ void DrawableObject::draw(bool following, glm::mat4 viewMatrix, glm::mat4 projec
     if (model != nullptr) {
         shader->use(); // Set the shader to be used
         if (following) {
-            viewMatrix = glm::mat4(glm::mat3(viewMatrix));
+			viewMatrix = glm::mat4(glm::mat3(viewMatrix));// Throw out the transaltion part
         }
 
         // Get the uniform location

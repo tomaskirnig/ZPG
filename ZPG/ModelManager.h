@@ -11,5 +11,6 @@ private:
 
 public:
     std::shared_ptr<Model> getModel(const std::string& modelName, const float* points, size_t size, int ver);
+    std::shared_ptr<Model> getModel(const std::string& fileName);
     void clearModels() { models.clear(); };
 };

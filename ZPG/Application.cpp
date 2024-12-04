@@ -407,18 +407,37 @@ void Application::scroll_callback(GLFWwindow* window, double xOffset, double yOf
 void Application::addForest(int sceneIndex, int numTrees) {
     std::shared_ptr<Model> treeModel = modelManager.getModel("tree", tree, sizeof(tree), 1);
 	std::shared_ptr<Model> bushesModel = modelManager.getModel("bushes", bushes, sizeof(bushes), 1);
-	std::shared_ptr<Model> plainModel = modelManager.getModel("plain", plain, sizeof(plain), 1);
 	std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere), 1);
     std::shared_ptr<Model> plainTextureModel = modelManager.getModel("plain_texture", plain_texture, sizeof(plain_texture), 2);
-    
-    std::shared_ptr<Texture> grassTexture = textureManager.getTexture(GRASS_TEXTURE, "grass");
+    std::shared_ptr<Model> skycubeModel = modelManager.getModel("skycube", skycube, sizeof(skycube), 0);
+	std::shared_ptr<Model> houseModel = modelManager.getModel("building", building, sizeof(building), 2);
+	std::shared_ptr<Model> skydomeModel = modelManager.getModel("skydome", skydome, sizeof(skydome), 2);
+
+	std::shared_ptr<Model> zombieModel = modelManager.getModel("zombie.obj");
+	std::shared_ptr<Model> toiletModel = modelManager.getModel("toilet.obj");
+    std::shared_ptr<Model> loginModel = modelManager.getModel("login.obj");
+
+    std::shared_ptr<Texture> grassTexture = textureManager.getTexture("grass.png");
+    std::shared_ptr<Texture> skyTexture = textureManager.getCubeMap();
+	std::shared_ptr<Texture> houseTexture = textureManager.getTexture("house.png");
+	std::shared_ptr<Texture> zombieTexture = textureManager.getTexture("zombie.png");
+	std::shared_ptr<Texture> toiletTexture = textureManager.getTexture("toilet.png");
+	std::shared_ptr<Texture> skydomeTexture = textureManager.getTexture("skydome.png");
+
+    Material* skyDomeMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skydomeTexture);
+    Material* houseMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, houseTexture);
+    Material* zombieMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, zombieTexture);
+    Material* toiletMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, toiletTexture);
+    Material* skycubeMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skyTexture);
+	
+    scenes[sceneIndex]->setSkyBox(new DrawableObject(skycubeModel, vertexShaderSources[4], fragmentShaderSources[6]));
 
     random_device rd;
     mt19937 gen(rd());  // Random number generator
 
     // Trees
     // Range for random positions
-    uniform_real_distribution<> disX(-10.0, 10.0);  // X-axis range 
+    uniform_real_distribution<> disX(-10.0, 0.0);  // X-axis range 
     uniform_real_distribution<> disZ(-20.0, 20.0);  // Z-axis range 
 
     // Random scaling
@@ -478,6 +497,32 @@ void Application::addForest(int sceneIndex, int numTrees) {
     }
     scenes[sceneIndex]->setFollowingSpotLight(sphereModel);
     scenes[sceneIndex]->addLight(nullptr, LightType::DIRECTIONAL); 
+
+    scenes[sceneIndex]->addObject(new DrawableObject(loginModel, vertexShaderSources[3], fragmentShaderSources[3], material));
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'u', 1.0f);
+
+	scenes[sceneIndex]->addObject(new DrawableObject(houseModel, vertexShaderSources[3], fragmentShaderSources[3], houseMaterial));
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 15.0f);
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);
+
+	scenes[sceneIndex]->addObject(new DrawableObject(zombieModel, vertexShaderSources[3], fragmentShaderSources[3], zombieMaterial));
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 15.0f);
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'f', 15.0f);
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);
+	scenes[sceneIndex]->setObjectRotation(scenes[sceneIndex]->objectsCount() - 1, 4, 90.0f);
+
+
+	scenes[sceneIndex]->addObject(new DrawableObject(toiletModel, vertexShaderSources[3], fragmentShaderSources[3], toiletMaterial));
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 7.0f);
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'f', 2.0f);
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);
+    scenes[sceneIndex]->setScaleObject(scenes[sceneIndex]->objectsCount() - 1, 0.2f);
+
+	/*scenes[sceneIndex]->addObject(new DrawableObject(skydomeModel, vertexShaderSources[3], fragmentShaderSources[3], skyDomeMaterial));
+	scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 5.0f);
+    scenes[sceneIndex]->setScaleObject(scenes[sceneIndex]->objectsCount() - 1, 10.0f);*/
+
+    scenes[sceneIndex]->setSkyBox(new DrawableObject(skycubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeMaterial));
 }
 
 void Application::addBalls(int sceneIndex) {
@@ -499,16 +544,25 @@ void Application::addBalls(int sceneIndex) {
 void Application::addTextures(int sceneIndex)
 {
 	std::shared_ptr<Model> plainTextureModel = modelManager.getModel("plain_texture", plain_texture, sizeof(plain_texture), 2);
-	std::shared_ptr<Model> jehlanModel = modelManager.getModel("jehlan", jehlan, sizeof(jehlan), 2);
-	std::shared_ptr<Model> skyCubeModel = modelManager.getModel("skycube", skycube, sizeof(skycube), 0);
+    std::shared_ptr<Model> skyCubeModel = modelManager.getModel("skycube", skycube, sizeof(skycube), 0);
+    std::shared_ptr<Model> skydomeModel = modelManager.getModel("skydome", skydome, sizeof(skydome), 2);
 
-    std::shared_ptr<Texture> grassTexture = textureManager.getTexture(GRASS_TEXTURE, "grass");
-	std::shared_ptr<Texture> woodenTexture = textureManager.getTexture(WOODEN_TEXTURE, "wooden");
+	std::shared_ptr<Model> zombie = modelManager.getModel("zombie.obj");
+    std::shared_ptr<Model> toilet = modelManager.getModel("toilet.obj");
+
+    std::shared_ptr<Texture> grassTexture = textureManager.getTexture("grass.png");
+	std::shared_ptr<Texture> woodenTexture = textureManager.getTexture("wooden_fence.png");
     std::shared_ptr<Texture> skyTexture = textureManager.getCubeMap();
+    std::shared_ptr<Texture> zombieTexture = textureManager.getTexture("zombie.png");
+    std::shared_ptr<Texture> toiletTexture = textureManager.getTexture("toilet.png");
+	std::shared_ptr<Texture> skydomeTexture = textureManager.getTexture("skydome.png");
 
     Material* material1 = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, woodenTexture);
     Material* material2 = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, grassTexture);
     Material* skycubeM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skyTexture);
+    Material* zombieM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, zombieTexture);
+    Material* toiletM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, toiletTexture);
+	Material* skydomeM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skydomeTexture);
 
     scenes[sceneIndex]->setSkyBox(new DrawableObject(skyCubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeM));
     
@@ -517,6 +571,15 @@ void Application::addTextures(int sceneIndex)
 
 	scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material2));
     scenes[sceneIndex]->moveObject(1, 'r', 1.5f);
+
+	scenes[sceneIndex]->addObject(new DrawableObject(toilet, vertexShaderSources[3], fragmentShaderSources[3], toiletM));
+    scenes[sceneIndex]->moveObject(2, 'u', 1.5f);
+    
+    scenes[sceneIndex]->addObject(new DrawableObject(zombie, vertexShaderSources[3], fragmentShaderSources[3], zombieM));
+	scenes[sceneIndex]->moveObject(3, 'd', 1.5f);
+
+	/*scenes[sceneIndex]->addObject(new DrawableObject(skydomeModel, vertexShaderSources[3], fragmentShaderSources[3], skydomeM));
+	scenes[sceneIndex]->moveObject(4, 'f', 1.5f);*/
 
 	scenes[sceneIndex]->addLight(nullptr, glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(1.0f), 1.0f, LightType::DIRECTIONAL);
 }

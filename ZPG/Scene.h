@@ -61,9 +61,11 @@ class Scene {
 		void moveObject(int object, char direction, float amount);
 		void moveLight(int light, char direction);
 		void moveLight(int light, char direction, float amount);
-		void rotateObject(int currentObject, int direction);
+		void rotateObject(int currentObject, int direction, float amount = 1.0f);
+		void setObjectRotation(int currentObject, int direction, float amount);
 		void resetObjectRotation(int currentObject);
 		void scaleObject(int currentObject, char direction);
+		void setScaleObject(int currentObject, float amount);
 		void resetObjectScale(int currentObject);
 
 		glm::vec3 getPositionLight(int light);
