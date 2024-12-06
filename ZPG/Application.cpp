@@ -300,29 +300,33 @@ void Application::processInput() {
     }
 }
 
-void Application::handleClick(int x, int y) {
+void Application::handleClick(double x, double y) {
     GLbyte color[4];
     GLfloat depth;
-    GLuint index;
+    GLuint id;
 
     int newy = height - y;
 
     glReadPixels(x, newy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
     glReadPixels(x, newy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-    glReadPixels(x, newy, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
+    glReadPixels(x, newy, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &id);
 
-    printf("Clicked on pixel %d, %d, color %02hhx%02hhx%02hhx%02hhx, depth %.2f, stencil index % u\n", x, y, color[0], color[1], color[2], color[3], depth, index);
-
-	selectObject(index);
+    printf("Clicked on pixel %d, %d, color %02hhx%02hhx%02hhx%02hhx, depth %.2f, stencil index % u\n", x, y, color[0], color[1], color[2], color[3], depth, id);
+    
+    lastClickX = x;
+    lastClickY = newy;
+    lastClickDepth = depth;
+	
+    selectObject(id);
 }
 
-void Application::selectObject(GLuint index) {
-	if (index == 0) {
+void Application::selectObject(GLuint id) {
+	if (id == 0) {
 		cout << "No object selected" << endl;
 	}
 	else {
-		cout << "Object with index " << index << " selected" << endl;
-		scenes[currentScene]->setCurrentObject(index);
+		cout << "Object with index " << id << " selected" << endl;
+		scenes[currentScene]->setCurrentObject(id);
 	}
 }
 
@@ -380,6 +384,12 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 
                 case GLFW_KEY_LEFT_ALT:
 					app->scenes[app->currentScene]->toggleSkyBox(); 
+					break;
+                case GLFW_KEY_N:
+					app->createSphereAtClick();
+					break;
+				case GLFW_KEY_DELETE:
+					app->removeSelectedObject();
 					break;
 
 			    default:
@@ -634,6 +644,69 @@ void Application::addTextures(int sceneIndex)
 	scenes[sceneIndex]->moveObject(3, 'd', 1.5f);
 
 	scenes[sceneIndex]->addLight(nullptr, glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(1.0f), 1.0f, LightType::DIRECTIONAL);
+}
+
+void Application::createSphereAtClick()
+{
+    int currObjIndex = scenes[currentScene]->getCurrObject();
+
+    if (currObjIndex < 0 || currObjIndex >= scenes[currentScene]->objectsCount()) {
+        cout << "Invalid object index." << endl;
+        return;
+    }
+
+	glm::mat4 view = scenes[currentScene]->getViewMatrix();
+	glm::mat4 projection = scenes[currentScene]->getProjectionMatrix(aspectRatio);
+
+    // The viewport
+    // glViewport(0, 0, width, height); was set, so viewport = [0,0,width,height]
+    glm::vec4 viewport(0.0f, 0.0f, (float)width, (float)height);
+
+    // Convert screen coordinates to NDC
+    // We have lastClickX, lastClickY, lastClickDepth from handleClick
+    glm::vec3 winCoords(lastClickX, (float)(lastClickY), lastClickDepth);
+
+    // Unproject to get world coordinates
+    glm::vec3 worldPos = glm::unProject(winCoords, view, projection, viewport);
+
+    cout << "World position: " << worldPos.x << worldPos.y << worldPos.z << endl;
+
+    // Create a sphere at worldPos
+    std::shared_ptr<Model> sphereModel = modelManager.getModel("sphere", sphere, sizeof(sphere), 1);
+    DrawableObject* newSphere = new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[3], true);
+    newSphere->setPosition(worldPos);
+	newSphere->moveObject(glm::vec3(0.0f, 0.2f, 0.0f));
+    newSphere->setScale(0.2f);
+
+    scenes[currentScene]->addObject(newSphere);
+	scenes[currentScene]->registerNewObserver(newSphere);
+
+    cout << "New sphere created at " << worldPos.x << ", " << worldPos.y << ", " << worldPos.z << endl;
+}
+
+void Application::removeSelectedObject()
+{
+    int currObjIndex = scenes[currentScene]->getCurrObject();
+
+    if (currObjIndex < 0 || currObjIndex >= scenes[currentScene]->objectsCount()) {
+        cout << "Invalid object index." << endl;
+        return;
+    }
+
+    DrawableObject* objToDelete = scenes[currentScene]->getObject(currObjIndex);
+    if (objToDelete == nullptr) {
+        cout << "Object pointer is null." << endl;
+        return;
+    }
+    
+    if (objToDelete->getId() < 1){
+		cout << "Cannot delete this object." << endl;
+        return;
+    }
+
+    scenes[currentScene]->deleteObject(objToDelete);
+	scenes[currentScene]->setCurrentObject(0);
+    cout << "Object deleted." << endl;
 }
 
 void Application::addBallsDiffShaders(int sceneIndex) {

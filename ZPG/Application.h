@@ -25,6 +25,8 @@ class Application
         GLFWwindow* window;
 	    int width, height;
 		int lastX, lastY;
+        double lastClickX, lastClickY;
+        float lastClickDepth;
 		float aspectRatio;
 
         vector<Scene*> scenes;
@@ -58,8 +60,8 @@ class Application
         void currentCameraPlus();   
 
         void processInput();
-		void handleClick(int x, int y);
-        void selectObject(GLuint index);
+		void handleClick(double x, double y);
+        void selectObject(GLuint id);
 
         void registerAllObservers();
 
@@ -72,6 +74,9 @@ class Application
         void addBalls(int sceneIndex);
         void addBallsDiffShaders(int sceneIndex);
 		void addTextures(int sceneIndex);
+
+        void createSphereAtClick();
+        void removeSelectedObject();
 
         // Callback functions as static methods
         static void error_callback(int error, const char* description);

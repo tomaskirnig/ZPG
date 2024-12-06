@@ -27,6 +27,7 @@ class Scene {
 
         void addObject(DrawableObject* object);
 	    void deleteObject(DrawableObject* object);
+		DrawableObject* getObject(int id);
 
 		void addCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f);
 		
@@ -38,6 +39,7 @@ class Scene {
 		
 		void render();
 		void registerAllObservers(float aspectRatio);
+		void registerNewObserver(DrawableObject* newObject);
 		void notifyCurrObservers(float aspectRatio);
 
 		int objectsCount();
@@ -71,6 +73,9 @@ class Scene {
 
 		glm::vec3 getPositionLight(int light);
 		glm::vec3 getPositionObject(int object);
+
+		glm::mat4 getViewMatrix();
+		glm::mat4 getProjectionMatrix(float aspectRatio);
 
 		LightType getLightType(int light);
 

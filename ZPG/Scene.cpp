@@ -26,6 +26,11 @@ void Scene::deleteObject(DrawableObject* delObject) {
     }
 }
 
+DrawableObject* Scene::getObject(int id)
+{
+    return objects[id];
+}
+
 void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
 {
 	cameras.push_back(new Camera(position, up, yaw, pitch));
@@ -161,6 +166,12 @@ void Scene::registerAllObservers(float aspectRatio)
 		camera->notifyObservers(aspectRatio, lights);
     }
 
+}
+
+void Scene::registerNewObserver(DrawableObject* newObject) {
+	for (Camera* camera : cameras) {
+		camera->registerObserver((IObserver*)newObject->getShader());
+	}
 }
 
 void Scene::notifyCurrObservers(float aspectRatio)
@@ -459,6 +470,16 @@ glm::vec3 Scene::getPositionLight(int light)
 glm::vec3 Scene::getPositionObject(int object)
 {
     return objects[object]->getPosition();
+}
+
+glm::mat4 Scene::getViewMatrix()
+{
+	return cameras[currentCamera]->getViewMatrix();
+}
+
+glm::mat4 Scene::getProjectionMatrix(float aspectRatio)
+{
+	return cameras[currentCamera]->getProjectionMatrix(aspectRatio);
 }
 
 LightType Scene::getLightType(int light)

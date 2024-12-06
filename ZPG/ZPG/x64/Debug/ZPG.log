@@ -1,4 +1,25 @@
-﻿  Camera.cpp
+﻿  Application.cpp
+F:\VS\ZPG\ZPG\Application.cpp(208,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(308,14): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(310,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(311,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(312,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(314,12): warning C4477: printf: Formátovací řetězec %d vyžaduje argument typu int, ale variadický argument 1 má typ double.
+F:\VS\ZPG\ZPG\Application.cpp(314,12): warning C4477: printf: Formátovací řetězec %d vyžaduje argument typu int, ale variadický argument 2 má typ double.
+F:\VS\ZPG\ZPG\Application.cpp(446,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(447,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(450,123): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(450,114): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(519,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(520,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(521,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(527,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(536,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(537,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(538,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(544,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(559,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(560,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
   SOIL.lib(SOIL.obj) : Našel se modul .net MSIL nebo modul zkompilovaný pomocí /GL. Propojení se restartuje s parametrem /LTCG. Výkon linkeru můžete zlepšit přidáním parametru /LTCG na příkazový řádek propojení.
 LINK : warning LNK4075: /INCREMENTAL se ignoruje kvůli specifikaci /LTCG.
 LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
@@ -8,4 +29,4 @@ SOIL.lib(SOIL.obj) : warning LNK4099: Soubor .pdb  se nenašel s SOIL.lib(SOIL.o
 SOIL.lib(stb_image_aug.obj) : warning LNK4099: Soubor .pdb  se nenašel s SOIL.lib(stb_image_aug.obj) nebo na . Objekt se propojí, jako by nebyly dostupné žádné ladicí informace.
 SOIL.lib(image_helper.obj) : warning LNK4099: Soubor .pdb  se nenašel s SOIL.lib(image_helper.obj) nebo na . Objekt se propojí, jako by nebyly dostupné žádné ladicí informace.
 SOIL.lib(image_DXT.obj) : warning LNK4099: Soubor .pdb  se nenašel s SOIL.lib(image_DXT.obj) nebo na . Objekt se propojí, jako by nebyly dostupné žádné ladicí informace.
-  ZPG.vcxproj -> C:\Users\tomki\VS\ZPG\ZPG\x64\Debug\ZPG.exe
+  ZPG.vcxproj -> F:\VS\ZPG\ZPG\x64\Debug\ZPG.exe
