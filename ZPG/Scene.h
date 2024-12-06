@@ -43,6 +43,7 @@ class Scene {
 		int objectsCount();
 		int getCurrCamera();
 		int getCurrObject();
+		void setCurrentObject(int object);
 		int getNumOfLights();
 
 		void setAspectRatio(float aspectRatio);

@@ -53,10 +53,13 @@ class Application
 
         void currentObjectPlus();
 		void currentObjectMinus();
+		void setCurrentObject(int object);
 
         void currentCameraPlus();   
 
         void processInput();
+		void handleClick(int x, int y);
+        void selectObject(GLuint index);
 
         void registerAllObservers();
 
@@ -79,6 +82,5 @@ class Application
         static void cursor_callback(GLFWwindow* window, double x, double y);
         static void button_callback(GLFWwindow* window, int button, int action, int mode);
 		static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-
 };
 

@@ -133,7 +133,7 @@ void Scene::render() {
         glEnable(GL_DEPTH_TEST); 
         glDepthMask(GL_TRUE);   
     }
-
+    
     for (DrawableObject* object : objects) {
         object->draw();
     }
@@ -181,6 +181,16 @@ int Scene::getCurrCamera()
 int Scene::getCurrObject()
 {
     return currentObject;
+}
+
+void Scene::setCurrentObject(int object)
+{
+	for (int i = 0; i < objects.size(); i++) {
+		if (objects[i]->getId() == object) {
+			currentObject = i;
+			break;
+		}
+	}
 }
 
 int Scene::getNumOfLights()

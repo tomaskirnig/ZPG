@@ -5,7 +5,7 @@
 
 // Constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
-    Position(position), WorldUp(up), Yaw(yaw), Pitch(pitch), MovementSpeed(0.03f), MouseSensitivity(0.1f), Fov(75.0f) {
+    Position(position), WorldUp(up), Yaw(yaw), Pitch(pitch), MovementSpeed(0.05f), MouseSensitivity(0.1f), Fov(75.0f) {
     updateCameraVectors();
 }
 

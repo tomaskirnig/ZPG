@@ -7,23 +7,30 @@
 #include "Material.h"
 #include "Texture.h"
 
-
+static int idCounter = 0;
 
 class DrawableObject {
     private:
+		int id;
         std::shared_ptr<Model> model;
 		std::shared_ptr<Shader> texture;
         Shader* shader;
         Material* material;
         Transformation* transformation;
 
+		int generateId() {
+			return ++idCounter;
+		}
+
     public:
-        DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile);
-		DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material);
+        DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, bool genId);
+		DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material, bool genId);
         ~DrawableObject();
 
         void draw();
 		void draw(bool following, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
+
+		int getId() { return id; }
 
         glm::mat4 getTransformationMatrix();
 

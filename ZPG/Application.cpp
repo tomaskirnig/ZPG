@@ -101,6 +101,23 @@ void Application::run() {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+    /*float* zBuffer = new float[width * height];
+    glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, zBuffer);
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            int index = y * width + x;
+            std::cout << zBuffer[index] << " ,";
+        }
+		std::cout << std::endl;
+    }
+    delete[] zBuffer;*/
     
 	addScene(); // Forest
 	addScene(); // Balls
@@ -108,7 +125,7 @@ void Application::run() {
 	addScene(); // Textures
 
     // Adding objects to first scene
-    scenes[0]->addObject(new DrawableObject(triangleModel, vertexShaderSources[1], fragmentShaderSources[2]));
+    scenes[0]->addObject(new DrawableObject(triangleModel, vertexShaderSources[1], fragmentShaderSources[2], true));
 
 	// Add a forest to the second scene
 	addForest(1, 50);
@@ -126,7 +143,7 @@ void Application::run() {
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        processInput();
+        
 
         if (currentScene == 1) {
             scenes[currentScene]->rotateObject(0, 3);
@@ -138,6 +155,8 @@ void Application::run() {
 		scenes[currentScene]->notifyCurrObservers(aspectRatio);
 
 		scenes[currentScene]->render();
+
+        processInput();
 
         glfwPollEvents();
         glfwSwapBuffers(window);
@@ -198,6 +217,11 @@ void Application::currentObjectPlus() {
 
 void Application::currentObjectMinus() {
 	scenes[currentScene]->currentObjectMinus();
+}
+
+void Application::setCurrentObject(int object)
+{
+	scenes[currentScene]->setCurrentObject(object);
 }
 
 void Application::currentCameraPlus() {
@@ -269,6 +293,37 @@ void Application::processInput() {
 		enableCursor();
 		looking = false;
     }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
+		double x, y;
+		glfwGetCursorPos(window, &x, &y);
+        handleClick(x, y);
+    }
+}
+
+void Application::handleClick(int x, int y) {
+    GLbyte color[4];
+    GLfloat depth;
+    GLuint index;
+
+    int newy = height - y;
+
+    glReadPixels(x, newy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
+    glReadPixels(x, newy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+    glReadPixels(x, newy, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
+
+    printf("Clicked on pixel %d, %d, color %02hhx%02hhx%02hhx%02hhx, depth %.2f, stencil index % u\n", x, y, color[0], color[1], color[2], color[3], depth, index);
+
+	selectObject(index);
+}
+
+void Application::selectObject(GLuint index) {
+	if (index == 0) {
+		cout << "No object selected" << endl;
+	}
+	else {
+		cout << "Object with index " << index << " selected" << endl;
+		scenes[currentScene]->setCurrentObject(index);
+	}
 }
 
 void Application::addScene() {
@@ -430,7 +485,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
     Material* toiletMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, toiletTexture);
     Material* skycubeMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skyTexture);
 	
-    scenes[sceneIndex]->setSkyBox(new DrawableObject(skycubeModel, vertexShaderSources[4], fragmentShaderSources[6]));
+    scenes[sceneIndex]->setSkyBox(new DrawableObject(skycubeModel, vertexShaderSources[4], fragmentShaderSources[6], false));
 
     random_device rd;
     mt19937 gen(rd());  // Random number generator
@@ -455,7 +510,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         float randomZ = disZ(gen);
         float randomRotationY = disRotationY(gen);  // Random rotation in radians
 
-        DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[2], fragmentShaderSources[5]);
+        DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[2], fragmentShaderSources[5], false);
 
         // Set the transformation matrix (position and scale) 
         treeObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
@@ -472,7 +527,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         float randomZ = disZ(gen);
         float randomRotationY = disRotationY(gen);  // Random rotation in radians
 
-        DrawableObject* bushObject = new DrawableObject(bushesModel, vertexShaderSources[2], fragmentShaderSources[5]);
+        DrawableObject* bushObject = new DrawableObject(bushesModel, vertexShaderSources[2], fragmentShaderSources[5], false);
 
         // Set the transformation matrix (position and scale) 
         bushObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
@@ -483,7 +538,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex]->addObject(bushObject);
     }
     Material* material = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, grassTexture);
-    DrawableObject* plainObj = new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material);
+    DrawableObject* plainObj = new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material, true);
 
     plainObj->setPosition(glm::vec3(0.0, -0.5, 0.0));
     plainObj->setScale(20.0);
@@ -496,23 +551,23 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex]->addLight(sphereModel, glm::vec3(randomX, 0.0, randomZ), glm::vec3(1.0f, 0.5f, 0.1f), 1.0f, LightType::POINT);
     }
     scenes[sceneIndex]->setFollowingSpotLight(sphereModel);
-    scenes[sceneIndex]->addLight(nullptr, LightType::DIRECTIONAL); 
+    //scenes[sceneIndex]->addLight(nullptr, LightType::DIRECTIONAL); 
 
-    scenes[sceneIndex]->addObject(new DrawableObject(loginModel, vertexShaderSources[3], fragmentShaderSources[3], material));
+    scenes[sceneIndex]->addObject(new DrawableObject(loginModel, vertexShaderSources[3], fragmentShaderSources[3], material, true));
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'u', 1.0f);
 
-	scenes[sceneIndex]->addObject(new DrawableObject(houseModel, vertexShaderSources[3], fragmentShaderSources[3], houseMaterial));
+	scenes[sceneIndex]->addObject(new DrawableObject(houseModel, vertexShaderSources[3], fragmentShaderSources[3], houseMaterial, true));
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 15.0f);
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);
 
-	scenes[sceneIndex]->addObject(new DrawableObject(zombieModel, vertexShaderSources[3], fragmentShaderSources[3], zombieMaterial));
+	scenes[sceneIndex]->addObject(new DrawableObject(zombieModel, vertexShaderSources[3], fragmentShaderSources[3], zombieMaterial, true));
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 15.0f);
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'f', 15.0f);
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);
 	scenes[sceneIndex]->setObjectRotation(scenes[sceneIndex]->objectsCount() - 1, 4, 90.0f);
 
 
-	scenes[sceneIndex]->addObject(new DrawableObject(toiletModel, vertexShaderSources[3], fragmentShaderSources[3], toiletMaterial));
+	scenes[sceneIndex]->addObject(new DrawableObject(toiletModel, vertexShaderSources[3], fragmentShaderSources[3], toiletMaterial, true));
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 7.0f);
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'f', 2.0f);
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);
@@ -532,7 +587,7 @@ void Application::addBalls(int sceneIndex) {
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
 
     for (int i = 0; i < 4; i++) {
-        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[5]));
+        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[5], false));
     }
     
     scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);
@@ -566,20 +621,17 @@ void Application::addTextures(int sceneIndex)
 
     scenes[sceneIndex]->setSkyBox(new DrawableObject(skyCubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeM));
     
-    scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material1));
+    scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material1, true));
     scenes[sceneIndex]->moveObject(0, 'l', 1.5f);
 
-	scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material2));
+	scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material2, true));
     scenes[sceneIndex]->moveObject(1, 'r', 1.5f);
 
-	scenes[sceneIndex]->addObject(new DrawableObject(toilet, vertexShaderSources[3], fragmentShaderSources[3], toiletM));
+	scenes[sceneIndex]->addObject(new DrawableObject(toilet, vertexShaderSources[3], fragmentShaderSources[3], toiletM, true));
     scenes[sceneIndex]->moveObject(2, 'u', 1.5f);
     
-    scenes[sceneIndex]->addObject(new DrawableObject(zombie, vertexShaderSources[3], fragmentShaderSources[3], zombieM));
+    scenes[sceneIndex]->addObject(new DrawableObject(zombie, vertexShaderSources[3], fragmentShaderSources[3], zombieM, true));
 	scenes[sceneIndex]->moveObject(3, 'd', 1.5f);
-
-	/*scenes[sceneIndex]->addObject(new DrawableObject(skydomeModel, vertexShaderSources[3], fragmentShaderSources[3], skydomeM));
-	scenes[sceneIndex]->moveObject(4, 'f', 1.5f);*/
 
 	scenes[sceneIndex]->addLight(nullptr, glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(1.0f), 1.0f, LightType::DIRECTIONAL);
 }
@@ -589,12 +641,12 @@ void Application::addBallsDiffShaders(int sceneIndex) {
     scenes[sceneIndex]->addLight(sphereModel, glm::vec3(0.1f), glm::vec3(1.0f, 0.5f, 0.0f), 1.0f, LightType::POINT);
 
     int numOfObjectInScene = scenes[sceneIndex]->objectsCount();
-    scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[1], fragmentShaderSources[2]));
+    scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[1], fragmentShaderSources[2], false));
 
 	Material* material = new Material(glm::vec3(0.1f), glm::vec3(1.0f), glm::vec3(1.0f), 130.0f);
 
     for (int i = 3; i < 6; i++) {
-        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[i]));
+        scenes[sceneIndex]->addObject(new DrawableObject(sphereModel, vertexShaderSources[2], fragmentShaderSources[i], false));
     }
 
     scenes[sceneIndex]->moveObject(numOfObjectInScene++, 'u', 2.0);

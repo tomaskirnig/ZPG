@@ -1,13 +1,19 @@
 #include "DrawableObject.h"
 
-DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile)
+DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, bool genId)
     : model(model), transformation(new Transformation()), material(new Material()) {
+	if (genId) id = generateId();
+	else id = 0;
     shader = new Shader(vertexShaderFile, fragmentShaderFile);
 	texture = nullptr;
 }
 
-DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material)
+DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexShaderFile, std::string fragmentShaderFile, Material* material, bool genId)
 	: model(model), transformation(new Transformation()){
+
+	if (genId) id = generateId();
+	else id = 0;
+
 	shader = new Shader(vertexShaderFile, fragmentShaderFile, material->getShininess());
 	
 	if (material != nullptr) this->material = material;
@@ -24,6 +30,8 @@ DrawableObject::~DrawableObject() {
 void DrawableObject::draw() {
     if (model != nullptr) {
         shader->use(); // Set the shader to be used
+
+        glStencilFunc(GL_ALWAYS, this->getId(), 0xFF);
 
         glm::mat4 transformationMatrix = transformation->getMatrix();
 
