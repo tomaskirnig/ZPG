@@ -41,7 +41,7 @@ Texture::Texture(const std::string& name, int textureCount, int ver)
             // Set texture parameters (optional)
             glBindTexture(GL_TEXTURE_CUBE_MAP, id); //GL_TEXTURE_2D
 
-            //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  // Add this
+            //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  
             //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);  //GL_TEXTURE_2D 

@@ -155,7 +155,6 @@ void Shader::setDirLights(const std::vector<LightData>& dirLights) {
 }
 
 void Shader::setMaterial(const Material* material) {
-    //use(); 
     glUniform3fv(getUniformLocation("material.ambient"), 1, glm::value_ptr(material->getAmbient()));
     glUniform3fv(getUniformLocation("material.diffuse"), 1, glm::value_ptr(material->getDiffuse()));
     glUniform3fv(getUniformLocation("material.specular"), 1, glm::value_ptr(material->getSpecular()));
@@ -170,6 +169,7 @@ void Shader::setMaterial(const Material* material) {
         }
         else {
 			glUniform1i(getUniformLocation("UISky"), material->getTextureUnit());
+			//cout << "UISky: " << material->getTextureUnit() << endl;
         }
         
 	}

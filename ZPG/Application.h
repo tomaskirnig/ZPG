@@ -87,5 +87,6 @@ class Application
         static void cursor_callback(GLFWwindow* window, double x, double y);
         static void button_callback(GLFWwindow* window, int button, int action, int mode);
 		static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+        static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 };
 

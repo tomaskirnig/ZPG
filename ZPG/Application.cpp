@@ -56,7 +56,7 @@ Application::Application() {
     //glfwSetWindowFocusCallback(window, window_focus_callback);
 	//glfwSetWindowIconifyCallback(window, window_iconify_callback);
 	glfwSetCursorPosCallback(window, cursor_callback);
-	//glfwSetMouseButtonCallback(window, button_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     glfwSetWindowUserPointer(window, this); // Creates pointer to app window
@@ -96,8 +96,9 @@ void Application::run() {
 	
 	//vertexShaderSources[1], fragmentShaderSources[0]     // One color
 	//vertexShaderSources[1], fragmentShaderSources[2]    // Normals as colors
-	//vertexShaderSources[2], fragmentShaderSources[3-5]    // With lighting
-	//vertexShaderSources[3], fragmentShaderSources[6]    // Skybox
+    //vertexShaderSources[2], fragmentShaderSources[3-5]    // With lighting
+    //vertexShaderSources[3], fragmentShaderSources[3]    // With lighting and texture
+	//vertexShaderSources[4], fragmentShaderSources[6]    // Skybox
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -106,7 +107,7 @@ void Application::run() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+	// Control print of z-buffer
     /*float* zBuffer = new float[width * height];
     glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, zBuffer);
 
@@ -127,7 +128,6 @@ void Application::run() {
     // Adding objects to first scene
     scenes[0]->addObject(new DrawableObject(triangleModel, vertexShaderSources[1], fragmentShaderSources[2], true));
 
-	// Add a forest to the second scene
 	addForest(1, 50);
 
 	addBalls(2);
@@ -140,17 +140,29 @@ void Application::run() {
 
 	window_size_callback(window, width, height);
 
+    float lastFrameTime = glfwGetTime();
+    float currentFrameTime;
+    float deltaTime;
+    
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        currentFrameTime = glfwGetTime();
+        deltaTime = currentFrameTime - lastFrameTime;
+        lastFrameTime = currentFrameTime;
 
         if (currentScene == 1) {
             scenes[currentScene]->rotateObject(0, 3);
             scenes[currentScene]->rotateObject(1, 3);
             scenes[currentScene]->rotateObject(2, 3);
 			moveLightsRandom();
-        }        
+            scenes[currentScene]->getObject(scenes[currentScene]->objectsCount() - 1)->updateMovement(deltaTime);
+        }
+        else if (currentScene == 4) {
+            scenes[currentScene]->getObject(scenes[currentScene]->objectsCount() - 1)->updateMovement(deltaTime);
+        }
+        
 
 		scenes[currentScene]->notifyCurrObservers(aspectRatio);
 
@@ -180,6 +192,7 @@ void Application::centerCursor() {
 
 void Application::disableAndLockCursor() {
     // Hide and grab the cursor
+    
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
@@ -283,21 +296,6 @@ void Application::processInput() {
     else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
         scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'd');  // Scale down
     }
-    if (glfwGetKey(window, 340) == GLFW_PRESS) {
-        // Hide and lock cursor in app window
-        //centerCursor();
-        disableAndLockCursor();
-		looking = true;
-    }
-    else {
-		enableCursor();
-		looking = false;
-    }
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
-		double x, y;
-		glfwGetCursorPos(window, &x, &y);
-        handleClick(x, y);
-    }
 }
 
 void Application::handleClick(double x, double y) {
@@ -347,54 +345,82 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 
     Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
 
-    if (app == NULL) {
+    if (!app) {
         cerr << "Key_callback -> app = NULL" << endl;
+        return;
     }
-    if (app) {
-        if (action == GLFW_PRESS) {
-            switch (key)
-            {
-                case GLFW_KEY_RIGHT:
-					app->currentScenePlus();    // Change to the next scene
-                    break;
+    if (action == GLFW_PRESS) {
+        switch (key)
+        {
+            case GLFW_KEY_RIGHT:
+				app->currentScenePlus();    // Change to the next scene
+                break;
 
-                case GLFW_KEY_LEFT:
-					app->currentSceneMinus();   // Change to the previous scene
-                    break;
+            case GLFW_KEY_LEFT:
+				app->currentSceneMinus();   // Change to the previous scene
+                break;
                 
-                case GLFW_KEY_UP:
-					app->currentObjectPlus();   // Change to the next object
-                    break;
+            case GLFW_KEY_UP:
+				app->currentObjectPlus();   // Change to the next object
+                break;
 
-                case GLFW_KEY_DOWN:
-					app->currentObjectMinus();  // Change to the previous object
-                    break;
+            case GLFW_KEY_DOWN:
+				app->currentObjectMinus();  // Change to the previous object
+                break;
 
-				case GLFW_KEY_TAB:
-					app->currentCameraPlus();   // Change to the next camera
-					break;
+			case GLFW_KEY_TAB:
+				app->currentCameraPlus();   // Change to the next camera
+				break;
 
-				case GLFW_KEY_R:
-					app->scenes[app->currentScene]->resetObjectRotation(app->scenes[app->currentScene]->getCurrObject()); // Reset object rotation
-					break;
+			case GLFW_KEY_R:
+				app->scenes[app->currentScene]->resetObjectRotation(app->scenes[app->currentScene]->getCurrObject()); // Reset object rotation
+				break;
 
-				case GLFW_KEY_T:
-                    app->scenes[app->currentScene]->resetObjectScale(app->scenes[app->currentScene]->getCurrObject()); // Reset object scale
-                    break;
+			case GLFW_KEY_T:
+                app->scenes[app->currentScene]->resetObjectScale(app->scenes[app->currentScene]->getCurrObject()); // Reset object scale
+                break;
 
-                case GLFW_KEY_LEFT_ALT:
-					app->scenes[app->currentScene]->toggleSkyBox(); 
-					break;
-                case GLFW_KEY_N:
-					app->createSphereAtClick();
-					break;
-				case GLFW_KEY_DELETE:
-					app->removeSelectedObject();
-					break;
+            case GLFW_KEY_LEFT_ALT:
+				app->scenes[app->currentScene]->toggleSkyBox(); 
+				break;
+            case GLFW_KEY_N:
+				app->createSphereAtClick();
+				break;
+			case GLFW_KEY_DELETE:
+				app->removeSelectedObject();
+				break;
+            case GLFW_KEY_LEFT_SHIFT:
+				app->looking = !app->looking;
+				if (app->looking) {
+					app->centerCursor();
+					app->disableAndLockCursor();
+				}
+				else {
+					app->enableCursor();
+				}
+				break;
+			case GLFW_MOUSE_BUTTON_1:
+                if (!app->looking) {
+                    double x, y;
+                    glfwGetCursorPos(app->window, &x, &y);
+                    app->handleClick(x, y);
+                }
+                break;
+			default:
+				break;
+		}
+    }
+}
 
-			    default:
-				    break;
-			}
+void Application::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    if (!app) return;
+
+    if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+        if (!app->looking) {
+            double x, y;
+            glfwGetCursorPos(app->window, &x, &y);
+            app->handleClick(x, y);
         }
     }
 }
@@ -494,8 +520,6 @@ void Application::addForest(int sceneIndex, int numTrees) {
     Material* zombieMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, zombieTexture);
     Material* toiletMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, toiletTexture);
     Material* skycubeMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skyTexture);
-	
-    scenes[sceneIndex]->setSkyBox(new DrawableObject(skycubeModel, vertexShaderSources[4], fragmentShaderSources[6], false));
 
     random_device rd;
     mt19937 gen(rd());  // Random number generator
@@ -561,10 +585,9 @@ void Application::addForest(int sceneIndex, int numTrees) {
         scenes[sceneIndex]->addLight(sphereModel, glm::vec3(randomX, 0.0, randomZ), glm::vec3(1.0f, 0.5f, 0.1f), 1.0f, LightType::POINT);
     }
     scenes[sceneIndex]->setFollowingSpotLight(sphereModel);
-    //scenes[sceneIndex]->addLight(nullptr, LightType::DIRECTIONAL); 
+    scenes[sceneIndex]->addLight(nullptr, LightType::DIRECTIONAL); 
 
     scenes[sceneIndex]->addObject(new DrawableObject(loginModel, vertexShaderSources[3], fragmentShaderSources[3], material, true));
-    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'u', 1.0f);
 
 	scenes[sceneIndex]->addObject(new DrawableObject(houseModel, vertexShaderSources[3], fragmentShaderSources[3], houseMaterial, true));
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 15.0f);
@@ -578,16 +601,23 @@ void Application::addForest(int sceneIndex, int numTrees) {
 
 
 	scenes[sceneIndex]->addObject(new DrawableObject(toiletModel, vertexShaderSources[3], fragmentShaderSources[3], toiletMaterial, true));
-    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 7.0f);
+    /*scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'r', 7.0f);
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'f', 2.0f);
-    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);
+    scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);*/
     scenes[sceneIndex]->setScaleObject(scenes[sceneIndex]->objectsCount() - 1, 0.2f);
+    scenes[sceneIndex]->getObject(scenes[sceneIndex]->objectsCount() - 1)->startBezierMovement(
+        defaultBezierSegments[0],
+        defaultBezierSegments[1],
+        defaultBezierSegments[2],
+        defaultBezierSegments[3],
+        0.5f
+    );
 
 	/*scenes[sceneIndex]->addObject(new DrawableObject(skydomeModel, vertexShaderSources[3], fragmentShaderSources[3], skyDomeMaterial));
 	scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 5.0f);
     scenes[sceneIndex]->setScaleObject(scenes[sceneIndex]->objectsCount() - 1, 10.0f);*/
 
-    scenes[sceneIndex]->setSkyBox(new DrawableObject(skycubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeMaterial));
+    scenes[sceneIndex]->setSkyBox(new DrawableObject(skycubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeMaterial, false));
 }
 
 void Application::addBalls(int sceneIndex) {
@@ -629,7 +659,7 @@ void Application::addTextures(int sceneIndex)
     Material* toiletM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, toiletTexture);
 	Material* skydomeM = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skydomeTexture);
 
-    scenes[sceneIndex]->setSkyBox(new DrawableObject(skyCubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeM));
+    scenes[sceneIndex]->setSkyBox(new DrawableObject(skyCubeModel, vertexShaderSources[4], fragmentShaderSources[6], skycubeM, false));
     
     scenes[sceneIndex]->addObject(new DrawableObject(plainTextureModel, vertexShaderSources[3], fragmentShaderSources[3], material1, true));
     scenes[sceneIndex]->moveObject(0, 'l', 1.5f);
@@ -642,6 +672,12 @@ void Application::addTextures(int sceneIndex)
     
     scenes[sceneIndex]->addObject(new DrawableObject(zombie, vertexShaderSources[3], fragmentShaderSources[3], zombieM, true));
 	scenes[sceneIndex]->moveObject(3, 'd', 1.5f);
+    scenes[sceneIndex]->getObject(scenes[sceneIndex]->objectsCount() - 1)->startBezierMovement(
+        defaultBezierSegments[0],
+		defaultBezierSegments[1],
+		defaultBezierSegments[2],
+		defaultBezierSegments[3],
+        0.5f);          //defaultArcBezierSegments
 
 	scenes[sceneIndex]->addLight(nullptr, glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(1.0f), 1.0f, LightType::DIRECTIONAL);
 }

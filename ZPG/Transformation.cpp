@@ -104,6 +104,17 @@ void Transformation::setRotation(float angleRadians, const glm::vec3& axis) {
     addTransformation(newRotation);
 }
 
+std::pair<float, glm::vec3> Transformation::getRotation() {
+    for (const auto* trans : transformations) {
+        const Rotation* rotation = dynamic_cast<const Rotation*>(trans);
+        if (rotation) {
+			return std::make_pair(rotation->angle, rotation->axis);
+        }
+    }
+
+	return std::pair<float, glm::vec3>(0.0f, glm::vec3(0.0f));  // Default rotation if no Rotation found
+}
+
 // Scale object by modifying or adding a Scale transformation
 void Transformation::scaleObject(const glm::vec3& scaleFactor) {
     for (auto* trans : transformations) {

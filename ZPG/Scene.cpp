@@ -129,7 +129,7 @@ void Scene::setFollowingSpotLight(std::shared_ptr<Model> model)
 // Renders all objects in the scene
 void Scene::render() {
     // Render all objects in the scene
-    if (skyBoxSet) {
+    if (cameras[currentCamera]->isSetSkyBox()) {
         glDepthMask(GL_FALSE);  // Disable writing to the depth buffer
         glDisable(GL_DEPTH_TEST);  // Disable depth testing
 		
@@ -517,12 +517,14 @@ void Scene::setSkyBox(DrawableObject* skybox)
 {
 	skyBoxSet = true;
 	cameras[currentCamera]->setSkyBox(skybox);
+    registerNewObserver(skybox);
 }
 
 void Scene::setSkyBox(DrawableObject* skybox, int camera)
 {
 	skyBoxSet = true;
 	cameras[camera]->setSkyBox(skybox);
+    registerNewObserver(skybox);
 }
 
 void Scene::toggleSkyBox()
@@ -548,12 +550,16 @@ void Scene::setFollowingSkybox(bool follow, int camera)
 
 void Scene::drawSkyBoxes(float aspectRatio)
 {
-	for (Camera* camera : cameras) {
+    if (cameras[currentCamera]->isSetSkyBox()) {
+        cameras[currentCamera]->drawSkyBox(aspectRatio);
+    }
+	
+	/*for (Camera* camera : cameras) {
         if (camera->isSetSkyBox()) {
             camera->drawSkyBox(aspectRatio);
 		}
 		else cout << "Skybox not set for camera [" << currentCamera << "]" << endl;
-	}
+	}*/
 }
 
 bool Scene::isFollowingSkybox()

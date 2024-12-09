@@ -44,5 +44,6 @@ class Transformation : public BaseTransformation
 		// Rotation
 		void rotateObject(float angleDegrees, const glm::vec3& axis);
 		void setRotation(float angleDegrees, const glm::vec3& axis);
+        std::pair<float, glm::vec3> getRotation();
 };
 
