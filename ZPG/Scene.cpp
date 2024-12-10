@@ -452,14 +452,14 @@ void Scene::setScaleObject(int object, float amount) {
 
 // Resets the rotation of the current object in the scene
 void Scene::resetObjectRotation(int currentObject) {
-    objects[currentObject]->setScale(1.0f);
+    objects[currentObject]->setRotation(glm::vec3(1.0f, 0.0f, 0.0f), 0.0f);
+    objects[currentObject]->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), 0.0f);
+    objects[currentObject]->setRotation(glm::vec3(0.0f, 0.0f, 1.0f), 0.0f);   
 }
 
 // Resets the scale of the current object in the scene
 void Scene::resetObjectScale(int currentObject) {
-    objects[currentObject]->setRotation(glm::vec3(1.0f, 0.0f, 0.0f), 0.0f);
-    objects[currentObject]->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), 0.0f);
-    objects[currentObject]->setRotation(glm::vec3(0.0f, 0.0f, 1.0f), 0.0f);
+    objects[currentObject]->setScale(1.0f);
 }
 
 glm::vec3 Scene::getPositionLight(int light)

@@ -143,10 +143,13 @@ void Application::run() {
     float lastFrameTime = glfwGetTime();
     float currentFrameTime;
     float deltaTime;
+
+    DrawableObject* zombie = scenes[1]->getObject(scenes[1]->objectsCount() - 1);
+    DrawableObject* toilet = scenes[4]->getObject(scenes[4]->objectsCount() - 1);
     
     // Main loop
     while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
@@ -157,10 +160,10 @@ void Application::run() {
             scenes[currentScene]->rotateObject(1, 3);
             scenes[currentScene]->rotateObject(2, 3);
 			moveLightsRandom();
-            scenes[currentScene]->getObject(scenes[currentScene]->objectsCount() - 1)->updateMovement(deltaTime);
+            toilet->updateMovement(deltaTime);
         }
         else if (currentScene == 4) {
-            scenes[currentScene]->getObject(scenes[currentScene]->objectsCount() - 1)->updateMovement(deltaTime);
+            zombie->updateMovement(deltaTime);
         }
         
 
@@ -269,28 +272,28 @@ void Application::processInput() {
     if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
         scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'b');  // Move object back
     }
-    else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
         scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'f');  // Move object front
     }
-	else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
         scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 1);  // Rotate around x-axis
 	}
 	else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
         scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 2);  // Rotate around x-axis
 	}
-	else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
         scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 3);  // Rotate around y-axis
 	}
-	else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+    else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
         scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 4);  // Rotate around y-axis
 	}
-	else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
         scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 5);  // Rotate around z-axis
 	}
-	else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+    else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
         scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 6);  // Rotate around z-axis
 	}
-    else if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
         scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'u'); // Scale up
     }
     else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
@@ -605,10 +608,10 @@ void Application::addForest(int sceneIndex, int numTrees) {
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'f', 2.0f);
     scenes[sceneIndex]->moveObject(scenes[sceneIndex]->objectsCount() - 1, 'd', 0.5f);*/
     scenes[sceneIndex]->setScaleObject(scenes[sceneIndex]->objectsCount() - 1, 0.2f);
-    scenes[sceneIndex]->getObject(scenes[sceneIndex]->objectsCount() - 1)->startBezierMovement(
+    scenes[sceneIndex]->getObject(scenes[sceneIndex]->objectsCount() - 1)->startLineMovement(
         defaultBezierSegments[0],
-        defaultBezierSegments[1],
-        defaultBezierSegments[2],
+        /*defaultBezierSegments[1],
+        defaultBezierSegments[2],*/
         defaultBezierSegments[3],
         0.5f
     );
@@ -700,7 +703,7 @@ void Application::createSphereAtClick()
 
     // Convert screen coordinates to NDC
     // We have lastClickX, lastClickY, lastClickDepth from handleClick
-    glm::vec3 winCoords(lastClickX, (float)(lastClickY), lastClickDepth);
+    glm::vec3 winCoords(lastClickX, lastClickY, lastClickDepth);
 
     // Unproject to get world coordinates
     glm::vec3 worldPos = glm::unProject(winCoords, view, projection, viewport);

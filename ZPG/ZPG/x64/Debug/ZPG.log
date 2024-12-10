@@ -1,29 +1,27 @@
 ﻿  Application.cpp
 F:\VS\ZPG\ZPG\Application.cpp(143,25): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(151,39): warning C4244: =: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(221,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(306,14): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(308,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(309,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(310,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(312,12): warning C4477: printf: Formátovací řetězec %d vyžaduje argument typu int, ale variadický argument 1 má typ double.
-F:\VS\ZPG\ZPG\Application.cpp(312,12): warning C4477: printf: Formátovací řetězec %d vyžaduje argument typu int, ale variadický argument 2 má typ double.
-F:\VS\ZPG\ZPG\Application.cpp(472,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(473,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(476,123): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(476,114): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(543,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(544,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(545,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(551,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(560,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(561,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(562,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(568,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(583,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-F:\VS\ZPG\ZPG\Application.cpp(584,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-  Main.cpp
-  Generování kódu...
+F:\VS\ZPG\ZPG\Application.cpp(154,39): warning C4244: =: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(224,38): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(309,14): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(311,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(312,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(313,18): warning C4244: argument: double se převádí na GLint; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(315,12): warning C4477: printf: Formátovací řetězec %d vyžaduje argument typu int, ale variadický argument 1 má typ double.
+F:\VS\ZPG\ZPG\Application.cpp(315,12): warning C4477: printf: Formátovací řetězec %d vyžaduje argument typu int, ale variadický argument 2 má typ double.
+F:\VS\ZPG\ZPG\Application.cpp(475,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(476,26): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(479,123): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(479,114): warning C4244: argument: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(546,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(547,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(548,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(554,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(563,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(564,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(565,31): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(571,38): warning C4244: argument: double se převádí na const float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(586,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+F:\VS\ZPG\ZPG\Application.cpp(587,23): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
   SOIL.lib(SOIL.obj) : Našel se modul .net MSIL nebo modul zkompilovaný pomocí /GL. Propojení se restartuje s parametrem /LTCG. Výkon linkeru můžete zlepšit přidáním parametru /LTCG na příkazový řádek propojení.
 LINK : warning LNK4075: /INCREMENTAL se ignoruje kvůli specifikaci /LTCG.
 LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
