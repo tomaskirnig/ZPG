@@ -30,15 +30,15 @@ Model::Model(std::string fileName)
 
     Assimp::Importer importer;
     unsigned int importOptions = aiProcess_Triangulate //Converts polygons to triangles
-        | aiProcess_OptimizeMeshes              // Reduces the number of submeshes
-        | aiProcess_JoinIdenticalVertices       // Removes duplicate vertices
-        | aiProcess_CalcTangentSpace;           // Computes tangents and bitangents
+                | aiProcess_OptimizeMeshes              // Reduces the number of submeshes
+                | aiProcess_JoinIdenticalVertices       // Removes duplicate vertices
+                | aiProcess_CalcTangentSpace;           // Computes tangents and bitangents
 
     //aiProcess_GenNormals/ai_Process_GenSmoothNormals - Generates flat/Smooth normals
 
     const aiScene* scene = importer.ReadFile(OBJ_MODEL_PATH + fileName, importOptions);
 
-    if (scene) { //pokud bylo nacteni uspesne
+    if (scene) {
         printf("scene->mNumMeshes = %d\n", scene->mNumMeshes);
         printf("scene->mNumMaterials = %d\n", scene->mNumMaterials);
         //Materials
@@ -167,14 +167,14 @@ void Model::Model0(const float* points, size_t size) {
 void Model::Model1(const float* points, size_t size) {
     objectSize = size / (sizeof(float) * 6); // 6 floats (3 position, 3 normal)
 
-    glGenVertexArrays(1, &VAO); // generate the VAO
-    glGenBuffers(1, &VBO); // generate the VBO
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO); 
 
-    glBindVertexArray(VAO); // bind the VAO
-    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the VBO
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, size, points, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(0);  // Enable position attribute
+    glEnableVertexAttribArray(0);  
     glEnableVertexAttribArray(1);  // Enable normal attribute
 
     // Position attribute: location 0, 3 floats, stride of 6 floats

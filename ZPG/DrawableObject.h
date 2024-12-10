@@ -97,11 +97,7 @@ class DrawableObject {
                 if (movement->isMoving()) {
                     setPosition(newPos);
 
-                     //Calculate yaw and pitch from faceDir
-                     /*forward = -Z axis initially
-                     yaw: rotation around Y-axis
-                     pitch: rotation around X-axis*/
-
+                    //Calculate yaw and pitch from faceDir
                     glm::vec3 dir = glm::normalize(faceDir);
 
                     if (glm::length(faceDir) < 1e-6f) {

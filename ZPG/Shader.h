@@ -26,7 +26,7 @@ class Shader : IObserver, ShaderLoader{
         void checkCompileErrors(GLuint shader, string type);
 
     public:
-        Shader(string vertexFile, string fragmentFile, float shininess = 50.0f);
+        Shader(string vertexFile, string fragmentFile);
 
 	    GLuint compileShader(const char* source, GLenum type);
 
@@ -34,7 +34,7 @@ class Shader : IObserver, ShaderLoader{
             glUseProgram(ID);
         }
 
-        // Observer's update method implementation
+        // Observer's update method 
         void update(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const std::vector<LightData>& lights, const glm::vec3& viewPosition) override;
 
         void deleteShader() {

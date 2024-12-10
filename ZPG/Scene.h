@@ -10,7 +10,6 @@
 class Scene {
     private:
         vector<DrawableObject*> objects;
-		std::map<std::tuple<Shader*, Model*>, std::vector<DrawableObject*>> groupedObjects;
 		vector<Camera*> cameras;
 		vector<Light*> lights;
 
@@ -36,6 +35,7 @@ class Scene {
 		Light* addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type, bool follow);
 		
 		void setFollowingSpotLight(std::shared_ptr<Model> model);
+		void setFollowingSpotLight(std::shared_ptr<Model> model, glm::vec3 color, float intensity);
 		
 		void render();
 		void registerAllObservers(float aspectRatio);

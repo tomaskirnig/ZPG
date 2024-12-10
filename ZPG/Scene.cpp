@@ -13,7 +13,6 @@ Scene::~Scene() {
 // Adds a new object to the scene
 void Scene::addObject(DrawableObject* object) {
     objects.push_back(object);
-    //groupObjectsForInstancing();
 }
 
 // Deletes an object from the scene
@@ -26,9 +25,9 @@ void Scene::deleteObject(DrawableObject* delObject) {
     }
 }
 
-DrawableObject* Scene::getObject(int id)
+DrawableObject* Scene::getObject(int index)
 {
-    return objects[id];
+    return objects[index];
 }
 
 void Scene::addCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
@@ -69,58 +68,71 @@ void Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3
         lights.push_back(new PointLight(model,
             glm::vec3(0.0f),
             color,
-            1.0f));
+            intensity));
         break;
     case LightType::DIRECTIONAL:
         lights.push_back(new DirectionalLight(glm::vec3(0.0f, -1.0f, 0.0f),
-            glm::vec3(1.0f),
-            1.0f));
+            color,
+            intensity));
         break;
     case LightType::SPOTLIGHT:
         lights.push_back(new SpotLight(model,
             cameras[currentCamera]->getPosition(),
             cameras[currentCamera]->getTarget(),
-            glm::vec3(1.0f),
-            1.0f,
+            color,
+            intensity,
             12.5f,
             17.5f));
         break;
     }
 }
 
-Light* Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type, bool follow) {
-    Light* newLight = nullptr;
-    switch (type) {
-    case LightType::POINT:
-        newLight = new PointLight(model, position, color, intensity);
-        break;
-    case LightType::DIRECTIONAL:
-        newLight = new DirectionalLight(position, color, intensity);  // 'position' used as direction
-        break;
-    case LightType::SPOTLIGHT:
-        newLight = new SpotLight(model,
-            cameras[currentCamera]->getPosition(),
-            cameras[currentCamera]->getTarget(),
-            glm::vec3(1.0f),
-            1.0f,
-            12.5f,
-            17.5f);
-        break;
-    }
-    if (newLight) {
-        lights.push_back(newLight);
-    }
-    return newLight;
-}
+//Light* Scene::addLight(std::shared_ptr<Model> model, glm::vec3 position, glm::vec3 color, float intensity, LightType type, bool follow) {
+//    Light* newLight = nullptr;
+//    switch (type) {
+//    case LightType::POINT:
+//        newLight = new PointLight(model, position, color, intensity);
+//        break;
+//    case LightType::DIRECTIONAL:
+//        newLight = new DirectionalLight(position, color, intensity);  // 'position' used as direction
+//        break;
+//    case LightType::SPOTLIGHT:
+//        newLight = new SpotLight(model,
+//            cameras[currentCamera]->getPosition(),
+//            cameras[currentCamera]->getTarget(),
+//            color,
+//            intensity,
+//            12.5f,
+//            17.5f);
+//        break;
+//    }
+//    if (newLight) {
+//        lights.push_back(newLight);
+//    }
+//    return newLight;
+//}
 
 void Scene::setFollowingSpotLight(std::shared_ptr<Model> model)
 {
     cameras[currentCamera]->setFollowingSpotlight(new SpotLight(
-        model,  //should be nullptr 
+        model,
+        cameras[currentCamera]->getPosition(),
+        cameras[currentCamera]->getTarget(),
+        glm::vec3(1.0f),
+        1.0f,
+        12.5f,
+        17.5f));
+    lights.push_back(cameras[currentCamera]->getFollowingSpotlight());
+}
+
+void Scene::setFollowingSpotLight(std::shared_ptr<Model> model, glm::vec3 color, float intensity)
+{
+    cameras[currentCamera]->setFollowingSpotlight(new SpotLight(
+        model, 
 		cameras[currentCamera]->getPosition(),
 		cameras[currentCamera]->getTarget(),
-		glm::vec3(1.0f),
-		1.0f,
+		color,
+		intensity,
 		12.5f,
 		17.5f));
 	lights.push_back(cameras[currentCamera]->getFollowingSpotlight());
@@ -194,10 +206,10 @@ int Scene::getCurrObject()
     return currentObject;
 }
 
-void Scene::setCurrentObject(int object)
+void Scene::setCurrentObject(int objectId)
 {
 	for (int i = 0; i < objects.size(); i++) {
-		if (objects[i]->getId() == object) {
+		if (objects[i]->getId() == objectId) {
 			currentObject = i;
 			break;
 		}
@@ -553,13 +565,6 @@ void Scene::drawSkyBoxes(float aspectRatio)
     if (cameras[currentCamera]->isSetSkyBox()) {
         cameras[currentCamera]->drawSkyBox(aspectRatio);
     }
-	
-	/*for (Camera* camera : cameras) {
-        if (camera->isSetSkyBox()) {
-            camera->drawSkyBox(aspectRatio);
-		}
-		else cout << "Skybox not set for camera [" << currentCamera << "]" << endl;
-	}*/
 }
 
 bool Scene::isFollowingSkybox()

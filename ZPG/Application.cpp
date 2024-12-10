@@ -125,7 +125,6 @@ void Application::run() {
 	addScene(); // Balls with different shaders
 	addScene(); // Textures
 
-    // Adding objects to first scene
     scenes[0]->addObject(new DrawableObject(triangleModel, vertexShaderSources[1], fragmentShaderSources[2], true));
 
 	addForest(1, 50);
@@ -144,8 +143,8 @@ void Application::run() {
     float currentFrameTime;
     float deltaTime;
 
-    DrawableObject* zombie = scenes[1]->getObject(scenes[1]->objectsCount() - 1);
-    DrawableObject* toilet = scenes[4]->getObject(scenes[4]->objectsCount() - 1);
+    DrawableObject* toilet = scenes[1]->getObject(scenes[1]->objectsCount() - 1);
+    DrawableObject* zombie = scenes[4]->getObject(scenes[4]->objectsCount() - 1);
     
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -185,22 +184,17 @@ void Application::run() {
 }
 
 void Application::centerCursor() {
-    // Calculate the center of the window
     double centerX = width / 2.0;
     double centerY = height / 2.0;
 
-    // Set the cursor position to the center of the window
     glfwSetCursorPos(window, centerX, centerY);
 }
 
 void Application::disableAndLockCursor() {
-    // Hide and grab the cursor
-    
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void Application::enableCursor() {
-    // Make the cursor visible and free it
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
@@ -276,22 +270,22 @@ void Application::processInput() {
         scenes[currentScene]->moveObject(scenes[currentScene]->getCurrObject(), 'f');  // Move object front
     }
 	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 1);  // Rotate around x-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 1);  // Rotate around x-axis +
 	}
 	else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 2);  // Rotate around x-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 2);  // Rotate around x-axis -
 	}
 	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 3);  // Rotate around y-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 3);  // Rotate around y-axis +
 	}
     else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
-        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 4);  // Rotate around y-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 4);  // Rotate around y-axis -
 	}
 	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
-        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 5);  // Rotate around z-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 5);  // Rotate around z-axis +
 	}
     else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
-        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 6);  // Rotate around z-axis
+        scenes[currentScene]->rotateObject(scenes[currentScene]->getCurrObject(), 6);  // Rotate around z-axis -
 	}
     if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
         scenes[currentScene]->scaleObject(scenes[currentScene]->getCurrObject(), 'u'); // Scale up
@@ -471,11 +465,9 @@ void Application::cursor_callback(GLFWwindow* window, double x, double y) {
             double xOffset = x - app->lastX;
             double yOffset = app->lastY - y;
 
-            // Update the last cursor position
             app->lastX = x;
             app->lastY = y;
 
-            // Process the mouse movement
             app->scenes[app->currentScene]->mouseMovementCamera(app->scenes[app->currentScene]->getCurrCamera(), xOffset, yOffset, app->aspectRatio);
         }
     }
@@ -490,7 +482,6 @@ void Application::button_callback(GLFWwindow* window, int button, int action, in
 void Application::scroll_callback(GLFWwindow* window, double xOffset, double yOffset) {
     Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
 
-    // Process the scroll input
     if (app != nullptr) {
         app->scenes[app->currentScene]->zoomCamera(app->scenes[app->currentScene]->getCurrCamera(), yOffset, app->aspectRatio);  // Pass the scroll input to your Application class
     }
@@ -525,36 +516,32 @@ void Application::addForest(int sceneIndex, int numTrees) {
     Material* skycubeMaterial = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, skyTexture);
 
     random_device rd;
-    mt19937 gen(rd());  // Random number generator
+    mt19937 gen(rd()); 
 
     // Trees
-    // Range for random positions
     uniform_real_distribution<> disX(-10.0, 0.0);  // X-axis range 
     uniform_real_distribution<> disZ(-20.0, 20.0);  // Z-axis range 
 
     // Random scaling
     uniform_real_distribution<> disScale(0.4, 1.0);
 
-    // Random Y-axis rotation (0 to 360 degrees in radians)
+    // Random Y-axis rotation
     uniform_real_distribution<> disRotationY(0.0, 360.0);
 
     std::vector<glm::mat4> treeTransformations;
 
     // Place Trees
     for (int i = 0; i < numTrees; ++i) {
-        // Generate random x, z positions 
         float randomX = disX(gen);
         float randomZ = disZ(gen);
-        float randomRotationY = disRotationY(gen);  // Random rotation in radians
+        float randomRotationY = disRotationY(gen);  
 
         DrawableObject* treeObject = new DrawableObject(treeModel, vertexShaderSources[2], fragmentShaderSources[5], false);
 
-        // Set the transformation matrix (position and scale) 
-        treeObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
-        treeObject->setScale(disScale(gen));  // Apply random scaling
-        treeObject->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), randomRotationY);  // Rotate around Y-axis
+        treeObject->setPosition(glm::vec3(randomX, -0.5, randomZ)); 
+        treeObject->setScale(disScale(gen));  
+        treeObject->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), randomRotationY);  
 
-        // Add the tree to the specified scene
         scenes[sceneIndex]->addObject(treeObject);
     }
 
@@ -562,16 +549,14 @@ void Application::addForest(int sceneIndex, int numTrees) {
     for (int i = 0; i < numTrees; ++i) {
         float randomX = disX(gen);
         float randomZ = disZ(gen);
-        float randomRotationY = disRotationY(gen);  // Random rotation in radians
+        float randomRotationY = disRotationY(gen); 
 
         DrawableObject* bushObject = new DrawableObject(bushesModel, vertexShaderSources[2], fragmentShaderSources[5], false);
 
-        // Set the transformation matrix (position and scale) 
-        bushObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  // Place at random x, y, z 
-        bushObject->setScale(disScale(gen));  // Apply random scaling
-        bushObject->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), randomRotationY);  // Rotate around Y-axis
+        bushObject->setPosition(glm::vec3(randomX, -0.5, randomZ));  
+        bushObject->setScale(disScale(gen)); 
+        bushObject->setRotation(glm::vec3(0.0f, 1.0f, 0.0f), randomRotationY);  
 
-        // Add the tree to the specified scene
         scenes[sceneIndex]->addObject(bushObject);
     }
     Material* material = new Material(glm::vec3(0.1f), glm::vec3(0.1f), glm::vec3(0.1f), 1.0f, grassTexture);
@@ -613,7 +598,7 @@ void Application::addForest(int sceneIndex, int numTrees) {
         /*defaultBezierSegments[1],
         defaultBezierSegments[2],*/
         defaultBezierSegments[3],
-        0.5f
+        0.3f
     );
 
 	/*scenes[sceneIndex]->addObject(new DrawableObject(skydomeModel, vertexShaderSources[3], fragmentShaderSources[3], skyDomeMaterial));
@@ -697,12 +682,8 @@ void Application::createSphereAtClick()
 	glm::mat4 view = scenes[currentScene]->getViewMatrix();
 	glm::mat4 projection = scenes[currentScene]->getProjectionMatrix(aspectRatio);
 
-    // The viewport
-    // glViewport(0, 0, width, height); was set, so viewport = [0,0,width,height]
     glm::vec4 viewport(0.0f, 0.0f, (float)width, (float)height);
 
-    // Convert screen coordinates to NDC
-    // We have lastClickX, lastClickY, lastClickDepth from handleClick
     glm::vec3 winCoords(lastClickX, lastClickY, lastClickDepth);
 
     // Unproject to get world coordinates
@@ -781,13 +762,12 @@ void Application::moveLightsRandom() {
         cntr++;
     }
     else {
-        // Move each light independently within bounds
+        // Move each light within bounds
         for (int i = 0; i < scenes[currentScene]->getNumOfLights(); i++) {
             if (scenes[currentScene]->getLightType(i) != LightType::SPOTLIGHT) {
                 glm::vec3 currentPosition = scenes[currentScene]->getPositionLight(i);
                 char direction = directions[randomDirections[i]];
 
-                // Check bounds for the selected direction
                 switch (direction) {
                 case 'u':  // Move up (Y)
                     if (currentPosition.y < 0.8f) {
@@ -823,7 +803,6 @@ void Application::moveLightsRandom() {
             }
         }
 
-        // Increment and reset counter after 100 moves
         cntr++;
         if (cntr == 100) {
             cntr = 0;

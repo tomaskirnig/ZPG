@@ -12,5 +12,5 @@ public:
     }
 
 	glm::vec3 getDirection() const override { return glm::vec3(0.0f); }
-	void setDirection(const glm::vec3& dir) override { /* Do nothing */ }
+    void setDirection(const glm::vec3& dir) override { cout << "Setting dir to a pontlight" << endl; }
 };

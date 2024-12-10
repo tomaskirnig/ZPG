@@ -3,7 +3,7 @@
 #include "DirectionalLight.h"
 #include "PointLight.h"
 
-Shader::Shader(string vertexFile, string fragmentFile, float shininess) {
+Shader::Shader(string vertexFile, string fragmentFile) {
 	this->shininess = shininess;
 
 	cout << "Shininess" << this->shininess << endl;
@@ -171,7 +171,6 @@ void Shader::setMaterial(const Material* material) {
 			glUniform1i(getUniformLocation("UISky"), material->getTextureUnit());
 			//cout << "UISky: " << material->getTextureUnit() << endl;
         }
-        
 	}
 	else {
 		glUniform1i(getUniformLocation("material.hasTexture"), 0);

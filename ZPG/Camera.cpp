@@ -3,7 +3,6 @@
 #include "DirectionalLight.h"
 #include "PointLight.h"
 
-// Constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
     Position(position), WorldUp(up), Yaw(yaw), Pitch(pitch), MovementSpeed(0.05f), MouseSensitivity(0.1f), Fov(75.0f) {
     updateCameraVectors();
@@ -100,9 +99,7 @@ void Camera::processMouseMovement(float xOffset, float yOffset, float aspectRati
         followingSpotlight->setDirection(Target);
     }
 
-    // Update Target, Right, and Up Vectors
     updateCameraVectors();
-    //notifyObservers(aspectRatio, lights);
 }
 
 // Processes input from the mouse scroll wheel
@@ -125,7 +122,6 @@ void Camera::setFollowingSpotlight(Light* spotlight) {
 
 // Updates the Target, Right, and Up vectors using the current Euler angles
 void Camera::updateCameraVectors() {
-    // Calculate the new target direction
     glm::vec3 target;
     target.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
     target.y = sin(glm::radians(Pitch));

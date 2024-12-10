@@ -15,7 +15,7 @@ DrawableObject::DrawableObject(std::shared_ptr<Model> model, std::string vertexS
 	if (genId) id = generateId();
 	else id = 0;
 
-	shader = new Shader(vertexShaderFile, fragmentShaderFile, material->getShininess());
+	shader = new Shader(vertexShaderFile, fragmentShaderFile);
 	
 	if (material != nullptr) this->material = material;
 	else this->material = new Material();
@@ -25,12 +25,13 @@ DrawableObject::~DrawableObject() {
     delete shader;
     delete transformation;
 	delete material;
+    delete movement;
 }
 
 // Draw the object
 void DrawableObject::draw() {
     if (model != nullptr) {
-        shader->use(); // Set the shader to be used
+        shader->use(); 
 
         glStencilFunc(GL_ALWAYS, this->getId(), 0xFF);
 
@@ -39,7 +40,6 @@ void DrawableObject::draw() {
         // Get the uniform location
         GLint transformLoc = shader->getUniformLocation("transformationMatrix");
 
-        // Set material uniforms
         shader->setMaterial(material);
 
         // Send the transformation matrix to the shader
