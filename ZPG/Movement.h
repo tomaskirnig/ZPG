@@ -47,7 +47,7 @@ public:
     void reverse(MovementType type);
     bool isMoving() const { return moving; }
 
-    glm::vec3 update(float deltaTime, glm::vec3& newPos, glm::vec3& faceDir);
+    void update(float deltaTime, glm::vec3& newPos, glm::vec3& faceDir);
     MovementType getType() const { return type; }
 
     glm::vec3 linearDerivative(const glm::vec3& start, const glm::vec3& end) {

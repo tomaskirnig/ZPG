@@ -17,6 +17,7 @@ static glm::vec3 cubicBezier(const glm::vec3& P0, const glm::vec3& P1, const glm
     return point;
 }
 
+// Initialization of movements
 void Movement::setLineMovement(const glm::vec3& start, const glm::vec3& end, float speed) {
     type = MovementType::LINEAR;
     lineStart = start;
@@ -61,8 +62,8 @@ void Movement::reverse(MovementType type)
     }
 }
 
-glm::vec3 Movement::update(float deltaTime, glm::vec3& newPos, glm::vec3& faceDir) {
-    if (!moving || type == MovementType::NONE) return glm::vec3(0.0f);
+void Movement::update(float deltaTime, glm::vec3& newPos, glm::vec3& faceDir) {
+    if (!moving || type == MovementType::NONE) return;
 
     switch (type) {
     case MovementType::LINEAR: {
@@ -87,8 +88,7 @@ glm::vec3 Movement::update(float deltaTime, glm::vec3& newPos, glm::vec3& faceDi
     }
     case MovementType::ARC_BEZIER: {
         if (arcSegments.empty()) {
-            //reverse(MovementType::ARC_BEZIER);
-            return glm::vec3(0.0f);
+            return;
         }
 
         arcT += deltaTime * arcSpeed * direction;

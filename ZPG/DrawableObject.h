@@ -94,6 +94,7 @@ class DrawableObject {
             if (movement->isMoving()) {
                 glm::vec3 newPos, faceDir;
                 movement->update(deltaTime, newPos, faceDir);
+
                 if (movement->isMoving()) {
                     setPosition(newPos);
 
@@ -112,13 +113,8 @@ class DrawableObject {
                     // Pitch angle: angle around X axis, derived from vertical component
                     float pitch = std::asin(dir.y);
 
-                    // Reset rotations before applying new ones
-                    transformation->setRotation(0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-                    transformation->setRotation(0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-                    transformation->setRotation(0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-                    transformation->rotateObject(yaw, glm::vec3(0.0f, 1.0f, 0.0f));
-                    transformation->rotateObject(pitch, glm::vec3(1.0f, 0.0f, 0.0f));
+                    transformation->setRotation(yaw, glm::vec3(0.0f, 1.0f, 0.0f));
+                    transformation->setRotation(pitch, glm::vec3(1.0f, 0.0f, 0.0f));
                 }
             }
         }
